@@ -25,9 +25,11 @@ export function NativeSurfaces({api,store,target}:{api:ExcalidrawImperativeAPI;s
   const fontSize=label?.type==='text'?label.fontSize:16;
   return <div key={element.id} className="cv-material-card" data-material-card={element.id} style={{
    left:(element.x+drawing.scrollX)*drawing.zoom,top:(element.y+drawing.scrollY)*drawing.zoom,
-   width:element.width,height:element.height,transform:`scale(${drawing.zoom})`,opacity:element.opacity/100,
-  }}><div style={{width:'100%',height:'100%',transform:`rotate(${element.angle}rad)`,fontSize}}>
+   width:element.width,height:element.height,transform:`scale(${drawing.zoom})`,
+  }}><div className="cv-material-plane" style={{transform:`rotate(${element.angle}rad)`,fontSize}}>
+   <div className="cv-material-content" style={{opacity:element.opacity/100}}>
     <BlockCard block={{...block,muted:false,backgroundColor:block.backgroundColor==='transparent'?undefined:block.backgroundColor}}/>
+   </div>
   </div></div>;
  })}</div>,target);
 }

@@ -45,8 +45,11 @@
 .cv-material-layer { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 .cv-material-card { position:absolute; transform-origin:top left; pointer-events:none; }
 .cv-material-card .cv-block { font-size:inherit; }
-.cv-material-card { isolation:isolate; }
-.cv-material-card::before { content:""; position:absolute; inset:-1.5px; background:#fff; border-radius:13px; z-index:-1; }
+/* Keep the erasure plane opaque, including when a native card is muted or animating.
+   Only the decorative content fades; otherwise native text shows through twice. */
+.cv-material-plane { position:relative; width:100%; height:100%; isolation:isolate; }
+.cv-material-content { width:100%; height:100%; }
+.cv-material-plane::before { content:""; position:absolute; inset:-2px; background:#fff; border-radius:10px; z-index:-1; }
 .cv-native-arrivals { z-index:3; }
 /* Native property controls use monochrome surfaces too; color swatches retain their meaning. */
 .cv-native-editor .excalidraw {

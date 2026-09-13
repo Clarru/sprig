@@ -4,7 +4,7 @@ Requested release order: finish the foundation, complete the diagram/material de
 
 ## Verified destinations
 
-- GitHub CLI is authenticated as `Clarru`. `Clarru/sprig` was available at this checkpoint; recheck immediately before creation.
+- GitHub CLI is authenticated as `Clarru`. `Clarru/sprig` is now public at https://github.com/Clarru/sprig.
 - Vercel CLI is authenticated as `clarru`, in scope `clarrus-projects`.
 - Existing Vercel project: `clarru-portfolio`, production domain `https://www.clarru.com`, root directory `.`, Next.js preset, Node 24.x, default Next build/output settings.
 - Public demo route: `/playground/sprig`. Case study: `/sprig`. These portfolio routes already use the authored scenario player and do not import the standalone listening server or local agent client.
@@ -26,6 +26,6 @@ A GitHub release tarball can provide the pinned package without assuming an npm 
 
 Include `packages/canvas`, `apps/canvas`, Sprig documentation/tests, MIT license, and dependency/upstream notices. Exclude unrelated portfolio application/content, `.env` values, private package-manager configuration, local deployment linkage, logs and generated build directories. The generated README contains local run/build/test instructions and explains the silent assistant and optional script/agent interface.
 
-No deployment or GitHub repository has been created at this checkpoint. The remaining browser checks require manual Mac unlock.
+The public demo and case study are deployed at https://www.clarru.com/playground/sprig and https://www.clarru.com/sprig. The standalone source of truth is https://github.com/Clarru/sprig. Versioned package tarballs are published through GitHub Releases; the portfolio consumes an exact release URL with lockfile integrity. The local checkout is now the sibling `../sprig`, with the ignored local server environment retained there.
 
 References: [Vercel project configuration](https://vercel.com/docs/project-configuration), [Vercel deployments](https://vercel.com/docs/deployments). Existing project settings above were read from the authenticated Vercel CLI.

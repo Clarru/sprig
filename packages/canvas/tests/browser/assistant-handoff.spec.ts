@@ -37,4 +37,33 @@ test('streamed assistant edits respect a manual drag and undo in the actual edit
  const epoch=context!.historyEpoch;await page.locator('.excalidraw').press('ControlOrMeta+z');
  await expect(page.locator('[data-board-object="welcome"]')).toContainText('Welcome');
  await expect.poll(()=>context!.historyEpoch).toBeGreaterThan(epoch);
+ // A muted speech update must never expose the native label behind its surface.
+ send('muted',context!.board.revision,[{type:'update',id:'welcome',patch:{muted:true,label:'View festival set times',detail:'Festival attendees view scheduled performance set times in the calendar.'}}]);
+ const surface=page.locator('[data-material-card="welcome"]');
+ await expect(surface).toContainText('View festival set times');
+ await expect(surface.locator('.cv-material-content')).toHaveCSS('opacity','0.45');
+ const paintedBefore=await surface.screenshot({animations:'disabled'});
+ const native=page.locator('canvas.excalidraw__canvas.static');
+ await expect(native).toHaveCount(1);
+ await native.evaluate(canvas=>{canvas.style.visibility='hidden';});
+ const paintedWithoutNative=await surface.screenshot({animations:'disabled'});
+ expect(paintedBefore.equals(paintedWithoutNative)).toBe(true);
+ await native.evaluate(canvas=>{canvas.style.visibility='';});
+ send('rotated',context!.board.revision,[{type:'update',id:'welcome',patch:{angle:0.15,label:'Festival set-time calendar screen',height:300}}]);
+ await expect(surface).toContainText('Festival set-time calendar screen');
+ const rotated=await surface.screenshot({animations:'disabled'});
+ await native.evaluate(canvas=>{canvas.style.visibility='hidden';});
+ const rotatedWithoutNative=await surface.screenshot({animations:'disabled'});
+ // Rotation can change edge antialiasing by one channel value; duplicated text is much darker.
+ const largestDifference=await page.evaluate(async ([a,b])=>{
+  const pixels=async (base64:string)=>{
+   const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();
+   const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;
+   const ctx=canvas.getContext('2d')!;ctx.drawImage(img,0,0);return ctx.getImageData(0,0,img.width,img.height).data;
+  };
+  const [left,right]=await Promise.all([pixels(a),pixels(b)]);
+  return left.reduce((max,value,i)=>Math.max(max,Math.abs(value-right[i])),0);
+ },[rotated.toString('base64'),rotatedWithoutNative.toString('base64')]);
+ expect(largestDifference).toBeLessThanOrEqual(1);
+ await native.evaluate(canvas=>{canvas.style.visibility='';});
 });
