@@ -48,3 +48,9 @@
 .cv-material-card { isolation:isolate; }
 .cv-material-card::before { content:""; position:absolute; inset:-1.5px; background:#fff; border-radius:13px; z-index:-1; }
 .cv-native-arrivals { z-index:3; }
+/* Native property controls use monochrome surfaces too; color swatches retain their meaning. */
+.cv-native-editor .excalidraw {
+  --color-surface-high:#f1f1f1; --color-surface-mid:#f3f3f3; --color-surface-low:#ececec; --color-surface-lowest:#fff;
+  --color-on-surface:#222; --color-on-primary-container:#222; --color-surface-primary-container:#e6e6e6;
+  --color-brand-hover:#333; --color-brand-active:#222; --color-border-outline:#777; --color-border-outline-variant:#ccc;
+}
