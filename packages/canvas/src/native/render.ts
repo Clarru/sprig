@@ -56,7 +56,7 @@ export function renderScene(board: Board): {elements: DrawingElement[]; files: B
     const endX = b.x + (vertical ? to.width/2 : right ? -5 : to.width+5);
     const endY = b.y + (vertical ? down ? -5 : to.height+5 : to.height/2);
     skeleton.push({type: "arrow", id: edge.id, x, y, width: endX - x, height: endY - y,
-      points: vertical ? [[0, 0], [0, (endY - y) / 2], [endX - x, (endY - y) / 2], [endX - x, endY - y]] : [[0, 0], [(endX - x) / 2, 0], [(endX - x) / 2, endY - y], [endX - x, endY - y]], start: {id: anchors.get(from.id) ?? from.id}, end: {id: anchors.get(to.id) ?? to.id},
+      points: Math.abs(endY-y)<1 || Math.abs(endX-x)<1 ? [[0,0],[endX-x,endY-y]] : vertical ? [[0, 0], [0, (endY - y) / 2], [endX - x, (endY - y) / 2], [endX - x, endY - y]] : [[0, 0], [(endX - x) / 2, 0], [(endX - x) / 2, endY - y], [endX - x, endY - y]], start: {id: anchors.get(from.id) ?? from.id}, end: {id: anchors.get(to.id) ?? to.id},
       strokeColor: outcomeColor(edge.outcome), strokeWidth: edge.highlighted ? 2 : 1.5, roughness: 0,
       opacity: edge.muted ? 45 : 100,
       ...(edge.label ? {label: {text: edge.label, fontFamily: 2, fontSize: 12, strokeColor: outcomeColor(edge.outcome)}} : {}),

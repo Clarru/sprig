@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "revision": 9,
+  "title": "Untitled thought",
+  "story": {
+    "version": 1,
+    "revision": 20,
+    "activeTopic": "sprig",
+    "focusConcept": "unresolved_option",
+    "topics": {
+      "sprig": {
+        "id": "sprig",
+        "label": "How Sprig helps me think out loud",
+        "view": "sequence",
+        "concepts": {
+          "sprig_system": {
+            "id": "sprig_system",
+            "label": "Sprig",
+            "aliases": [],
+            "role": "system",
+            "certainty": "stated",
+            "detail": "A tool that helps the user think out loud.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_1",
+              "revision": 3,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "rough_idea": {
+            "id": "rough_idea",
+            "label": "Start with a rough idea",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The user begins by forming or presenting an initial rough idea.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_2",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "explain_idea": {
+            "id": "explain_idea",
+            "label": "Explain the idea in my own words",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_2",
+              "revision": 2,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "editable_diagram": {
+            "id": "editable_diagram",
+            "label": "Turn clear parts into an editable diagram",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "Sprig transforms the clear parts of the user's thinking into a diagram that can be edited.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_4",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "unresolved_option": {
+            "id": "unresolved_option",
+            "label": "Keep uncertain parts as an unresolved option",
+            "aliases": [],
+            "role": "option",
+            "certainty": "stated",
+            "detail": "If something remains uncertain, preserve it beside the editable diagram rather than forcing it into the main flow.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_5",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "refine_diagram": {
+            "id": "refine_diagram",
+            "label": "Refine the diagram by talking through a change",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The user talks through a change to refine the editable diagram.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_6",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          }
+        },
+        "relations": [
+          {
+            "id": "next:rough_idea:explain_idea",
+            "from": "rough_idea",
+            "to": "explain_idea",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_2",
+              "revision": 3,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:explain_idea:editable_diagram",
+            "from": "explain_idea",
+            "to": "editable_diagram",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_4",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "alternative:unresolved_option:editable_diagram",
+            "from": "unresolved_option",
+            "to": "editable_diagram",
+            "kind": "alternative",
+            "label": "beside the diagram",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_5",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:editable_diagram:refine_diagram",
+            "from": "editable_diagram",
+            "to": "refine_diagram",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_6",
+              "revision": 2,
+              "origin": "speech"
+            }
+          }
+        ],
+        "questions": {},
+        "suggestionsAllowed": false,
+        "emphasis": [
+          "editable_diagram",
+          "refine_diagram",
+          "unresolved_option"
+        ]
+      }
+    },
+    "appliedPatches": [
+      "meaning_session_f0405916f5ea471bb112880def098c9f_1_1",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_1_2",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_1_3",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_1_4",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_2_1",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_2_2",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_2_3",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_2_5",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_3_7",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_3_8",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_3_9",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_4_1",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_4_2",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_4_3",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_5_1",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_5_2",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_5_3",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_6_1",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_6_2",
+      "meaning_session_f0405916f5ea471bb112880def098c9f_6_3"
+    ]
+  },
+  "blocks": [
+    {
+      "id": "sprig__sprig_system",
+      "kind": "step",
+      "label": "Sprig",
+      "detail": "A tool that helps the user think out loud.",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 40,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "sprig_system",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "sprig__rough_idea",
+      "kind": "step",
+      "label": "Start with a rough idea",
+      "detail": "The user begins by forming or presenting an initial rough idea.",
+      "position": {
+        "x": 350,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 350,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "rough_idea",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "sprig__explain_idea",
+      "kind": "step",
+      "label": "Explain the idea in my own words",
+      "detail": "",
+      "position": {
+        "x": 660,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 660,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "explain_idea",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "sprig__editable_diagram",
+      "kind": "step",
+      "label": "Turn clear parts into an editable diagram",
+      "detail": "Sprig transforms the clear parts of the user's thinking into a diagram that can be edited.",
+      "position": {
+        "x": 970,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 970,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "editable_diagram",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "sprig__unresolved_option",
+      "kind": "step",
+      "label": "Keep uncertain parts as an unresolved option",
+      "detail": "If something remains uncertain, preserve it beside the editable diagram rather than forcing it into the main flow.",
+      "position": {
+        "x": 1280,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 1280,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "unresolved_option",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "sprig__refine_diagram",
+      "kind": "step",
+      "label": "Refine the diagram by talking through a change",
+      "detail": "The user talks through a change to refine the editable diagram.",
+      "position": {
+        "x": 1280,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 1280,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "sprig",
+      "storyConcept": "refine_diagram",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "story_link_54qn8n",
+      "source": "sprig__rough_idea",
+      "target": "sprig__explain_idea",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "sprig__next:rough_idea:explain_idea",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_1m5ub8c",
+      "source": "sprig__explain_idea",
+      "target": "sprig__editable_diagram",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "sprig__next:explain_idea:editable_diagram",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_e2qvwa",
+      "source": "sprig__editable_diagram",
+      "target": "sprig__refine_diagram",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "sprig__next:editable_diagram:refine_diagram",
+      "muted": false,
+      "outcome": "neutral"
+    }
+  ]
+}

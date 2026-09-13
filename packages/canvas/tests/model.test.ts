@@ -235,3 +235,15 @@ describe("authored examples", () => {
     });
   }
 });
+
+it('restores persisted automatic dimming without changing manual styling or geometry',()=>{
+ const board=emptyBoard();
+ board.blocks=[makeBlock('step','Earlier',{x:120,y:80},{id:'earlier',storyTopic:'flow',storyConcept:'earlier',muted:true}),makeBlock('step','Current',{x:420,y:80},{id:'current',storyTopic:'flow',storyConcept:'current',highlighted:true}),makeBlock('note','Manual',{x:0,y:0},{id:'manual',muted:true})];
+ board.edges=[{id:'link',source:'earlier',target:'current',label:'Next',storyRelationId:'relation',muted:true,highlighted:true}];
+ const store=new BoardStore(board),restored=store.getSnapshot().board;
+ expect(restored.blocks.slice(0,2).every(block=>!block.muted&&!block.highlighted)).toBe(true);
+ expect(restored.blocks.map(block=>block.position)).toEqual(board.blocks.map(block=>block.position));
+ expect(restored.blocks[2].muted).toBe(true);
+ expect(restored.edges[0]).toMatchObject({muted:false,highlighted:false,source:'earlier',target:'current'});
+ expect(restored.revision).toBe(board.revision);
+});

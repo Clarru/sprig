@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "revision": 19,
+  "title": "Untitled thought",
+  "story": {
+    "version": 1,
+    "revision": 42,
+    "activeTopic": "simple-map",
+    "focusConcept": "maybe-another",
+    "topics": {
+      "simple-map": {
+        "id": "simple-map",
+        "label": "Simple map",
+        "view": "sequence",
+        "concepts": {
+          "first-step": {
+            "id": "first-step",
+            "label": "Rough idea",
+            "aliases": [
+              "First step"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The simple flow begins with a rough idea.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_5",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "speaking": {
+            "id": "speaking",
+            "label": "Speaking",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The next step in the simple flow is speaking naturally.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_8",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "after-step": {
+            "id": "after-step",
+            "label": "Editable diagram",
+            "aliases": [
+              "After",
+              "Editable"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The flow continues with an editable diagram after speaking naturally; the diagram can be edited, though the specific editing action is not yet stated. The speaker begins to continue the flow after this point, but no next step has been specified yet.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_12",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "refine-diagram": {
+            "id": "refine-diagram",
+            "label": "Refine together",
+            "aliases": [
+              "Refine diagram"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "The editable diagram is refined together after it is created.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_19",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "maybe-another": {
+            "id": "maybe-another",
+            "label": "Try another direction",
+            "aliases": [
+              "Try another approach"
+            ],
+            "role": "option",
+            "certainty": "tentative",
+            "detail": "The speaker is considering trying another direction, and explicitly wants to keep this idea unresolved.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_22",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          }
+        },
+        "relations": [
+          {
+            "id": "contains:simple-map:first-step",
+            "from": "simple-map",
+            "to": "first-step",
+            "kind": "contains",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_3",
+              "revision": 3,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:first-step:speaking",
+            "from": "first-step",
+            "to": "speaking",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_7",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:speaking:after-step",
+            "from": "speaking",
+            "to": "after-step",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_9",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:after-step:refine-diagram",
+            "from": "after-step",
+            "to": "refine-diagram",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_13",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "alternative:refine-diagram:maybe-another",
+            "from": "refine-diagram",
+            "to": "maybe-another",
+            "kind": "alternative",
+            "label": "Maybe try another",
+            "certainty": "tentative",
+            "evidence": {
+              "utteranceId": "request_24",
+              "revision": 1,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "alternative:maybe-another:refine-diagram",
+            "from": "maybe-another",
+            "to": "refine-diagram",
+            "kind": "alternative",
+            "label": "Maybe try another",
+            "certainty": "tentative",
+            "evidence": {
+              "utteranceId": "request_24",
+              "revision": 2,
+              "origin": "speech"
+            }
+          }
+        ],
+        "questions": {},
+        "suggestionsAllowed": false,
+        "emphasis": [
+          "maybe-another"
+        ]
+      }
+    },
+    "appliedPatches": [
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_2_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_2_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_2_3",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_3_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_3_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_3_3",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_4_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_5_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_5_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_6_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_7_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_7_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_7_3",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_8_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_9_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_9_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_9_3",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_10_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_10_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_11_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_11_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_12_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_12_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_13_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_13_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_13_3",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_14_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_15_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_18_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_18_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_19_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_19_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_20_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_20_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_21_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_22_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_22_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_23_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_23_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_24_1",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_24_2",
+      "meaning_session_9f0eebd69c9c45f5b9d6caaf6d83aa57_24_3"
+    ]
+  },
+  "blocks": [
+    {
+      "id": "simple-map__first-step",
+      "kind": "step",
+      "label": "Rough idea",
+      "detail": "The simple flow begins with a rough idea.",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 40,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "simple-map",
+      "storyConcept": "first-step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "simple-map__speaking",
+      "kind": "step",
+      "label": "Speaking",
+      "detail": "The next step in the simple flow is speaking naturally.",
+      "position": {
+        "x": 350,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 350,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "simple-map",
+      "storyConcept": "speaking",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "simple-map__after-step",
+      "kind": "step",
+      "label": "Editable diagram",
+      "detail": "The flow continues with an editable diagram after speaking naturally; the diagram can be edited, though the specific editing action is not yet stated. The speaker begins to continue the flow after this point, but no next step has been specified yet.",
+      "position": {
+        "x": 660,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 660,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "simple-map",
+      "storyConcept": "after-step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "simple-map__refine-diagram",
+      "kind": "step",
+      "label": "Refine together",
+      "detail": "The editable diagram is refined together after it is created.",
+      "position": {
+        "x": 970,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 970,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "simple-map",
+      "storyConcept": "refine-diagram",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "simple-map__maybe-another",
+      "kind": "step",
+      "label": "Try another direction",
+      "detail": "The speaker is considering trying another direction, and explicitly wants to keep this idea unresolved.",
+      "position": {
+        "x": 970,
+        "y": 250
+      },
+      "autoPosition": {
+        "x": 970,
+        "y": 250
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "simple-map",
+      "storyConcept": "maybe-another",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": true,
+      "highlighted": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "story_link_m6yq64",
+      "source": "simple-map__first-step",
+      "target": "simple-map__speaking",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "simple-map__next:first-step:speaking",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_4yk192",
+      "source": "simple-map__speaking",
+      "target": "simple-map__after-step",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "simple-map__next:speaking:after-step",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_k8nh63",
+      "source": "simple-map__after-step",
+      "target": "simple-map__refine-diagram",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "simple-map__next:after-step:refine-diagram",
+      "muted": false,
+      "outcome": "neutral"
+    }
+  ]
+}

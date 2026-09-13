@@ -155,3 +155,17 @@ it("separates outcome branches while respecting manual positioning", () => {
  b=update(b,[{type:"revise",id:"ok",label:"All done"}]);
  expect(b.blocks.find(b=>b.id===fail.id)?.position).toEqual({x:1300,y:700});
 });
+
+it('places a streamed side option below its anchor and preserves later hand placement',()=>{
+ let b=update(emptyBoard(),[{type:'concept',id:'refine',label:'Refine together',role:'step'},{type:'concept',id:'option',label:'Another direction',role:'option',certainty:'tentative'}]);
+ const anchor=b.blocks.find(block=>block.storyConcept==='refine')!,initialAnchor={...anchor.position};
+ b=update(b,[{type:'relation',from:'option',to:'refine',kind:'alternative',certainty:'tentative'}]);
+ const option=b.blocks.find(block=>block.storyConcept==='option')!;
+ expect(option.position.x).toBe(anchor.position.x);
+ expect(option.position.y).toBeGreaterThan(anchor.position.y+anchor.height);
+ expect(b.blocks.find(block=>block.id===anchor.id)!.position).toEqual(initialAnchor);
+ expect(b.edges).toHaveLength(0);
+ b=applyTransaction(b,{id:'move-side-option',source:'manual',baseRevision:b.revision,operations:[{type:'update',id:option.id,patch:{position:{x:860,y:470}}}]});
+ b=update(b,[{type:'relation',from:'option',to:'refine',kind:'alternative',certainty:'tentative'}]);
+ expect(b.blocks.find(block=>block.id===option.id)!.position).toEqual({x:860,y:470});
+});

@@ -1,0 +1,571 @@
+{
+  "date": "2026-09-13T19:38:16.033Z",
+  "failures": [],
+  "passed": true,
+  "model": "gpt-5.6-luna",
+  "measurement": "Real model through the production LiveClient and browser editor. Text input bypasses microphone and transcription. Timings end at browser acknowledgment, not pixel paint.",
+  "turns": [
+    {
+      "text": "Let’s map a simple flow. The first step is a rough idea.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.",
+      "firstAcknowledgedEditMs": 1911,
+      "totalMs": 3559,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        }
+      ],
+      "edges": [],
+      "meanings": [
+        {
+          "type": "topic",
+          "id": "simple_flow",
+          "label": "Simple flow"
+        },
+        {
+          "type": "view",
+          "kind": "sequence"
+        },
+        {
+          "type": "concept",
+          "id": "rough_idea",
+          "label": "Rough idea",
+          "role": "step",
+          "certainty": "stated"
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 1,
+          "modelState": "complete",
+          "requestMs": 1883,
+          "inputTokens": 1900,
+          "outputTokens": 80,
+          "cachedInputTokens": 0,
+          "firstUpdateMs": 1635
+        }
+      ]
+    },
+    {
+      "text": "The next step is speaking naturally.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.\nThe next step is speaking naturally.",
+      "firstAcknowledgedEditMs": 2481,
+      "totalMs": 4863,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__speaking_naturally",
+          "label": "Speaking naturally",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 350,
+            "y": 60
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "story_link_197h8cn",
+          "source": "simple_flow__rough_idea",
+          "target": "simple_flow__speaking_naturally",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:rough_idea:speaking_naturally",
+          "muted": false,
+          "outcome": "neutral"
+        }
+      ],
+      "meanings": [
+        {
+          "type": "concept",
+          "id": "speaking_naturally",
+          "label": "Speaking naturally",
+          "role": "step",
+          "certainty": "stated",
+          "outcome": "neutral"
+        },
+        {
+          "type": "next",
+          "from": "rough_idea",
+          "to": "speaking_naturally"
+        },
+        {
+          "type": "focus",
+          "ids": [
+            "speaking_naturally"
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 2,
+          "modelState": "complete",
+          "requestMs": 3425,
+          "inputTokens": 1956,
+          "outputTokens": 95,
+          "cachedInputTokens": 1733,
+          "firstUpdateMs": 2430
+        }
+      ]
+    },
+    {
+      "text": "After that comes an editable diagram.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.\nThe next step is speaking naturally.\nAfter that comes an editable diagram.",
+      "firstAcknowledgedEditMs": 1401,
+      "totalMs": 3398,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__speaking_naturally",
+          "label": "Speaking naturally",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 350,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__editable_diagram",
+          "label": "Editable diagram",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 660,
+            "y": 60
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "story_link_197h8cn",
+          "source": "simple_flow__rough_idea",
+          "target": "simple_flow__speaking_naturally",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:rough_idea:speaking_naturally",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_kv6mw4",
+          "source": "simple_flow__speaking_naturally",
+          "target": "simple_flow__editable_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:speaking_naturally:editable_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        }
+      ],
+      "meanings": [
+        {
+          "type": "concept",
+          "id": "editable_diagram",
+          "label": "Editable diagram",
+          "role": "step",
+          "certainty": "stated",
+          "outcome": "neutral"
+        },
+        {
+          "type": "next",
+          "from": "speaking_naturally",
+          "to": "editable_diagram"
+        },
+        {
+          "type": "focus",
+          "ids": [
+            "editable_diagram"
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 3,
+          "modelState": "complete",
+          "requestMs": 1976,
+          "inputTokens": 2031,
+          "outputTokens": 91,
+          "cachedInputTokens": 1733,
+          "firstUpdateMs": 1323
+        }
+      ]
+    },
+    {
+      "text": "Then we refine the diagram.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.\nThe next step is speaking naturally.\nAfter that comes an editable diagram.\nThen we refine the diagram.",
+      "firstAcknowledgedEditMs": 1362,
+      "totalMs": 3152,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__speaking_naturally",
+          "label": "Speaking naturally",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 350,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__editable_diagram",
+          "label": "Editable diagram",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 660,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__refine_diagram",
+          "label": "Refining the diagram",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 970,
+            "y": 60
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "story_link_197h8cn",
+          "source": "simple_flow__rough_idea",
+          "target": "simple_flow__speaking_naturally",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:rough_idea:speaking_naturally",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_kv6mw4",
+          "source": "simple_flow__speaking_naturally",
+          "target": "simple_flow__editable_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:speaking_naturally:editable_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_1b0oplm",
+          "source": "simple_flow__editable_diagram",
+          "target": "simple_flow__refine_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:editable_diagram:refine_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        }
+      ],
+      "meanings": [
+        {
+          "type": "concept",
+          "id": "refine_diagram",
+          "label": "Refining the diagram",
+          "role": "step",
+          "certainty": "stated",
+          "outcome": "neutral"
+        },
+        {
+          "type": "next",
+          "from": "editable_diagram",
+          "to": "refine_diagram"
+        },
+        {
+          "type": "focus",
+          "ids": [
+            "refine_diagram"
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 4,
+          "modelState": "complete",
+          "requestMs": 1698,
+          "inputTokens": 2094,
+          "outputTokens": 90,
+          "cachedInputTokens": 1733,
+          "firstUpdateMs": 1285
+        }
+      ]
+    },
+    {
+      "text": "Actually, let’s call that last step Refine together.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.\nThe next step is speaking naturally.\nAfter that comes an editable diagram.\nThen we refine the diagram.\nActually, let’s call that last step Refine together.",
+      "firstAcknowledgedEditMs": 1254,
+      "totalMs": 2738,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__speaking_naturally",
+          "label": "Speaking naturally",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 350,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__editable_diagram",
+          "label": "Editable diagram",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 660,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__refine_diagram",
+          "label": "Refine together",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 970,
+            "y": 60
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "story_link_197h8cn",
+          "source": "simple_flow__rough_idea",
+          "target": "simple_flow__speaking_naturally",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:rough_idea:speaking_naturally",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_kv6mw4",
+          "source": "simple_flow__speaking_naturally",
+          "target": "simple_flow__editable_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:speaking_naturally:editable_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_1b0oplm",
+          "source": "simple_flow__editable_diagram",
+          "target": "simple_flow__refine_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:editable_diagram:refine_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        }
+      ],
+      "meanings": [
+        {
+          "type": "revise",
+          "id": "refine_diagram",
+          "label": "Refine together"
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 5,
+          "modelState": "complete",
+          "requestMs": 1235,
+          "inputTokens": 2167,
+          "outputTokens": 45,
+          "cachedInputTokens": 1733,
+          "firstUpdateMs": 1179
+        }
+      ]
+    },
+    {
+      "text": "Maybe we could try Another direction. Keep that idea unresolved, as an alternative to Refine together outside the main flow.",
+      "transcript": "Let’s map a simple flow. The first step is a rough idea.\nThe next step is speaking naturally.\nAfter that comes an editable diagram.\nThen we refine the diagram.\nActually, let’s call that last step Refine together.\nMaybe we could try Another direction. Keep that idea unresolved, as an alternative to Refine together outside the main flow.",
+      "firstAcknowledgedEditMs": 2025,
+      "totalMs": 3647,
+      "blocks": [
+        {
+          "id": "simple_flow__rough_idea",
+          "label": "Rough idea",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 40,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__speaking_naturally",
+          "label": "Speaking naturally",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 350,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__editable_diagram",
+          "label": "Editable diagram",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 660,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__refine_diagram",
+          "label": "Refine together",
+          "kind": "step",
+          "tentative": false,
+          "muted": false,
+          "position": {
+            "x": 970,
+            "y": 60
+          }
+        },
+        {
+          "id": "simple_flow__another_direction",
+          "label": "Another direction",
+          "kind": "step",
+          "tentative": true,
+          "muted": false,
+          "position": {
+            "x": 970,
+            "y": 250
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "story_link_197h8cn",
+          "source": "simple_flow__rough_idea",
+          "target": "simple_flow__speaking_naturally",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:rough_idea:speaking_naturally",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_kv6mw4",
+          "source": "simple_flow__speaking_naturally",
+          "target": "simple_flow__editable_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:speaking_naturally:editable_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        },
+        {
+          "id": "story_link_1b0oplm",
+          "source": "simple_flow__editable_diagram",
+          "target": "simple_flow__refine_diagram",
+          "label": "",
+          "highlighted": false,
+          "storyRelationId": "simple_flow__next:editable_diagram:refine_diagram",
+          "muted": false,
+          "outcome": "neutral"
+        }
+      ],
+      "meanings": [
+        {
+          "type": "concept",
+          "id": "another_direction",
+          "label": "Another direction",
+          "role": "option",
+          "certainty": "tentative",
+          "outcome": "neutral",
+          "detail": "An unresolved alternative to Refine together, kept outside the main flow."
+        },
+        {
+          "type": "relation",
+          "from": "another_direction",
+          "to": "refine_diagram",
+          "kind": "alternative",
+          "label": "alternative to",
+          "certainty": "tentative",
+          "outcome": "neutral"
+        }
+      ],
+      "metrics": [
+        {
+          "modelCompletions": 6,
+          "modelState": "complete",
+          "requestMs": 2178,
+          "inputTokens": 2190,
+          "outputTokens": 110,
+          "cachedInputTokens": 1733,
+          "firstUpdateMs": 1949
+        }
+      ]
+    }
+  ]
+}

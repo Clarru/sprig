@@ -197,7 +197,7 @@ export function projectStory(
         detail: item.sourceBlockId && existing && item.detail === (previousConcept?.detail ?? existing.detail.slice(0,1000)) ? existing.detail : item.detail,
         kind: item.sourceBlockId && existing ? existing.kind : shapeKind(item),
         tentative: item.certainty !== "stated",
-        highlighted: item.emphasized,
+        highlighted: false,
         muted: item.muted,
         outcome: item.outcome ?? "neutral",
         storyTopic: item.topicId,
@@ -227,6 +227,22 @@ export function projectStory(
             ...attributes,
           }),
         });
+    }
+    // A newly described side option belongs beside its anchor, outside the main flow.
+    // Only move an automatically placed option; hand-positioned cards stay put.
+    if(events.some(event=>event.type==='relation' && event.kind==='alternative')) {
+      for(const link of scene.links.filter(link=>link.kind==='alternative')) {
+        const from=scene.items.find(item=>item.id===link.from),to=scene.items.find(item=>item.id===link.to);
+        const isOption=(item:SketchItem|undefined)=>!!item && story.topics[scene.id]?.concepts[item.conceptId]?.role==='option';
+        const option=isOption(from) && !isOption(to) ? from : isOption(to) && !isOption(from) ? to : undefined;
+        if(!option) continue;
+        const item=working.blocks.find(block=>block.id===bindings[option.id]);
+        const anchor=working.blocks.find(block=>block.id===bindings[option.id===link.from?link.to:link.from]);
+        if(!item || !anchor || item.parentId!==anchor.parentId || !item.autoPosition || fingerprint(item.position)!==fingerprint(item.autoPosition)) continue;
+        const position={x:anchor.position.x,y:anchor.position.y+anchor.height+80};
+        while(working.blocks.some(block=>block.id!==item.id && block.parentId===item.parentId && position.x<block.position.x+block.width+20 && position.x+item.width+20>block.position.x && position.y<block.position.y+block.height+20 && position.y+item.height+20>block.position.y)) position.y+=item.height+40;
+        update(item,{position,autoPosition:position});
+      }
     }
     // Explicit reordering moves the affected sequence, while mere mentions/renames preserve hand placement.
     if (
@@ -318,11 +334,7 @@ export function projectStory(
       target: bindings[link.to],
       label: link.label || (link.outcome === "success" ? "Success" : link.outcome === "failure" ? "Failure" : ""),
       outcome: link.outcome ?? "neutral",
-      highlighted:
-        !link.muted &&
-        plan.scenes
-          .find((s) => s.id === link.topicId)!
-          .items.some((i) => i.emphasized),
+      highlighted: false,
       muted: link.muted,
       storyRelationId: link.id,
     };

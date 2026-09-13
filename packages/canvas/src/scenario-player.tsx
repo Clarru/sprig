@@ -1,11 +1,12 @@
 "use client";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, SpeakerHighIcon, SpeakerSlashIcon } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CanvasEditor } from "./editor";
 import { MessageChoices, StatusBubble } from "./ui-components";
 import { Mascot } from "./mascot";
 import { scenarios, replayScenario, type Scenario } from "./scenarios";
 import { BoardStore } from "./store";
+import {usePlaygroundSounds} from "./playground-sounds";
 export function ScenarioPlayer({
   initialScenario = "feature",
   compact = false,
@@ -15,6 +16,7 @@ export function ScenarioPlayer({
   compact?: boolean;
   menu?: ReactNode;
 }) {
+  const sound=usePlaygroundSounds();
   const [id, setId] = useState(initialScenario);
   const [path, setPath] = useState<string[]>([]);
   const [pending, setPending] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export function ScenarioPlayer({
     if (timer.current || exploring) return;
     const c = result.step?.choices.find((c) => c.id === choiceId);
     if (!c) return;
+    sound.unlock();
     setPending(c.text);
     timer.current = setTimeout(
       () => {
@@ -57,6 +60,10 @@ export function ScenarioPlayer({
         setSettled(false);
         setPath((p) => [...p, choiceId]);
         setPending(null);
+        if(c.undo)sound.play("undo");
+        else if(c.next===null)sound.play("finish");
+        else if(c.operations.some(operation=>operation.type==="add"))sound.play("place");
+        else if(c.operations.length)sound.play("change");
       },
       window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 650,
     );
@@ -92,6 +99,7 @@ export function ScenarioPlayer({
           disabled={!path.length || exploring}
           onClick={() => {
             cancel();
+            sound.unlock();sound.play("undo");
             setPath((p) => p.slice(0, -1));
           }}
         >
@@ -121,6 +129,12 @@ export function ScenarioPlayer({
             Explore this board
           </button>
         )}
+      </div>
+      <div className="cv-menu-section">
+        <button type="button" aria-pressed={sound.enabled} onClick={sound.toggle}>
+          {sound.enabled?<SpeakerHighIcon size={15}/>:<SpeakerSlashIcon size={15}/>}
+          Sound effects: {sound.enabled?"on":"off"}
+        </button>
       </div>
       {menu}
     </>

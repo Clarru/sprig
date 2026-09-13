@@ -21,6 +21,12 @@ export interface BoardSnapshot {
   arrivals: Record<string, number>;
   historyEpoch: number;
 }
+/** Retire persisted automatic focus styling without touching manually styled objects. */
+function clearAutomaticEmphasis(board: Board): Board {
+  const blocks=board.blocks.map(block=>block.storyTopic && (block.muted || block.highlighted) ? {...block,muted:false,highlighted:false} : block);
+  const edges=board.edges.map(edge=>edge.storyRelationId && (edge.muted || edge.highlighted) ? {...edge,muted:false,highlighted:false} : edge);
+  return blocks.some((block,i)=>block!==board.blocks[i]) || edges.some((edge,i)=>edge!==board.edges[i]) ? {...board,blocks,edges} : board;
+}
 export class BoardStore {
   private past: Board[] = [];
   private future: Board[] = [];
@@ -29,7 +35,7 @@ export class BoardStore {
   private snapshot: BoardSnapshot;
   constructor(board: Board = emptyBoard()) {
     this.snapshot = {
-      board: BoardSchema.parse(board),
+      board: clearAutomaticEmphasis(BoardSchema.parse(board)),
       canUndo: false,
       canRedo: false,
       selection: [],
@@ -49,6 +55,7 @@ export class BoardStore {
     board = this.snapshot.board,
     selection = this.snapshot.selection,
   ) {
+    board = clearAutomaticEmphasis(board);
     this.snapshot = {
       board,
       canUndo: this.past.length > 0,
@@ -101,7 +108,7 @@ export class BoardStore {
     // Presentation metadata stays out of documents, history, and server context.
     const arrivedAt = Date.now();
     this.snapshot = { ...this.snapshot, arrivals: transaction.source === "manual" ? {} : {
-      ...Object.fromEntries(Object.entries(this.snapshot.arrivals).filter(([,time]) => arrivedAt - time < 1000)),
+      ...Object.fromEntries(Object.entries(this.snapshot.arrivals).filter(([,time]) => arrivedAt - time < 1800)),
       ...Object.fromEntries(board.blocks
         .filter(b => !this.snapshot.board.blocks.some(previous => previous.id === b.id))
         .map(b => [b.id, arrivedAt])),

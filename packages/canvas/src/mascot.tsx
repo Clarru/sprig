@@ -8,6 +8,7 @@ import {
   mixHex,
   type ShapeId,
 } from "./vendor/bloub/skins";
+import { EXPRESSION_BY_ID, type ExpressionId } from "./vendor/bloub/expressions";
 import { POSES, type StateId } from "./vendor/bloub/states";
 import { RAYON as R, DEMI_VIEWBOX as VB } from "./vendor/bloub/repere";
 import type { AssistantState } from "./model";
@@ -30,6 +31,11 @@ export interface MascotProps {
   frozenAt?: number;
   onClick?: () => void;
   label?: string;
+  /** Optional native Bloub pose, without changing the application's semantic state. */
+  animation?: StateId;
+  expression?: ExpressionId;
+  followPointer?: boolean;
+  monochrome?: boolean;
 }
 export function sampleMascot(
   state: AssistantState,
@@ -48,17 +54,19 @@ export function MascotFrame({
   color,
   background,
   size = 72,
+  monochrome = false,
 }: {
   frame: BotFrame;
   id: string;
   color: string;
   background: string;
   size?: number;
+  monochrome?: boolean;
 }) {
   const maskId = `${id}-mask`;
   const dots = frame.dots.map((d, i) => {
     const fill =
-      d.color ??
+      (monochrome ? color : d.color) ??
       (d.depth === undefined ? color : mixHex(background, color, d.depth));
     return d.d ? (
       <path
@@ -127,7 +135,7 @@ export function MascotFrame({
               <stop
                 key={i}
                 offset={i / (a.grad.stops.length - 1)}
-                stopColor={c}
+                stopColor={monochrome ? color : c}
               />
             ))}
           </linearGradient>
@@ -157,7 +165,7 @@ export function MascotFrame({
           cx={frame.notif.x}
           cy={frame.notif.y}
           r={frame.notif.r}
-          fill={NOTIF_BLUE}
+          fill={monochrome ? color : NOTIF_BLUE}
         />
       )}
       <g fill="none" strokeLinecap="round">
@@ -184,11 +192,17 @@ export function Mascot({
   frozenAt,
   onClick,
   label,
+  animation,
+  expression,
+  followPointer = false,
+  monochrome = false,
 }: MascotProps) {
+  const pose = animation ?? mascotStates[state];
+  const face = expression ? EXPRESSION_BY_ID.get(expression) ?? null : null;
   const id = `bloub-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const host = useRef<HTMLSpanElement>(null);
   const [frame, setFrame] = useState(() =>
-    sampleMascot(state, frozenAt ?? 0, shape),
+    new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? 0),
   );
   const engine = useRef<BotEngine | null>(null);
   const clock = useRef(0);
@@ -197,12 +211,16 @@ export function Mascot({
     if (!engine.current || oldShape.current !== shape) {
       engine.current = new BotEngine(
         R,
-        mascotStates[state],
+        pose,
         SHAPE_BY_ID.get(shape)?.radii ?? null,
+        face,
       );
       clock.current = 0;
       oldShape.current = shape;
-    } else engine.current.setState(mascotStates[state], clock.current);
+    } else {
+      engine.current.setState(pose, clock.current);
+      engine.current.setExpression(face, clock.current);
+    }
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     let visible = true;
     let raf = 0;
@@ -212,7 +230,7 @@ export function Mascot({
       const frozen = frozenAt !== undefined || media.matches || !playing;
       if (frozen) {
         setFrame(
-          sampleMascot(state, frozenAt ?? POSES[mascotStates[state]], shape),
+          new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? POSES[pose]),
         );
         return;
       }
@@ -238,16 +256,29 @@ export function Mascot({
             resume();
           });
     if (host.current) observer?.observe(host.current);
+    const look = (event: PointerEvent) => {
+      if (!followPointer || !visible || document.hidden || media.matches || !playing || frozenAt !== undefined) return;
+      const rect = host.current?.getBoundingClientRect();
+      if (!rect?.width || !rect.height) return;
+      const x = event.clientX - rect.x - rect.width / 2;
+      const y = event.clientY - rect.y - rect.height / 2;
+      engine.current?.setLook(Math.hypot(x, y) < 280
+        ? {yaw: Math.max(-22, Math.min(22, x / 8)), pitch: Math.max(-15, Math.min(15, y / 10)), mix: 0.75, spin: 0, wander: 0.25}
+        : null, clock.current);
+    };
+    if (!followPointer) engine.current?.setLook(null, clock.current);
+    if (followPointer) document.addEventListener("pointermove", look, {passive: true});
     document.addEventListener("visibilitychange", resume);
     media.addEventListener("change", resume);
     resume();
     return () => {
       cancelAnimationFrame(raf);
       observer?.disconnect();
+      document.removeEventListener("pointermove", look);
       document.removeEventListener("visibilitychange", resume);
       media.removeEventListener("change", resume);
     };
-  }, [state, shape, playing, frozenAt]);
+  }, [pose, face, shape, playing, frozenAt, followPointer]);
   const image = (
     <MascotFrame
       frame={frame}
@@ -255,6 +286,7 @@ export function Mascot({
       color={COLOR_BY_ID.get(color)?.hex ?? color}
       background={background}
       size={size}
+      monochrome={monochrome}
     />
   );
   return (
@@ -263,6 +295,8 @@ export function Mascot({
       ref={host}
       data-shape={shape}
       data-state={state}
+      data-animation={pose}
+      data-expression={expression}
       style={{ background }}
     >
       {onClick ? (

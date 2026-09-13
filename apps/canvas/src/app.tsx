@@ -1,4 +1,4 @@
-import { MicrophoneIcon, PauseIcon, BugIcon } from "@phosphor-icons/react";
+import { BugIcon } from "@phosphor-icons/react";
 import React, {
   useEffect,
   useRef,
@@ -6,7 +6,8 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import {
-  AssistantDock,
+  ListeningControl,
+  type AssistantMoment,
   BoardStore,
   CanvasEditor,
   ScenarioPlayer,
@@ -34,6 +35,7 @@ export default function App() {
     state: "idle",
     message: "",
   });
+  const [moments, setMoments] = useState<AssistantMoment[]>([]);
   const [level, setLevel] = useState(0);
   const [transcript, setTranscript] = useState("");
   const [latency, setLatency] = useState<number | null>(null);
@@ -46,6 +48,7 @@ export default function App() {
         level: setLevel,
         transcript: setTranscript,
         latency: setLatency,
+        moment: (moment) => setMoments(previous => [...previous.slice(-11), moment]),
       },
       debug,
     );
@@ -65,12 +68,6 @@ export default function App() {
     return connectAgent(store, debug);
   }, [store, debug, mode]);
   const active = diagnostics.running && diagnostics.mode === "microphone";
-  const showFeedback = [
-    "working",
-    "updated",
-    "clarification",
-    "error",
-  ].includes(status.state);
   const menu = (
     <div className="cv-menu-section">
       <button
@@ -109,48 +106,24 @@ export default function App() {
               client.current?.stop();
               setTranscript("");
               setLatency(null);
+              setMoments([]);
             }}
             footer={
-              <div className="local-listening">
-                {showFeedback && (
-                  <div className="local-feedback">
-                    <AssistantDock
-                      state={status.state}
-                      message={status.message}
-                      level={level}
-                      onUndo={
-                        status.state === "updated"
-                          ? () => store.undo()
-                          : undefined
-                      }
-                    />
-                  </div>
-                )}
-                <button
-                  className="listen-button"
-                  data-listening={(active && diagnostics.microphone === "live") || undefined}
-                  onClick={() => {
-                    if (active) client.current?.stop();
-                    else void client.current?.start();
-                  }}
-                >
-                  {active ? (
-                    <PauseIcon
-                      size={16}
-                      weight="regular"
-                      aria-hidden="true"
-                      style={{ opacity: 0.5 + level * 0.5 }}
-                    />
-                  ) : (
-                    <MicrophoneIcon
-                      size={16}
-                      weight="regular"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {active ? "Pause listening" : "Start listening"}
-                </button>
-              </div>
+              <ListeningControl
+                status={status}
+                active={active}
+                microphone={diagnostics.microphone}
+                audioReady={diagnostics.audioContext === "running"}
+                level={level}
+                threshold={diagnostics.server.threshold * 5}
+                transcript={transcript.split("\n").at(-1) ?? ""}
+                moments={moments}
+                onToggle={() => {
+                  if (active) client.current?.stop();
+                  else void client.current?.start();
+                }}
+                onUndo={status.state === "updated" ? () => store.undo() : undefined}
+              />
             }
           />
         )}

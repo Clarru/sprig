@@ -26,11 +26,14 @@ const mime: Record<string, string> = {
   ".webp": "image/webp",
   ".woff2": "font/woff2",
 };
+let ready = false;
+let vite: import("vite").ViteDevServer | null = null;
 const server = createServer(async (req, res) => {
   if (req.headers.host !== host) {
     res.writeHead(403).end("Invalid host");
     return;
   }
+  if (!ready) {res.writeHead(503, {"Retry-After":"1"}).end("Sprig is starting.");return;}
   res.setHeader("X-Content-Type-Options", "nosniff");
   const path = new URL(req.url ?? "/", origin).pathname;
   if (path.startsWith("/api/agent")) {
@@ -98,7 +101,13 @@ const server = createServer(async (req, res) => {
     res.writeHead(404).end("Not found");
   }
 });
-const vite =
+// Claim the port before Vite writes its shared dependency cache. A duplicate
+// dev command must fail here, without invalidating the already-running app.
+await new Promise<void>((resolve, reject) => {
+  server.once("error", reject);
+  server.listen(port, "127.0.0.1", () => {server.off("error", reject);resolve();});
+});
+vite =
   process.env.NODE_ENV === "production" || process.argv.includes("--production")
     ? null
     : await (
@@ -236,9 +245,8 @@ wss.on("connection", (socket) => {
     session?.close();
   });
 });
-server.listen(port, "127.0.0.1", () =>
-  console.log(`Sprig is ready at ${origin}`),
-);
+ready = true;
+console.log(`Sprig is ready at ${origin}`);
 for (const signal of ["SIGINT", "SIGTERM"] as const)
   process.on(signal, () => {
     for (const socket of wss.clients) socket.close();
