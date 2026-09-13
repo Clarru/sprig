@@ -296,7 +296,7 @@ describe("reusable sketching policies", () => {
       "Request code",
     ]);
   });
-  it("changes emphasis without deleting the other direction", () => {
+  it("keeps every direction readable when focus changes", () => {
     let state = apply(emptyStory(), [
       { type: "topic", id: "choice", label: "Two directions" },
       { type: "concept", id: "a", label: "Live location", role: "option" },
@@ -306,7 +306,7 @@ describe("reusable sketching policies", () => {
     expect(labels(state)).toHaveLength(2);
     expect(
       planSketch(state).scenes[0].items.find((i) => i.conceptId === "a")?.muted,
-    ).toBe(true);
+    ).toBe(false);
   });
   it("keeps open questions separate from facts and clears resolved questions", () => {
     let state = running();

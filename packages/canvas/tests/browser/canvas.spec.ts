@@ -241,7 +241,8 @@ test("pausing while microphone permission is pending releases a late stream", as
   await expect(
     page.getByRole("button", { name: "Start listening", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".cv-mascot")).toHaveCount(0);
+  await expect(page.locator(".cv-listening-control .cv-mascot")).toHaveCount(1);
+  await expect(page.locator(".cv-listening-control")).toHaveAttribute("data-phase", "paused");
 });
 
 test("local diagnostics are visible and the public canvas stays minimal", async ({
@@ -257,7 +258,8 @@ test("local diagnostics are visible and the public canvas stays minimal", async 
   await expect(
     page.getByRole("complementary", { name: "Connection debug panel" }),
   ).toBeVisible();
-  await expect(page.locator(".cv-mascot")).toHaveCount(0);
+  await expect(page.locator(".cv-listening-control .cv-mascot")).toHaveCount(1);
+  await expect(page.locator(".cv-listening-control")).toHaveAttribute("data-phase", "idle");
   expect(
     await page
       .locator(".cv-editor")
@@ -266,7 +268,8 @@ test("local diagnostics are visible and the public canvas stays minimal", async 
   if (process.env.CANVAS_STANDALONE_EXPORT) return;
   await page.goto("http://localhost:3100/playground/sprig");
   await expect(page.locator("button:visible")).toHaveCount(2);
-  await expect(page.locator(".cv-mascot")).toHaveCount(0);
+  await expect(page.locator(".cv-listening-control .cv-mascot")).toHaveCount(1);
+  await expect(page.locator(".cv-listening-control")).toHaveAttribute("data-phase", "idle");
   await expect(page.locator("h1:visible,h2:visible,nav:visible,aside:visible")).toHaveCount(0);
   await page.screenshot({ path: "/tmp/canvas-minimal-public.png" });
   await page.locator(".cv-message-choices button").click();

@@ -309,10 +309,10 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
   </div>;
 }
 function Arrival({time, label, style}: {time: number; label: string; style: React.CSSProperties}) {
-  const [visible, setVisible] = useState(() => Date.now() - time < 440);
-  useEffect(() => {const timer = setTimeout(() => setVisible(false), Math.max(0, time + 440 - Date.now())); return () => clearTimeout(timer);}, [time]);
+  const [visible, setVisible] = useState(() => Date.now() - time < 1800);
+  useEffect(() => {const timer = setTimeout(() => setVisible(false), Math.max(0, time + 1800 - Date.now())); return () => clearTimeout(timer);}, [time]);
   if (!visible) return null;
   return <div className="cv-native-arrival" style={style} role="status" aria-label={`Adding ${label}`}>
-    <div className="cv-card-placeholder"><span className="cv-card-placeholder-line"/><span className="cv-card-placeholder-line"/><span className="cv-card-placeholder-caption">Adding…</span></div>
+    <div className="cv-card-placeholder cv-native-loading"><span className="cv-card-placeholder-line"/><span className="cv-card-placeholder-line"/><span className="cv-card-placeholder-caption">Adding…</span></div>
   </div>;
 }

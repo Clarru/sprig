@@ -120,7 +120,7 @@ export function planSketch(state: StoryState): SketchPlan {
       certainty: c.certainty,
       outcome: c.outcome ?? "neutral",
       emphasized: emphasized.has(c.id),
-      muted: emphasized.size > 0 && !emphasized.has(c.id),
+      muted: false,
       ...(parents.has(c.id) ? { parent: key(t.id, parents.get(c.id)!) } : {}),
     }));
     const links = t.relations
@@ -140,9 +140,7 @@ export function planSketch(state: StoryState): SketchPlan {
               : t.concepts[r.to].certainty
             : r.certainty,
         visible: (r.kind !== "contains" || view === "hierarchy") && r.kind !== "alternative",
-        muted:
-          emphasized.size > 0 &&
-          (!emphasized.has(r.from) || !emphasized.has(r.to)),
+        muted: false,
       }));
     scenes.push({
       id: t.id,

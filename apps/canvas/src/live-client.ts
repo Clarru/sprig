@@ -1,3 +1,4 @@
+import {describeAppliedEdit} from "./assistant-feedback";
 import { DebugStore } from "./debug-store";
 import {
   defaultDebugSettings,
@@ -7,12 +8,14 @@ import {
   BoardStore,
   TransactionSchema,
   type AssistantStatus,
+  type AssistantMoment,
 } from "@clarru/sprig";
 interface Callbacks {
   status: (status: AssistantStatus) => void;
   level: (level: number) => void;
   transcript: (text: string) => void;
   latency: (ms: number) => void;
+  moment?: (moment: AssistantMoment) => void;
 }
 export class LiveClient {
   private socket: WebSocket | null = null;
@@ -21,12 +24,41 @@ export class LiveClient {
   private worklet: AudioWorkletNode | null = null;
   private epoch = 0;
   private unsubscribe: (() => void) | null = null;
+  private heard = "";
+  private textReady = false;
+  private afterUpdate: AssistantStatus = {state:"listening", message:"Keep going. I’m following."};
+  private lastServerStatus: AssistantStatus = this.afterUpdate;
   private updatedTimer: ReturnType<typeof setTimeout> | null = null;
   constructor(
     private store: BoardStore,
     private callbacks: Callbacks,
     private debug = new DebugStore(),
   ) {}
+  private present(status: AssistantStatus) {
+    const story=this.store.getSnapshot().board.story;
+    const topic=story?.activeTopic ? story.topics[story.activeTopic] : undefined;
+    const question=topic && Object.values(topic.questions).find(item=>item.blocking);
+    if(status.state==='listening' && question) status={state:'clarification',message:question.text};
+    this.lastServerStatus = status;
+    // Let an acknowledgment finish instead of replacing a wink in the next socket tick.
+    if (this.updatedTimer && status.state === "listening") {
+      this.afterUpdate = status;
+      return;
+    }
+    if (this.updatedTimer) clearTimeout(this.updatedTimer);
+    this.updatedTimer = null;
+    this.callbacks.status(status);
+  }
+  private acknowledge(message: string) {
+    if (this.updatedTimer) clearTimeout(this.updatedTimer);
+    this.afterUpdate = this.lastServerStatus.state === "working" ? this.lastServerStatus : {state:"listening",message:"Keep going. I’m following."};
+    this.callbacks.status({state:"updated", message});
+    const epoch=this.epoch;
+    this.updatedTimer=setTimeout(()=>{
+      this.updatedTimer=null;
+      if(epoch===this.epoch) this.callbacks.status(this.afterUpdate);
+    },2200);
+  }
   private settings: DebugSettings = { ...defaultDebugSettings };
   private deviceId = "";
   private sentPackets = 0;
@@ -69,6 +101,10 @@ export class LiveClient {
   }
   testText(text: string) {
     if (!text.trim()) return;
+    if(this.textReady && this.socket?.readyState===WebSocket.OPEN) {
+      this.send({type:"debug_text",text:text.trim()});
+      return;
+    }
     return this.start("text", text.trim());
   }
   async resumeAudio() {
@@ -104,6 +140,8 @@ export class LiveClient {
   async start(input: "microphone" | "text" = "microphone", testText = "") {
     this.stop(false);
     const epoch = this.epoch;
+    this.heard = "";
+    this.callbacks.transcript("");
     this.sentPackets = 0;
     this.sentSeconds = 0;
     this.debug.reset(input);
@@ -117,7 +155,7 @@ export class LiveClient {
         ? "Starting a text-only model test."
         : "Starting microphone input.",
     );
-    this.callbacks.status({
+    this.present({
       state: "working",
       message:
         input === "text"
@@ -181,6 +219,7 @@ export class LiveClient {
               this.debug.patch({ providerReady: input === "microphone" });
               this.send({ type: "settings", settings: this.settings });
               if (input === "text") {
+                this.textReady = true;
                 this.debug.event("text-ready", "Text test connection ready.");
                 this.send({ type: "debug_text", text: testText });
               } else {
@@ -191,16 +230,23 @@ export class LiveClient {
                 void this.capture(epoch);
               }
               break;
-            case "understanding":
+            case "understanding": {
+              const previous=this.store.getSnapshot().board.story;
               this.store.rememberStory(message.story);
+              const story=this.store.getSnapshot().board.story;
+              const topic=story?.activeTopic ? story.topics[story.activeTopic] : undefined;
+              const previousTopic=previous?.activeTopic ? previous.topics[previous.activeTopic] : undefined;
+              if(topic && this.heard.trim() && (previousTopic?.id!==topic.id || previousTopic.label!==topic.label)) {
+                this.callbacks.moment?.({id:`context-${epoch}-${story!.revision}`, heard:this.heard, understood:topic.label, change:"Kept as context. No new shapes yet.", kind:"context"});
+              }
               this.debug.patch({ understanding: message.story });
               break;
+            }
             case "debug":
               this.debug.server(message.event);
               break;
             case "status":
-              if (this.updatedTimer) clearTimeout(this.updatedTimer);
-              this.callbacks.status({
+              this.present({
                 state: message.state,
                 message: message.message,
               });
@@ -211,6 +257,7 @@ export class LiveClient {
               }
               break;
             case "transcript":
+              this.heard = String(message.text).split("\n").at(-1) ?? "";
               this.callbacks.transcript(message.text);
               this.debug.patch({
                 transcript: message.text,
@@ -218,7 +265,7 @@ export class LiveClient {
               });
               break;
             case "settled":
-              this.callbacks.status({
+              this.present({
                 state: message.state,
                 message: message.message,
               });
@@ -231,10 +278,8 @@ export class LiveClient {
                 snap.board.revision === message.baseRevision;
               if (applied) {
                 this.store.undo();
-                this.callbacks.status({
-                  state: "updated",
-                  message: message.message,
-                });
+                this.callbacks.moment?.({id:message.id, heard:this.heard, understood:"", change:"Undid the last edit.", kind:"undo"});
+                this.acknowledge("Undid the last edit.");
               }
               this.send({ type: "context", context: this.context() });
               this.send({ type: "ack", id: message.id, applied });
@@ -246,6 +291,7 @@ export class LiveClient {
                 "board-received",
                 `Received ${t.operations.length} operations for board revision ${t.baseRevision}.`,
               );
+              const before = this.store.getSnapshot().board;
               let applied = false;
               try {
                 if (!this.store.getSnapshot().editing)
@@ -264,19 +310,10 @@ export class LiveClient {
                     : "Canvas revision changed; the update will be reconsidered.",
               );
               if (applied) {
-                this.callbacks.status({
-                  state: "updated",
-                  message: message.message,
-                });
+                const feedback=describeAppliedEdit(before,this.store.getSnapshot().board,t);
+                this.callbacks.moment?.({id:t.id, heard:this.heard, ...feedback});
+                this.acknowledge(feedback.change);
                 this.callbacks.latency(message.elapsedMs);
-                if (this.updatedTimer) clearTimeout(this.updatedTimer);
-                this.updatedTimer = setTimeout(() => {
-                  if (epoch === this.epoch)
-                    this.callbacks.status({
-                      state: "listening",
-                      message: "Keep going. I’m following.",
-                    });
-                }, 1500);
               }
               break;
             }
@@ -329,7 +366,7 @@ export class LiveClient {
       if (track) {
         track.onmute = () => this.debug.patch({ microphone: "muted" });
         track.onunmute = () => this.debug.patch({ microphone: "live" });
-        track.onended = () => this.debug.patch({ microphone: "ended" });
+        track.onended = () => {if(epoch===this.epoch) this.fail("Your microphone disconnected. Reconnect when you’re ready.");};
       }
       void navigator.mediaDevices
         .enumerateDevices()
@@ -386,7 +423,7 @@ export class LiveClient {
           this.socket.send(event.data.audio);
         }
       };
-      this.callbacks.status({
+      this.present({
         state: "listening",
         message: "Start wherever your thought starts.",
       });
@@ -401,10 +438,11 @@ export class LiveClient {
     this.stop(false);
     this.debug.patch({ error: message });
     this.debug.event("error", message);
-    this.callbacks.status({ state: "error", message });
+    this.present({ state: "error", message });
   }
   stop(notify = true) {
     this.epoch++;
+    this.textReady = false;
     if (this.updatedTimer) clearTimeout(this.updatedTimer);
     this.updatedTimer = null;
     this.unsubscribe?.();
@@ -447,7 +485,7 @@ export class LiveClient {
     if (notify)
       this.debug.event("paused", "Capture and network connections stopped.");
     if (notify)
-      this.callbacks.status({
+      this.present({
         state: "paused",
         message: "Microphone off. Your board stays right here.",
       });

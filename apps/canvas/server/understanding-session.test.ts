@@ -185,3 +185,23 @@ it("manual undo cancels pending meanings and does not resurrect the discarded ut
  h.session.testText("Add finish");await vi.advanceTimersByTimeAsync(1);
  expect(h.board().blocks.map(b=>b.label)).toEqual(["Finish"]);h.session.close();
 });
+
+it('buffers short unfinished audio fragments but still interprets longer ongoing speech',async()=>{
+ vi.useFakeTimers();
+ let input:Parameters<Provider['transcribe']>[0]|undefined;
+ const understand=vi.fn<NonNullable<Provider["understand"]>>(async()=>metrics);
+ const session=new LiveSession({board:emptyBoard(),selection:[],editing:false,canUndo:false},{interpret:vi.fn(),understand,transcribe:events=>{input=events;return {append:vi.fn(),close:vi.fn()};}},()=>{});
+ session.start();input!.ready();input!.turn('short');
+ input!.transcript('short','After',false);
+ await vi.advanceTimersByTimeAsync(1500);
+ expect(understand).not.toHaveBeenCalled();
+ input!.transcript('short',' that comes an editable diagram',false);
+ await vi.advanceTimersByTimeAsync(1500);
+ expect(understand).toHaveBeenCalledTimes(1);
+ expect(understand.mock.calls[0][0].newSpeech).toBe('After that comes an editable diagram');
+ input!.turn('short-final');input!.transcript('short-final','Welcome',true);
+ await vi.advanceTimersByTimeAsync(1);
+ expect(understand).toHaveBeenCalledTimes(2);
+ expect(understand.mock.calls[1][0].newSpeech).toBe('Welcome');
+ session.close();
+});

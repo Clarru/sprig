@@ -1,0 +1,449 @@
+{
+  "version": 1,
+  "revision": 28,
+  "title": "Untitled thought",
+  "story": {
+    "version": 1,
+    "revision": 61,
+    "activeTopic": "current",
+    "focusConcept": "alternative_direction",
+    "topics": {
+      "current": {
+        "id": "current",
+        "label": "Current explanation",
+        "view": "sequence",
+        "concepts": {
+          "simple_flow": {
+            "id": "simple_flow",
+            "label": "Simple flow",
+            "aliases": [],
+            "role": "context",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_2",
+              "revision": 2,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "rough_first_step": {
+            "id": "rough_first_step",
+            "label": "Rough idea",
+            "aliases": [
+              "Rough first step"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_4",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "speaking_step": {
+            "id": "speaking_step",
+            "label": "Speaking Naturally",
+            "aliases": [
+              "Speaking"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_7",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "after_step": {
+            "id": "after_step",
+            "label": "Editable Diagram",
+            "aliases": [
+              "After"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_16",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "editable_diagram": {
+            "id": "editable_diagram",
+            "label": "Editable Diagram",
+            "aliases": [
+              "Editable Diagram",
+              "Refine the Diagram"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_20",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "refine_step": {
+            "id": "refine_step",
+            "label": "Refine Together",
+            "aliases": [
+              "Refine the Diagram",
+              "Last Step"
+            ],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_20",
+              "revision": 2,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "alternative_direction": {
+            "id": "alternative_direction",
+            "label": "Another direction",
+            "aliases": [],
+            "role": "option",
+            "certainty": "tentative",
+            "detail": "Keep this alternative idea unresolved as an alternative to refine together outside the main flow.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "request_25",
+              "revision": 1,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          }
+        },
+        "relations": [
+          {
+            "id": "contains:simple_flow:rough_first_step",
+            "from": "simple_flow",
+            "to": "rough_first_step",
+            "kind": "contains",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_3",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:rough_first_step:speaking_step",
+            "from": "rough_first_step",
+            "to": "speaking_step",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_6",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:speaking_step:after_step",
+            "from": "speaking_step",
+            "to": "after_step",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_10",
+              "revision": 2,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "next:after_step:refine_step",
+            "from": "after_step",
+            "to": "refine_step",
+            "kind": "next",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "request_20",
+              "revision": 5,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "alternative:simple_flow:alternative_direction",
+            "from": "simple_flow",
+            "to": "alternative_direction",
+            "kind": "alternative",
+            "label": "",
+            "certainty": "tentative",
+            "evidence": {
+              "utteranceId": "request_21",
+              "revision": 2,
+              "origin": "speech"
+            }
+          }
+        ],
+        "questions": {},
+        "suggestionsAllowed": false,
+        "emphasis": [
+          "rough_first_step",
+          "speaking_step",
+          "after_step",
+          "refine_step",
+          "alternative_direction"
+        ]
+      }
+    },
+    "appliedPatches": [
+      "meaning_session_17b17d26c761403babf22282105b9219_1_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_2_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_2_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_2_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_3_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_3_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_3_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_4_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_5_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_6_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_6_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_6_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_7_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_8_4",
+      "meaning_session_17b17d26c761403babf22282105b9219_9_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_10_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_10_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_10_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_11_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_11_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_11_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_12_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_13_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_13_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_14_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_14_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_14_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_15_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_15_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_4",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_5",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_6",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_7",
+      "meaning_session_17b17d26c761403babf22282105b9219_16_8",
+      "meaning_session_17b17d26c761403babf22282105b9219_17_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_17_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_18_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_18_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_18_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_19_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_19_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_3",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_4",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_5",
+      "meaning_session_17b17d26c761403babf22282105b9219_20_6",
+      "meaning_session_17b17d26c761403babf22282105b9219_21_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_21_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_22_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_22_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_23_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_23_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_24_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_24_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_25_1",
+      "meaning_session_17b17d26c761403babf22282105b9219_25_2",
+      "meaning_session_17b17d26c761403babf22282105b9219_26_1"
+    ]
+  },
+  "blocks": [
+    {
+      "id": "current__rough_first_step",
+      "kind": "step",
+      "label": "Rough idea",
+      "detail": "",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 40,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "rough_first_step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "current__speaking_step",
+      "kind": "step",
+      "label": "Speaking Naturally",
+      "detail": "",
+      "position": {
+        "x": 350,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 350,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "speaking_step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "current__after_step",
+      "kind": "step",
+      "label": "Editable Diagram",
+      "detail": "",
+      "position": {
+        "x": 660,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 660,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "after_step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "current__editable_diagram",
+      "kind": "step",
+      "label": "Editable Diagram",
+      "detail": "",
+      "position": {
+        "x": 970,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 970,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "editable_diagram",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "current__refine_step",
+      "kind": "step",
+      "label": "Refine Together",
+      "detail": "",
+      "position": {
+        "x": 970,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 970,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "refine_step",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": false
+    },
+    {
+      "id": "current__alternative_direction",
+      "kind": "step",
+      "label": "Another direction",
+      "detail": "Keep this alternative idea unresolved as an alternative to refine together outside the main flow.",
+      "position": {
+        "x": 1280,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 1280,
+        "y": 60
+      },
+      "width": 220,
+      "height": 110,
+      "storyTopic": "current",
+      "storyConcept": "alternative_direction",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": true,
+      "highlighted": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "story_link_1862tah",
+      "source": "current__rough_first_step",
+      "target": "current__speaking_step",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "current__next:rough_first_step:speaking_step",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_3ksy61",
+      "source": "current__speaking_step",
+      "target": "current__after_step",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "current__next:speaking_step:after_step",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_1rtzrwq",
+      "source": "current__after_step",
+      "target": "current__refine_step",
+      "label": "",
+      "highlighted": false,
+      "storyRelationId": "current__next:after_step:refine_step",
+      "muted": false,
+      "outcome": "neutral"
+    }
+  ]
+}

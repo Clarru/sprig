@@ -1,0 +1,28 @@
+import {expect,test} from '@playwright/test';
+import {emptyBoard,makeBlock} from '../../src/model';
+import {emptyStory,applyMeaningPatch} from '../../src/understanding/story';
+test.use({reducedMotion:'no-preference'});
+test('old automatic dimming is restored and only new arrivals receive temporary emphasis',async({page,request})=>{
+ const board=emptyBoard();
+ board.blocks=[makeBlock('step','Earlier',{x:180,y:220},{id:'earlier',storyTopic:'flow',storyConcept:'earlier',muted:true}),makeBlock('step','Current',{x:460,y:220},{id:'current',storyTopic:'flow',storyConcept:'current',highlighted:true})];
+ board.edges=[{id:'link',source:'earlier',target:'current',label:'Next',storyRelationId:'flow:next',muted:true,highlighted:false}];
+ board.story=applyMeaningPatch(emptyStory(),{id:'seed',evidence:{utteranceId:'u',revision:1,origin:'speech'},events:[{type:'topic',id:'flow',label:'Flow'},{type:'concept',id:'earlier',label:'Earlier',role:'step'},{type:'concept',id:'current',label:'Current',role:'step'},{type:'next',from:'earlier',to:'current'},{type:'focus',ids:['current']}]}).state;
+ await page.addInitScript(board=>localStorage.setItem('canvas:local:board:v1',JSON.stringify(board)),board);
+ await page.goto('/');
+ await expect(page.locator('[data-material-card="earlier"] .cv-material-content')).toHaveCSS('opacity','1');
+ const connected=page.getByText(/^Connected editor:/);await expect(connected).toBeVisible();
+ const id=(await connected.innerText()).split(': ').at(-1)!;
+ const bootstrap=await(await request.get('/api/bootstrap')).json(),headers={Authorization:`Bearer ${bootstrap.token}`};
+ const endpoint=`/api/agent/boards/${id}`;
+ const before=(await(await request.get(endpoint,{headers})).json()).board;
+ const response=await request.post(endpoint+'/actions',{headers,data:{requestId:'arrival-next',baseRevision:before.revision,action:{kind:'meaning',events:[{type:'concept',id:'next',label:'The next step',role:'step'},{type:'next',from:'current',to:'next'},{type:'focus',ids:['next']}]}}});
+ expect(response.ok()).toBe(true);
+ await expect(page.locator('.cv-native-arrival')).toHaveCount(1);
+ for(const label of ['Earlier','Current']) await expect(page.locator('.cv-material-card').filter({hasText:label}).locator('.cv-material-content')).toHaveCSS('opacity','1');
+ const after=(await(await request.get(endpoint,{headers})).json()).board;
+ expect(after.blocks.every((block:{muted?:boolean;highlighted?:boolean})=>!block.muted&&!block.highlighted)).toBe(true);
+ expect(after.edges.every((edge:{muted?:boolean})=>!edge.muted)).toBe(true);
+ expect(after.blocks.find((b:{id:string})=>b.id==='earlier').position).toEqual(before.blocks.find((b:{id:string})=>b.id==='earlier').position);
+ await expect(page.locator('.cv-native-arrival')).toHaveCount(0,{timeout:3000});
+ await expect(page.locator('[data-material-card="earlier"] .cv-material-content')).toHaveCSS('opacity','1');
+});

@@ -21,7 +21,7 @@
 .cv-native-menu { position: absolute; z-index: 10; top: 66px; left: 16px; width: 250px; max-height: calc(100% - 86px); overflow: auto; padding: 10px; border: 1px solid #e7e7e7; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px #0000000a; font-size: 12px; }
 .cv-native-error { position: absolute; z-index: 15; bottom: 14px; left: 14px; max-width: min(450px, calc(100% - 28px)); background: #fff1f0; color: #8e3330; border-radius: 8px; padding: 12px; font-size: 12px; }
 .cv-native-arrivals { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.cv-native-arrival { position: absolute; transform-origin: top left; animation: cv-native-reveal 440ms linear both; }
+.cv-native-arrival { position: absolute; transform-origin: top left;  }
 @keyframes cv-native-reveal { 0%, 59% { opacity: 1; } 100% { opacity: 0; } }
 @media (max-width: 700px) {
   .cv-native-topbar { gap: 5px; left: 8px; right: 8px; top: 8px; }
@@ -57,3 +57,8 @@
   --color-on-surface:#222; --color-on-primary-container:#222; --color-surface-primary-container:#e6e6e6;
   --color-brand-hover:#333; --color-brand-active:#222; --color-border-outline:#777; --color-border-outline-variant:#ccc;
 }
+
+/* Only a newly arrived box gets temporary emphasis; the rest of the board stays readable. */
+.cv-native-loading { animation:cv-native-reveal 440ms linear both; }
+.cv-native-arrival::after { content:""; position:absolute; inset:-4px; border:1px solid #bbb; border-radius:16px; animation:cv-native-fresh 1800ms ease-out both; }
+@keyframes cv-native-fresh { 0% {opacity:0;transform:scale(.99)} 20% {opacity:.7;transform:scale(1)} 65% {opacity:.35} 100% {opacity:0;transform:scale(1.015)} }

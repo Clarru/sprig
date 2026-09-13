@@ -126,6 +126,7 @@ export class LiveSession {
   private ackWaiter: ((applied: boolean) => void) | null = null;
   private receivedPackets = 0;
   private receivedSeconds = 0;
+  private pendingShortTurns = new Set<string>();
   private transcriptDeltas = 0;
   private finalTranscripts = 0;
   private modelRequests = 0;
@@ -163,8 +164,15 @@ export class LiveSession {
       transcript: (id, text, final) => {
         if (this.closed) return;
         this.turns.set(id, final ? text : (this.turns.get(id) ?? "") + text);
-        while (this.turns.size > 24)
-          this.turns.delete(this.turns.keys().next().value!);
+        // Keep short ASR fragments visible, but do not turn isolated connector
+        // words into concepts. Completed short phrases remain immediately eligible.
+        if(!final && (this.turns.get(id)?.trim().split(/\s+/).length ?? 0)<6) this.pendingShortTurns.add(id);
+        else this.pendingShortTurns.delete(id);
+        while (this.turns.size > 24) {
+          const oldest=this.turns.keys().next().value!;
+          this.turns.delete(oldest);
+          this.pendingShortTurns.delete(oldest);
+        }
         if (final) {
           this.finalTranscripts++;
         } else this.transcriptDeltas++;
@@ -497,7 +505,7 @@ export class LiveSession {
     }
   }
   private async runUnderstanding() {
-    const currentTurns = new Map(this.turns);
+    const currentTurns = new Map([...this.turns].filter(([id])=>!this.pendingShortTurns.has(id)));
     const changed = [...currentTurns]
       .filter(([id, text]) => !this.ignoredTurns.has(id) && this.consideredTurns.get(id) !== text)
       .map(([, text]) => text)
@@ -517,7 +525,7 @@ export class LiveSession {
     let expectedRevision = this.context.board.revision;
     let firstUpdateMs: number | null = null;
     let eventNumber = 0;
-    const requestText = [...this.turns].filter(([id])=>!this.ignoredTurns.has(id)).map(([,text])=>text).join("\n").slice(-16000);
+    const requestText = [...currentTurns].filter(([id])=>!this.ignoredTurns.has(id)).map(([,text])=>text).join("\n").slice(-16000);
     const commit = async (story: StoryState, events: MeaningEvent[]) => {
       if (this.closed || controller.signal.aborted) throw new Error("Stopped");
       if (
