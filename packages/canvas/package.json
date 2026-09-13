@@ -1,0 +1,37 @@
+{
+  "name": "@clarru/sprig",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ui": "./src/ui.ts",
+    "./model": "./src/model.ts",
+    "./scenarios": "./src/scenarios.ts",
+    "./styles.css": "./src/styles.css",
+    "./ui.css": "./src/ui.css",
+    "./understanding": "./src/understanding/index.ts",
+    "./script": "./src/foundation/script.ts",
+    "./projection": "./src/understanding/board-projection.ts",
+    "./agent": "./src/agent.ts"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
+    "@phosphor-icons/react": "^2.1.10",
+    "motion": "^13.1.1",
+    "zod": "^4.0.0"
+  }
+}

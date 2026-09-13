@@ -1,0 +1,27 @@
+{
+  "name": "sprig-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @clarru/sprig-app",
+    "build": "npm run build -w @clarru/sprig && npm run build -w @clarru/sprig-app",
+    "test": "vitest run --config packages/canvas/vitest.config.ts",
+    "dev:canvas": "npm run dev",
+    "build:canvas": "npm run build",
+    "test:canvas": "npm test",
+    "test:canvas:browser": "playwright test -c packages/canvas/playwright.config.ts"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11",
+    "@playwright/test": "^1.63.0"
+  }
+}

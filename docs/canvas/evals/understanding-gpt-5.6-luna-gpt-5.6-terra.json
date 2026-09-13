@@ -1,0 +1,2088 @@
+{
+  "date": "2026-09-13T13:57:40.147Z",
+  "description": "Held-out wording tests. First drawable event is a server planning measurement, not browser rendering latency. No phrase-based production routing is used.",
+  "reports": [
+    {
+      "model": "gpt-5.6-luna",
+      "case": "museum",
+      "passed": false,
+      "error": {
+        "name": "MeaningError",
+        "message": "Meaning event 1: Unknown concept pick_date__next__choose_time_slot"
+      },
+      "turns": [
+        {
+          "speech": "For the museum, people should pick a date and then choose a time slot. That's about all I know for now.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "museum_booking",
+                "label": "Museum visit booking"
+              },
+              {
+                "type": "view",
+                "kind": "screen_flow"
+              },
+              {
+                "type": "concept",
+                "id": "pick_date",
+                "label": "Pick a date",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "choose_time_slot",
+                "label": "Choose a time slot",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "next",
+                "from": "pick_date",
+                "to": "choose_time_slot"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "museum_booking",
+                  "pick_date",
+                  "choose_time_slot"
+                ]
+              }
+            ],
+            "summary": "Initial booking flow: select a date, then choose a time slot."
+          },
+          "metrics": {
+            "firstEventMs": 1015,
+            "firstDrawableMs": 1189,
+            "totalMs": 1682,
+            "inputTokens": 1421,
+            "outputTokens": 141,
+            "cachedInputTokens": 0
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "museum_booking",
+            "title": "Museum visit booking",
+            "active": true,
+            "recipe": "screen_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "museum_booking__pick_date",
+                "conceptId": "pick_date",
+                "topicId": "museum_booking",
+                "label": "Pick a date",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "museum_booking__choose_time_slot",
+                "conceptId": "choose_time_slot",
+                "topicId": "museum_booking",
+                "label": "Choose a time slot",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "museum_booking__next:choose_time_slot:pick_date",
+                "topicId": "museum_booking",
+                "from": "museum_booking__choose_time_slot",
+                "to": "museum_booking__pick_date",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "workshop",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "There's a front desk bit at our workshop. Folks tell us who they are, we hand over a wristband, then off they go into their session.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "workshop-front-desk",
+                "label": "Workshop front desk"
+              },
+              {
+                "type": "view",
+                "kind": "screen_flow"
+              },
+              {
+                "type": "concept",
+                "id": "attendee-identification",
+                "label": "Attendee identifies themselves",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "wristband-handoff",
+                "label": "Hand over wristband",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "session-entry",
+                "label": "Attendee goes into their session",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "next",
+                "from": "attendee-identification",
+                "to": "wristband-handoff"
+              },
+              {
+                "type": "next",
+                "from": "wristband-handoff",
+                "to": "session-entry"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "workshop-front-desk",
+                  "attendee-identification",
+                  "wristband-handoff",
+                  "session-entry"
+                ]
+              }
+            ],
+            "summary": "Front-desk check-in flow: identify, receive a wristband, then enter the session."
+          },
+          "metrics": {
+            "firstEventMs": 1538,
+            "firstDrawableMs": 1773,
+            "totalMs": 2604,
+            "inputTokens": 1428,
+            "outputTokens": 212,
+            "cachedInputTokens": 1246
+          }
+        },
+        {
+          "speech": "Swap the last two bits—let them find their session before collecting a wristband.",
+          "response": {
+            "events": [
+              {
+                "type": "revise",
+                "id": "session-entry",
+                "label": "Attendee finds their session"
+              },
+              {
+                "type": "next",
+                "from": "attendee-identification",
+                "to": "session-entry"
+              },
+              {
+                "type": "next",
+                "from": "session-entry",
+                "to": "wristband-handoff"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "attendee-identification",
+                  "session-entry",
+                  "wristband-handoff"
+                ]
+              }
+            ],
+            "summary": "Reordered the final two steps: attendees find their session before collecting a wristband."
+          },
+          "metrics": {
+            "firstEventMs": 1111,
+            "firstDrawableMs": 1111,
+            "totalMs": 1658,
+            "inputTokens": 1680,
+            "outputTokens": 110,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "workshop-front-desk",
+            "title": "Workshop front desk",
+            "active": true,
+            "recipe": "screen_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "workshop-front-desk__attendee-identification",
+                "conceptId": "attendee-identification",
+                "topicId": "workshop-front-desk",
+                "label": "Attendee identifies themselves",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "workshop-front-desk__wristband-handoff",
+                "conceptId": "wristband-handoff",
+                "topicId": "workshop-front-desk",
+                "label": "Hand over wristband",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "workshop-front-desk__session-entry",
+                "conceptId": "session-entry",
+                "topicId": "workshop-front-desk",
+                "label": "Attendee finds their session",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "workshop-front-desk__next:attendee-identification:session-entry",
+                "topicId": "workshop-front-desk",
+                "from": "workshop-front-desk__attendee-identification",
+                "to": "workshop-front-desk__session-entry",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "workshop-front-desk__next:session-entry:wristband-handoff",
+                "topicId": "workshop-front-desk",
+                "from": "workshop-front-desk__session-entry",
+                "to": "workshop-front-desk__wristband-handoff",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "homepage",
+      "passed": false,
+      "error": {
+        "name": "MeaningError",
+        "message": "Meaning event 1: Unknown concept homepage"
+      },
+      "turns": [],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "homepage",
+            "title": "Homepage",
+            "active": true,
+            "recipe": "page_outline",
+            "direction": "down",
+            "items": [
+              {
+                "id": "homepage__showcase",
+                "conceptId": "showcase",
+                "topicId": "homepage",
+                "label": "Show how it works",
+                "detail": "The homepage should demonstrate the product or service before discussing pricing.",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": false
+              },
+              {
+                "id": "homepage__pricing",
+                "conceptId": "pricing",
+                "topicId": "homepage",
+                "label": "Pricing",
+                "detail": "Pricing can appear after visitors have seen how it works.",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": false
+              },
+              {
+                "id": "homepage__customer_quotes",
+                "conceptId": "customer_quotes",
+                "topicId": "homepage",
+                "label": "Customer quotes",
+                "detail": "Potentially include customer quotes somewhere on the homepage.",
+                "form": "card",
+                "certainty": "tentative",
+                "emphasized": false,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "homepage__next:showcase:pricing",
+                "topicId": "homepage",
+                "from": "homepage__showcase",
+                "to": "homepage__pricing",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "invitations",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "Could let them invite someone with a link, or search their contacts. Keep both ideas around. I'm leaning toward links for now.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "invite",
+                "label": "Inviting someone"
+              },
+              {
+                "type": "view",
+                "kind": "comparison"
+              },
+              {
+                "type": "concept",
+                "id": "invite_link",
+                "label": "Invite with a link",
+                "role": "option",
+                "certainty": "tentative",
+                "detail": "Current leaning; keep as a viable approach."
+              },
+              {
+                "type": "concept",
+                "id": "contact_search",
+                "label": "Search contacts",
+                "role": "option",
+                "certainty": "tentative",
+                "detail": "Alternative approach to inviting someone."
+              },
+              {
+                "type": "relation",
+                "from": "invite_link",
+                "to": "contact_search",
+                "kind": "alternative",
+                "label": "alternative to"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "invite_link"
+                ]
+              }
+            ],
+            "summary": "Two invitation approaches are being kept; link invitations are currently favored."
+          },
+          "metrics": {
+            "firstEventMs": 795,
+            "firstDrawableMs": 1101,
+            "totalMs": 1695,
+            "inputTokens": 1423,
+            "outputTokens": 158,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "invite",
+            "title": "Inviting someone",
+            "active": true,
+            "recipe": "comparison",
+            "direction": "right",
+            "items": [
+              {
+                "id": "invite__invite_link",
+                "conceptId": "invite_link",
+                "topicId": "invite",
+                "label": "Invite with a link",
+                "detail": "Current leaning; keep as a viable approach.",
+                "form": "card",
+                "certainty": "tentative",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "invite__contact_search",
+                "conceptId": "contact_search",
+                "topicId": "invite",
+                "label": "Search contacts",
+                "detail": "Alternative approach to inviting someone.",
+                "form": "card",
+                "certainty": "tentative",
+                "emphasized": false,
+                "muted": true
+              }
+            ],
+            "links": [
+              {
+                "id": "invite__alternative:invite_link:contact_search",
+                "topicId": "invite",
+                "from": "invite__invite_link",
+                "to": "invite__contact_search",
+                "kind": "alternative",
+                "label": "alternative to",
+                "certainty": "tentative",
+                "visible": false,
+                "muted": true
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "kiosk",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "The kiosk asks the booking service if the code is valid; it sends back either a reservation or an error. Put the kiosk on one side and the service on the other.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "booking-validation",
+                "label": "Booking code validation"
+              },
+              {
+                "type": "view",
+                "kind": "system_flow"
+              },
+              {
+                "type": "concept",
+                "id": "kiosk",
+                "label": "Kiosk",
+                "role": "system",
+                "certainty": "stated",
+                "detail": "The kiosk initiates validation of a booking code."
+              },
+              {
+                "type": "concept",
+                "id": "booking-service",
+                "label": "Booking service",
+                "role": "system",
+                "certainty": "stated",
+                "detail": "The service checks whether the booking code is valid."
+              },
+              {
+                "type": "concept",
+                "id": "validity-request",
+                "label": "Ask whether the code is valid",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "reservation-response",
+                "label": "Reservation response",
+                "role": "option",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "error-response",
+                "label": "Error response",
+                "role": "option",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "kiosk",
+                "to": "booking-service",
+                "kind": "calls",
+                "label": "validity request"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "reservation-response",
+                "kind": "returns",
+                "label": "if code is valid"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "error-response",
+                "kind": "returns",
+                "label": "if code is invalid"
+              },
+              {
+                "type": "relation",
+                "from": "reservation-response",
+                "to": "error-response",
+                "kind": "alternative"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "kiosk",
+                  "booking-service"
+                ]
+              }
+            ],
+            "summary": "Kiosk-to-service booking code validation with reservation or error outcomes."
+          },
+          "metrics": {
+            "firstEventMs": 1136,
+            "firstDrawableMs": 1572,
+            "totalMs": 3139,
+            "inputTokens": 1432,
+            "outputTokens": 309,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "booking-validation",
+            "title": "Booking code validation",
+            "active": true,
+            "recipe": "system_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "booking-validation__kiosk",
+                "conceptId": "kiosk",
+                "topicId": "booking-validation",
+                "label": "Kiosk",
+                "detail": "The kiosk initiates validation of a booking code.",
+                "form": "lane",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "booking-validation__booking-service",
+                "conceptId": "booking-service",
+                "topicId": "booking-validation",
+                "label": "Booking service",
+                "detail": "The service checks whether the booking code is valid.",
+                "form": "lane",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "booking-validation__validity-request",
+                "conceptId": "validity-request",
+                "topicId": "booking-validation",
+                "label": "Ask whether the code is valid",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": true
+              },
+              {
+                "id": "booking-validation__reservation-response",
+                "conceptId": "reservation-response",
+                "topicId": "booking-validation",
+                "label": "Reservation response",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": true
+              },
+              {
+                "id": "booking-validation__error-response",
+                "conceptId": "error-response",
+                "topicId": "booking-validation",
+                "label": "Error response",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": true
+              }
+            ],
+            "links": [
+              {
+                "id": "booking-validation__calls:kiosk:booking-service",
+                "topicId": "booking-validation",
+                "from": "booking-validation__kiosk",
+                "to": "booking-validation__booking-service",
+                "kind": "calls",
+                "label": "validity request",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "booking-validation__returns:booking-service:reservation-response",
+                "topicId": "booking-validation",
+                "from": "booking-validation__booking-service",
+                "to": "booking-validation__reservation-response",
+                "kind": "returns",
+                "label": "if code is valid",
+                "certainty": "stated",
+                "visible": true,
+                "muted": true
+              },
+              {
+                "id": "booking-validation__returns:booking-service:error-response",
+                "topicId": "booking-validation",
+                "from": "booking-validation__booking-service",
+                "to": "booking-validation__error-response",
+                "kind": "returns",
+                "label": "if code is invalid",
+                "certainty": "stated",
+                "visible": true,
+                "muted": true
+              },
+              {
+                "id": "booking-validation__alternative:reservation-response:error-response",
+                "topicId": "booking-validation",
+                "from": "booking-validation__reservation-response",
+                "to": "booking-validation__error-response",
+                "kind": "alternative",
+                "label": "",
+                "certainty": "stated",
+                "visible": false,
+                "muted": true
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "teams",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "Different thing: team structure. We have marketing and product. Research and design both live under product.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "team-structure",
+                "label": "Team structure"
+              },
+              {
+                "type": "view",
+                "kind": "hierarchy"
+              },
+              {
+                "type": "concept",
+                "id": "marketing",
+                "label": "Marketing",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "product",
+                "label": "Product",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "research",
+                "label": "Research",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "design",
+                "label": "Design",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "research",
+                "to": "product",
+                "kind": "contains",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "design",
+                "to": "product",
+                "kind": "contains",
+                "certainty": "stated"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "team-structure",
+                  "product",
+                  "research",
+                  "design"
+                ]
+              }
+            ],
+            "summary": "Team structure: Marketing and Product are top-level teams; Research and Design sit under Product."
+          },
+          "metrics": {
+            "firstEventMs": 827,
+            "firstDrawableMs": 1131,
+            "totalMs": 1945,
+            "inputTokens": 1417,
+            "outputTokens": 206,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "team-structure",
+            "title": "Team structure",
+            "active": true,
+            "recipe": "hierarchy",
+            "direction": "down",
+            "items": [
+              {
+                "id": "team-structure__marketing",
+                "conceptId": "marketing",
+                "topicId": "team-structure",
+                "label": "Marketing",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": false,
+                "muted": true
+              },
+              {
+                "id": "team-structure__product",
+                "conceptId": "product",
+                "topicId": "team-structure",
+                "label": "Product",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false,
+                "parent": "team-structure__design"
+              },
+              {
+                "id": "team-structure__research",
+                "conceptId": "research",
+                "topicId": "team-structure",
+                "label": "Research",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "team-structure__design",
+                "conceptId": "design",
+                "topicId": "team-structure",
+                "label": "Design",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "team-structure__contains:research:product",
+                "topicId": "team-structure",
+                "from": "team-structure__research",
+                "to": "team-structure__product",
+                "kind": "contains",
+                "label": "",
+                "certainty": "stated",
+                "visible": false,
+                "muted": false
+              },
+              {
+                "id": "team-structure__contains:design:product",
+                "topicId": "team-structure",
+                "from": "team-structure__design",
+                "to": "team-structure__product",
+                "kind": "contains",
+                "label": "",
+                "certainty": "stated",
+                "visible": false,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "case": "romanian",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "Pe pagina asta aș pune întâi exemplele, apoi prețurile. Formularul îl las la final. De fapt, formularul trebuie să vină înainte de prețuri.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "pagina",
+                "label": "Pagina aceasta"
+              },
+              {
+                "type": "view",
+                "kind": "page_outline"
+              },
+              {
+                "type": "concept",
+                "id": "exemple",
+                "label": "Exemple",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "preturi",
+                "label": "Prețuri",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "formular",
+                "label": "Formular",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "next",
+                "from": "exemple",
+                "to": "formular"
+              },
+              {
+                "type": "next",
+                "from": "formular",
+                "to": "preturi"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "pagina",
+                  "exemple",
+                  "formular",
+                  "preturi"
+                ]
+              },
+              {
+                "type": "suggestions",
+                "allowed": false
+              }
+            ],
+            "summary": "Ordinea paginii este: exemple, apoi formular, apoi prețuri."
+          },
+          "metrics": {
+            "firstEventMs": 787,
+            "firstDrawableMs": 953,
+            "totalMs": 1685,
+            "inputTokens": 1435,
+            "outputTokens": 180,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "pagina",
+            "title": "Pagina aceasta",
+            "active": true,
+            "recipe": "page_outline",
+            "direction": "down",
+            "items": [
+              {
+                "id": "pagina__exemple",
+                "conceptId": "exemple",
+                "topicId": "pagina",
+                "label": "Exemple",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "pagina__preturi",
+                "conceptId": "preturi",
+                "topicId": "pagina",
+                "label": "Prețuri",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "pagina__formular",
+                "conceptId": "formular",
+                "topicId": "pagina",
+                "label": "Formular",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "pagina__next:exemple:formular",
+                "topicId": "pagina",
+                "from": "pagina__exemple",
+                "to": "pagina__formular",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "pagina__next:formular:preturi",
+                "topicId": "pagina",
+                "from": "pagina__formular",
+                "to": "pagina__preturi",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "museum",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "For the museum, people should pick a date and then choose a time slot. That's about all I know for now.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "museum-booking",
+                "label": "Museum visit booking"
+              },
+              {
+                "type": "view",
+                "kind": "screen_flow"
+              },
+              {
+                "type": "concept",
+                "id": "select-date",
+                "label": "Select a visit date",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "select-time-slot",
+                "label": "Choose a time slot",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "next",
+                "from": "select-date",
+                "to": "select-time-slot"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "select-date",
+                  "select-time-slot"
+                ]
+              },
+              {
+                "type": "suggestions",
+                "allowed": false
+              }
+            ],
+            "summary": "Initial museum booking flow: select a date, then choose a time slot."
+          },
+          "metrics": {
+            "firstEventMs": 1394,
+            "firstDrawableMs": 1760,
+            "totalMs": 2417,
+            "inputTokens": 1421,
+            "outputTokens": 150,
+            "cachedInputTokens": 0
+          }
+        },
+        {
+          "speech": "Actually, switch those around: let them choose the time slot before the date. Keep both.",
+          "response": {
+            "events": [
+              {
+                "type": "next",
+                "from": "select-time-slot",
+                "to": "select-date"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "select-time-slot",
+                  "select-date"
+                ]
+              }
+            ],
+            "summary": "Reordered booking choices: time slot before date; both retained."
+          },
+          "metrics": {
+            "firstEventMs": 974,
+            "firstDrawableMs": 975,
+            "totalMs": 1333,
+            "inputTokens": 1579,
+            "outputTokens": 63,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "museum-booking",
+            "title": "Museum visit booking",
+            "active": true,
+            "recipe": "screen_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "museum-booking__select-date",
+                "conceptId": "select-date",
+                "topicId": "museum-booking",
+                "label": "Select a visit date",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "museum-booking__select-time-slot",
+                "conceptId": "select-time-slot",
+                "topicId": "museum-booking",
+                "label": "Choose a time slot",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "museum-booking__next:select-time-slot:select-date",
+                "topicId": "museum-booking",
+                "from": "museum-booking__select-time-slot",
+                "to": "museum-booking__select-date",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "workshop",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "There's a front desk bit at our workshop. Folks tell us who they are, we hand over a wristband, then off they go into their session.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "workshop_checkin",
+                "label": "Workshop check-in"
+              },
+              {
+                "type": "view",
+                "kind": "screen_flow"
+              },
+              {
+                "type": "concept",
+                "id": "front_desk",
+                "label": "Front desk",
+                "role": "screen",
+                "certainty": "stated",
+                "detail": "The workshop arrival/check-in point."
+              },
+              {
+                "type": "concept",
+                "id": "identify_attendee",
+                "label": "Attendee identifies themselves",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "give_wristband",
+                "label": "Hand over wristband",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "attend_session",
+                "label": "Go to session",
+                "role": "step",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "front_desk",
+                "to": "identify_attendee",
+                "kind": "next",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "identify_attendee",
+                "to": "give_wristband",
+                "kind": "next",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "give_wristband",
+                "to": "attend_session",
+                "kind": "next",
+                "certainty": "stated"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "front_desk",
+                  "identify_attendee",
+                  "give_wristband",
+                  "attend_session"
+                ]
+              }
+            ],
+            "summary": "Workshop front-desk check-in flow"
+          },
+          "metrics": {
+            "firstEventMs": 1067,
+            "firstDrawableMs": 1356,
+            "totalMs": 2492,
+            "inputTokens": 1428,
+            "outputTokens": 267,
+            "cachedInputTokens": 1246
+          }
+        },
+        {
+          "speech": "Swap the last two bits—let them find their session before collecting a wristband.",
+          "response": {
+            "events": [
+              {
+                "type": "next",
+                "from": "identify_attendee",
+                "to": "attend_session"
+              },
+              {
+                "type": "next",
+                "from": "attend_session",
+                "to": "give_wristband"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "front_desk",
+                  "identify_attendee",
+                  "attend_session",
+                  "give_wristband"
+                ]
+              }
+            ],
+            "summary": "Reordered the final two steps so session finding precedes wristband collection."
+          },
+          "metrics": {
+            "firstEventMs": 1784,
+            "firstDrawableMs": 1784,
+            "totalMs": 2250,
+            "inputTokens": 1740,
+            "outputTokens": 92,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "workshop_checkin",
+            "title": "Workshop check-in",
+            "active": true,
+            "recipe": "screen_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "workshop_checkin__front_desk",
+                "conceptId": "front_desk",
+                "topicId": "workshop_checkin",
+                "label": "Front desk",
+                "detail": "The workshop arrival/check-in point.",
+                "form": "screen",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "workshop_checkin__identify_attendee",
+                "conceptId": "identify_attendee",
+                "topicId": "workshop_checkin",
+                "label": "Attendee identifies themselves",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "workshop_checkin__give_wristband",
+                "conceptId": "give_wristband",
+                "topicId": "workshop_checkin",
+                "label": "Hand over wristband",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "workshop_checkin__attend_session",
+                "conceptId": "attend_session",
+                "topicId": "workshop_checkin",
+                "label": "Go to session",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "workshop_checkin__next:front_desk:identify_attendee",
+                "topicId": "workshop_checkin",
+                "from": "workshop_checkin__front_desk",
+                "to": "workshop_checkin__identify_attendee",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "workshop_checkin__next:identify_attendee:attend_session",
+                "topicId": "workshop_checkin",
+                "from": "workshop_checkin__identify_attendee",
+                "to": "workshop_checkin__attend_session",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "workshop_checkin__next:attend_session:give_wristband",
+                "topicId": "workshop_checkin",
+                "from": "workshop_checkin__attend_session",
+                "to": "workshop_checkin__give_wristband",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "homepage",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "For this homepage, show it working. Prices can wait till after they've seen what it does. Customer quotes somewhere around there maybe.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "homepage",
+                "label": "Homepage"
+              },
+              {
+                "type": "view",
+                "kind": "page_outline"
+              },
+              {
+                "type": "concept",
+                "id": "product_value",
+                "label": "Show what it does",
+                "role": "section",
+                "certainty": "stated",
+                "detail": "Lead the homepage with the product in action."
+              },
+              {
+                "type": "concept",
+                "id": "pricing",
+                "label": "Pricing",
+                "role": "section",
+                "certainty": "stated",
+                "detail": "Place pricing after visitors have seen what the product does."
+              },
+              {
+                "type": "concept",
+                "id": "customer_quotes",
+                "label": "Customer quotes",
+                "role": "section",
+                "certainty": "tentative",
+                "detail": "Include social proof somewhere near the product demonstration and before pricing."
+              },
+              {
+                "type": "relation",
+                "from": "product_value",
+                "to": "pricing",
+                "kind": "next",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "customer_quotes",
+                "to": "pricing",
+                "kind": "next",
+                "certainty": "tentative"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "product_value",
+                  "pricing",
+                  "customer_quotes"
+                ]
+              }
+            ],
+            "summary": "Homepage should demonstrate value before pricing, with customer quotes nearby."
+          },
+          "metrics": {
+            "firstEventMs": 988,
+            "firstDrawableMs": 1362,
+            "totalMs": 2482,
+            "inputTokens": 1423,
+            "outputTokens": 223,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "homepage",
+            "title": "Homepage",
+            "active": true,
+            "recipe": "page_outline",
+            "direction": "down",
+            "items": [
+              {
+                "id": "homepage__product_value",
+                "conceptId": "product_value",
+                "topicId": "homepage",
+                "label": "Show what it does",
+                "detail": "Lead the homepage with the product in action.",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "homepage__pricing",
+                "conceptId": "pricing",
+                "topicId": "homepage",
+                "label": "Pricing",
+                "detail": "Place pricing after visitors have seen what the product does.",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "homepage__customer_quotes",
+                "conceptId": "customer_quotes",
+                "topicId": "homepage",
+                "label": "Customer quotes",
+                "detail": "Include social proof somewhere near the product demonstration and before pricing.",
+                "form": "card",
+                "certainty": "tentative",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "homepage__next:customer_quotes:pricing",
+                "topicId": "homepage",
+                "from": "homepage__customer_quotes",
+                "to": "homepage__pricing",
+                "kind": "next",
+                "label": "",
+                "certainty": "tentative",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "invitations",
+      "passed": false,
+      "error": {
+        "name": "MeaningError",
+        "message": "Meaning event 1: Unknown concept invite-options"
+      },
+      "turns": [],
+      "plan": {
+        "version": 1,
+        "scenes": []
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "kiosk",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "The kiosk asks the booking service if the code is valid; it sends back either a reservation or an error. Put the kiosk on one side and the service on the other.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "booking-validation",
+                "label": "Booking code validation"
+              },
+              {
+                "type": "view",
+                "kind": "system_flow"
+              },
+              {
+                "type": "concept",
+                "id": "kiosk",
+                "label": "Kiosk",
+                "role": "system",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "booking-service",
+                "label": "Booking service",
+                "role": "system",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "validate-code",
+                "label": "Validate booking code",
+                "role": "step",
+                "certainty": "stated",
+                "detail": "The kiosk asks the booking service whether the code is valid."
+              },
+              {
+                "type": "concept",
+                "id": "reservation",
+                "label": "Reservation",
+                "role": "context",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "validation-error",
+                "label": "Error",
+                "role": "context",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "kiosk",
+                "to": "booking-service",
+                "kind": "calls",
+                "label": "validate code",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "reservation",
+                "kind": "returns",
+                "label": "valid",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "validation-error",
+                "kind": "returns",
+                "label": "invalid",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "reservation",
+                "kind": "branch",
+                "label": "reservation",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "booking-service",
+                "to": "validation-error",
+                "kind": "branch",
+                "label": "error",
+                "certainty": "stated"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "kiosk",
+                  "booking-service",
+                  "validate-code",
+                  "reservation",
+                  "validation-error"
+                ]
+              }
+            ],
+            "summary": "Kiosk validates a booking code with a booking service and receives either a reservation or an error."
+          },
+          "metrics": {
+            "firstEventMs": 1574,
+            "firstDrawableMs": 1991,
+            "totalMs": 4788,
+            "inputTokens": 1432,
+            "outputTokens": 346,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "booking-validation",
+            "title": "Booking code validation",
+            "active": true,
+            "recipe": "system_flow",
+            "direction": "right",
+            "items": [
+              {
+                "id": "booking-validation__kiosk",
+                "conceptId": "kiosk",
+                "topicId": "booking-validation",
+                "label": "Kiosk",
+                "detail": "",
+                "form": "lane",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "booking-validation__booking-service",
+                "conceptId": "booking-service",
+                "topicId": "booking-validation",
+                "label": "Booking service",
+                "detail": "",
+                "form": "lane",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "booking-validation__validate-code",
+                "conceptId": "validate-code",
+                "topicId": "booking-validation",
+                "label": "Validate booking code",
+                "detail": "The kiosk asks the booking service whether the code is valid.",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "booking-validation__calls:kiosk:booking-service",
+                "topicId": "booking-validation",
+                "from": "booking-validation__kiosk",
+                "to": "booking-validation__booking-service",
+                "kind": "calls",
+                "label": "validate code",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "teams",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "Different thing: team structure. We have marketing and product. Research and design both live under product.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "team_structure",
+                "label": "Team structure"
+              },
+              {
+                "type": "view",
+                "kind": "hierarchy"
+              },
+              {
+                "type": "concept",
+                "id": "marketing",
+                "label": "Marketing",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "product",
+                "label": "Product",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "research",
+                "label": "Research",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "design",
+                "label": "Design",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "product",
+                "to": "research",
+                "kind": "contains",
+                "certainty": "stated"
+              },
+              {
+                "type": "relation",
+                "from": "product",
+                "to": "design",
+                "kind": "contains",
+                "certainty": "stated"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "team_structure",
+                  "marketing",
+                  "product",
+                  "research",
+                  "design"
+                ]
+              }
+            ],
+            "summary": "Team structure: Marketing and Product, with Research and Design under Product."
+          },
+          "metrics": {
+            "firstEventMs": 1131,
+            "firstDrawableMs": 1271,
+            "totalMs": 2357,
+            "inputTokens": 1417,
+            "outputTokens": 202,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "team_structure",
+            "title": "Team structure",
+            "active": true,
+            "recipe": "hierarchy",
+            "direction": "down",
+            "items": [
+              {
+                "id": "team_structure__marketing",
+                "conceptId": "marketing",
+                "topicId": "team_structure",
+                "label": "Marketing",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "team_structure__product",
+                "conceptId": "product",
+                "topicId": "team_structure",
+                "label": "Product",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "team_structure__research",
+                "conceptId": "research",
+                "topicId": "team_structure",
+                "label": "Research",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false,
+                "parent": "team_structure__product"
+              },
+              {
+                "id": "team_structure__design",
+                "conceptId": "design",
+                "topicId": "team_structure",
+                "label": "Design",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false,
+                "parent": "team_structure__product"
+              }
+            ],
+            "links": [
+              {
+                "id": "team_structure__contains:product:research",
+                "topicId": "team_structure",
+                "from": "team_structure__product",
+                "to": "team_structure__research",
+                "kind": "contains",
+                "label": "",
+                "certainty": "stated",
+                "visible": false,
+                "muted": false
+              },
+              {
+                "id": "team_structure__contains:product:design",
+                "topicId": "team_structure",
+                "from": "team_structure__product",
+                "to": "team_structure__design",
+                "kind": "contains",
+                "label": "",
+                "certainty": "stated",
+                "visible": false,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "case": "romanian",
+      "passed": true,
+      "checks": {
+        "concepts": true,
+        "order": true,
+        "view": true,
+        "uncertainty": true
+      },
+      "turns": [
+        {
+          "speech": "Pe pagina asta aș pune întâi exemplele, apoi prețurile. Formularul îl las la final. De fapt, formularul trebuie să vină înainte de prețuri.",
+          "response": {
+            "events": [
+              {
+                "type": "topic",
+                "id": "page-structure",
+                "label": "Structura paginii"
+              },
+              {
+                "type": "view",
+                "kind": "page_outline"
+              },
+              {
+                "type": "concept",
+                "id": "examples",
+                "label": "Exemple",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "form",
+                "label": "Formular",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "concept",
+                "id": "pricing",
+                "label": "Prețuri",
+                "role": "section",
+                "certainty": "stated"
+              },
+              {
+                "type": "next",
+                "from": "examples",
+                "to": "form"
+              },
+              {
+                "type": "next",
+                "from": "form",
+                "to": "pricing"
+              },
+              {
+                "type": "focus",
+                "ids": [
+                  "examples",
+                  "form",
+                  "pricing"
+                ]
+              }
+            ],
+            "summary": "Pagina este ordonată cu exemplele primele, urmate de formular și apoi prețuri."
+          },
+          "metrics": {
+            "firstEventMs": 1266,
+            "firstDrawableMs": 1545,
+            "totalMs": 2050,
+            "inputTokens": 1435,
+            "outputTokens": 171,
+            "cachedInputTokens": 1246
+          }
+        }
+      ],
+      "plan": {
+        "version": 1,
+        "scenes": [
+          {
+            "id": "page-structure",
+            "title": "Structura paginii",
+            "active": true,
+            "recipe": "page_outline",
+            "direction": "down",
+            "items": [
+              {
+                "id": "page-structure__examples",
+                "conceptId": "examples",
+                "topicId": "page-structure",
+                "label": "Exemple",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "page-structure__form",
+                "conceptId": "form",
+                "topicId": "page-structure",
+                "label": "Formular",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              },
+              {
+                "id": "page-structure__pricing",
+                "conceptId": "pricing",
+                "topicId": "page-structure",
+                "label": "Prețuri",
+                "detail": "",
+                "form": "card",
+                "certainty": "stated",
+                "emphasized": true,
+                "muted": false
+              }
+            ],
+            "links": [
+              {
+                "id": "page-structure__next:examples:form",
+                "topicId": "page-structure",
+                "from": "page-structure__examples",
+                "to": "page-structure__form",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              },
+              {
+                "id": "page-structure__next:form:pricing",
+                "topicId": "page-structure",
+                "from": "page-structure__form",
+                "to": "page-structure__pricing",
+                "kind": "next",
+                "label": "",
+                "certainty": "stated",
+                "visible": true,
+                "muted": false
+              }
+            ],
+            "questions": []
+          }
+        ]
+      }
+    }
+  ]
+}

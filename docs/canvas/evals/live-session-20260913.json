@@ -1,0 +1,556 @@
+{
+  "date": "2026-09-13T15:28:10.497Z",
+  "model": "gpt-5.6-luna",
+  "measurement": "Real production LiveSession with text input and immediate in-process board acknowledgement. Includes bounded reference repair. Excludes microphone/transcription and browser paint time.",
+  "comparison": {
+    "scriptBytes": 92,
+    "operationBytes": 772,
+    "note": "UTF-8 payload bytes, not billed tokens or a universal price estimate. Direct script execution uses zero model calls."
+  },
+  "reports": [
+    {
+      "case": "running-narration",
+      "turns": [
+        {
+          "speech": "I'm thinking about a mobile app for running. That's the general idea for now.",
+          "firstServerEditMs": null,
+          "totalMs": 2888,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 2884,
+              "inputTokens": 1706,
+              "outputTokens": 100,
+              "cachedInputTokens": 0,
+              "firstUpdateMs": 0
+            }
+          ],
+          "summary": "focus none",
+          "blocks": [],
+          "edges": []
+        },
+        {
+          "speech": "For onboarding there'd be a welcome screen, then register.",
+          "firstServerEditMs": 2155,
+          "totalMs": 3074,
+          "requests": [
+            {
+              "modelCompletions": 2,
+              "modelState": "complete",
+              "requestMs": 3072,
+              "inputTokens": 1771,
+              "outputTokens": 183,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 2153
+            }
+          ],
+          "summary": "focus none\nrunning-app__onboarding [step] \"Onboarding\"\nrunning-app__welcome-screen [screen] \"Welcome screen\"\nrunning-app__register [step] \"Register\"\nrunning-app__welcome-screen -> running-app__register",
+          "blocks": [
+            {
+              "id": "running-app__onboarding",
+              "label": "Onboarding",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__welcome-screen",
+              "label": "Welcome screen",
+              "kind": "screen",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__register",
+              "label": "Register",
+              "kind": "step",
+              "position": {
+                "x": 620,
+                "y": 60
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_1mha0hx",
+              "source": "running-app__welcome-screen",
+              "target": "running-app__register",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "running-app__next:welcome-screen:register",
+              "muted": false,
+              "outcome": "neutral"
+            }
+          ]
+        },
+        {
+          "speech": "And a little walkthrough, showing them how to get into the app and what they can do there.",
+          "firstServerEditMs": 3157,
+          "totalMs": 3865,
+          "requests": [
+            {
+              "modelCompletions": 3,
+              "modelState": "complete",
+              "requestMs": 3862,
+              "inputTokens": 1898,
+              "outputTokens": 135,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 3155
+            }
+          ],
+          "summary": "focus none\nrunning-app__onboarding [step] \"Onboarding\"\nrunning-app__welcome-screen [screen] \"Welcome screen\"\nrunning-app__register [step] \"Register\"\nrunning-app__walkthrough [step] \"Walkthrough\" \"Shows users how to get into the app and what they can do there.\"\nrunning-app__walkthrough -> running-app__register",
+          "blocks": [
+            {
+              "id": "running-app__onboarding",
+              "label": "Onboarding",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__welcome-screen",
+              "label": "Welcome screen",
+              "kind": "screen",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__register",
+              "label": "Register",
+              "kind": "step",
+              "position": {
+                "x": 620,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__walkthrough",
+              "label": "Walkthrough",
+              "kind": "step",
+              "position": {
+                "x": 930,
+                "y": 60
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_hheeb0",
+              "source": "running-app__walkthrough",
+              "target": "running-app__register",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "running-app__next:walkthrough:register",
+              "muted": false,
+              "outcome": "neutral"
+            }
+          ]
+        },
+        {
+          "speech": "Actually let them see the walkthrough before registration. Keep the welcome first.",
+          "firstServerEditMs": 2359,
+          "totalMs": 2762,
+          "requests": [
+            {
+              "modelCompletions": 4,
+              "modelState": "complete",
+              "requestMs": 2759,
+              "inputTokens": 1979,
+              "outputTokens": 97,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 2357
+            }
+          ],
+          "summary": "focus none\nrunning-app__onboarding [step] \"Onboarding\"\nrunning-app__welcome-screen [screen] \"Welcome screen\"\nrunning-app__register [step] \"Register\"\nrunning-app__walkthrough [step] \"Walkthrough\" \"Shows users how to get into the app and what they can do there.\"\nrunning-app__welcome-screen -> running-app__walkthrough\nrunning-app__walkthrough -> running-app__register",
+          "blocks": [
+            {
+              "id": "running-app__onboarding",
+              "label": "Onboarding",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__welcome-screen",
+              "label": "Welcome screen",
+              "kind": "screen",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__register",
+              "label": "Register",
+              "kind": "step",
+              "position": {
+                "x": 620,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "running-app__walkthrough",
+              "label": "Walkthrough",
+              "kind": "step",
+              "position": {
+                "x": 930,
+                "y": 60
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_xwt1o2",
+              "source": "running-app__welcome-screen",
+              "target": "running-app__walkthrough",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "running-app__next:welcome-screen:walkthrough",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_hheeb0",
+              "source": "running-app__walkthrough",
+              "target": "running-app__register",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "running-app__next:walkthrough:register",
+              "muted": false,
+              "outcome": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "manual-reference",
+      "turns": [
+        {
+          "speech": "The selected card should say Start your first run. Keep it where I put it.",
+          "firstServerEditMs": 1454,
+          "totalMs": 1745,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 1740,
+              "inputTokens": 1756,
+              "outputTokens": 48,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 1452
+            }
+          ],
+          "summary": "focus none\nmanual_entry [step] \"Start your first run\"",
+          "blocks": [
+            {
+              "id": "manual_entry",
+              "label": "Start your first run",
+              "kind": "step",
+              "position": {
+                "x": 740,
+                "y": 360
+              },
+              "tentative": false
+            }
+          ],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "case": "warehouse",
+      "turns": [
+        {
+          "speech": "A parcel arrives at the loading dock. Someone scans its barcode. If it's damaged, set it aside for inspection; otherwise it can go into storage. That's the process I want to explain.",
+          "firstServerEditMs": 1151,
+          "totalMs": 2572,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 2569,
+              "inputTokens": 1728,
+              "outputTokens": 296,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 1149
+            }
+          ],
+          "summary": "focus none\nparcel_processing__arrival [step] \"Parcel arrives at loading dock\"\nparcel_processing__barcode_scan [step] \"Scan parcel barcode\"\nparcel_processing__damage_check [decision] \"Is the parcel damaged?\"\nparcel_processing__inspection [step] \"Set aside for inspection\"\nparcel_processing__storage [step] \"Put parcel into storage\"\nparcel_processing__arrival -> parcel_processing__barcode_scan\nparcel_processing__barcode_scan -> parcel_processing__damage_check\nparcel_processing__damage_check -> parcel_processing__inspection \"Damaged\"\nparcel_processing__damage_check -> parcel_processing__storage \"Not damaged\"",
+          "blocks": [
+            {
+              "id": "parcel_processing__arrival",
+              "label": "Parcel arrives at loading dock",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_processing__barcode_scan",
+              "label": "Scan parcel barcode",
+              "kind": "step",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_processing__damage_check",
+              "label": "Is the parcel damaged?",
+              "kind": "decision",
+              "position": {
+                "x": 660,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_processing__inspection",
+              "label": "Set aside for inspection",
+              "kind": "step",
+              "position": {
+                "x": 970,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_processing__storage",
+              "label": "Put parcel into storage",
+              "kind": "step",
+              "position": {
+                "x": 970,
+                "y": 250
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_1kv20mc",
+              "source": "parcel_processing__arrival",
+              "target": "parcel_processing__barcode_scan",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_processing__next:arrival:barcode_scan",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_ibvki3",
+              "source": "parcel_processing__barcode_scan",
+              "target": "parcel_processing__damage_check",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_processing__next:barcode_scan:damage_check",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_lhpyno",
+              "source": "parcel_processing__damage_check",
+              "target": "parcel_processing__inspection",
+              "label": "Damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_processing__branch:damage_check:inspection",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_16p50r7",
+              "source": "parcel_processing__damage_check",
+              "target": "parcel_processing__storage",
+              "label": "Not damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_processing__branch:damage_check:storage",
+              "muted": false,
+              "outcome": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "session-calls",
+      "turns": [
+        {
+          "speech": "On the left there's the browser. On the right, a session service. The browser sends a token to the service; the service validates it and sends either a session or an error back. Show the two sides and those calls.",
+          "firstServerEditMs": 1732,
+          "totalMs": 4037,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 4035,
+              "inputTokens": 1736,
+              "outputTokens": 484,
+              "cachedInputTokens": 1538,
+              "firstUpdateMs": 1730
+            }
+          ],
+          "summary": "focus none\nsession-validation__session-service [group] \"Session service\" \"Service participant on the right that validates tokens.\"\nsession-validation__browser [step] \"Browser\" \"Client-side participant on the left.\"\nsession-validation__send-token [step] \"Send token\" \"The browser sends a token to the session service.\"\nsession-validation__validate-token [step] \"Validate token\" \"The session service validates the token.\"\nsession-validation__session-response [step] \"Session response\" \"The service sends a session back to the browser when validation succeeds.\"\nsession-validation__error-response [step] \"Error response\" \"The service sends an error back to the browser when validation does not succeed.\"\nsession-validation__browser -> session-validation__send-token\nsession-validation__send-token -> session-validation__session-service\nsession-validation__session-service -> session-validation__validate-token\nsession-validation__validate-token -> session-validation__session-response \"valid token\"\nsession-validation__validate-token -> session-validation__error-response \"invalid token\"\nsession-validation__session-response -> session-validation__browser\nsession-validation__error-response -> session-validation__browser",
+          "blocks": [
+            {
+              "id": "session-validation__session-service",
+              "label": "Session service",
+              "kind": "group",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-validation__browser",
+              "label": "Browser",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-validation__send-token",
+              "label": "Send token",
+              "kind": "step",
+              "position": {
+                "x": 760,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-validation__validate-token",
+              "label": "Validate token",
+              "kind": "step",
+              "position": {
+                "x": 1070,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-validation__session-response",
+              "label": "Session response",
+              "kind": "step",
+              "position": {
+                "x": 1400,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-validation__error-response",
+              "label": "Error response",
+              "kind": "step",
+              "position": {
+                "x": 1400,
+                "y": 250
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_fih7ji",
+              "source": "session-validation__browser",
+              "target": "session-validation__send-token",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-validation__calls:browser:send-token",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_30babu",
+              "source": "session-validation__send-token",
+              "target": "session-validation__session-service",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-validation__next:send-token:session-service",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_1x5en3c",
+              "source": "session-validation__session-service",
+              "target": "session-validation__validate-token",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-validation__calls:session-service:validate-token",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_1mb7lox",
+              "source": "session-validation__validate-token",
+              "target": "session-validation__session-response",
+              "label": "valid token",
+              "highlighted": true,
+              "storyRelationId": "session-validation__branch:validate-token:session-response",
+              "muted": false,
+              "outcome": "success"
+            },
+            {
+              "id": "story_link_130wy2b",
+              "source": "session-validation__validate-token",
+              "target": "session-validation__error-response",
+              "label": "invalid token",
+              "highlighted": true,
+              "storyRelationId": "session-validation__branch:validate-token:error-response",
+              "muted": false,
+              "outcome": "failure"
+            },
+            {
+              "id": "story_link_1j1zecm",
+              "source": "session-validation__session-response",
+              "target": "session-validation__browser",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-validation__returns:session-response:browser",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_9u0hyc",
+              "source": "session-validation__error-response",
+              "target": "session-validation__browser",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-validation__returns:error-response:browser",
+              "muted": false,
+              "outcome": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

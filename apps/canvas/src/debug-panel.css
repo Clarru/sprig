@@ -1,0 +1,286 @@
+.canvas-debug {
+  width: 360px;
+  flex: none;
+  height: 100dvh;
+  background: #fff;
+  border-left: 1px solid #e6e6e6;
+  color: #333;
+  font:
+    12px/1.5 Arial,
+    Helvetica,
+    sans-serif;
+  z-index: 20;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.canvas-debug header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 18px;
+  border-bottom: 1px solid #eee;
+}
+.canvas-debug header > div {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.canvas-debug strong {
+  font-weight: 500;
+}
+.debug-content {
+  padding: 0 18px 20px;
+  overflow: auto;
+}
+.canvas-debug section {
+  padding: 17px 0;
+  border-bottom: 1px solid #eee;
+}
+.canvas-debug h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.canvas-debug output {
+  font: 10px monospace;
+  color: #777;
+  font-weight: 400;
+}
+.debug-diagnosis {
+  background: #f7f7f7;
+  border: 1px solid #ececec;
+  border-radius: 9px;
+  padding: 12px;
+  margin: 16px 0 0;
+  line-height: 1.6;
+}
+.debug-diagnosis[data-error="true"],
+.debug-warning {
+  background: #fff7ed;
+  border-color: #f3d9b6;
+  color: #865d29;
+}
+.debug-warning {
+  padding: 9px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.debug-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 7px 0;
+  font-size: 11px;
+}
+.debug-row > span:first-child {
+  color: #888;
+}
+.debug-row > span:last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.debug-row [data-good="true"] {
+  color: #347146;
+}
+.debug-meter {
+  height: 8px;
+  border-radius: 5px;
+  background: #ededed;
+  position: relative;
+  margin: 12px 0;
+  overflow: hidden;
+}
+.debug-meter > span {
+  display: block;
+  height: 100%;
+  background: #7faa89;
+  transition: width 0.1s;
+}
+.debug-meter > i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #666;
+}
+.debug-small {
+  color: #888;
+  font-size: 10px;
+  line-height: 1.65;
+  margin: 8px 0;
+}
+.canvas-debug label {
+  display: block;
+  font-size: 11px;
+  color: #555;
+  margin-top: 12px;
+}
+.canvas-debug label > output {
+  float: right;
+}
+.canvas-debug input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  accent-color: #666;
+}
+.canvas-debug select,
+.canvas-debug textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  padding: 7px 8px;
+  font:
+    11px/1.5 Arial,
+    sans-serif;
+  margin: 5px 0;
+}
+.canvas-debug .debug-check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.debug-check input {
+  accent-color: #666;
+}
+.canvas-debug button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  background: #fff;
+  color: #444;
+  border: 1px solid #e1e1e1;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font:
+    11px Arial,
+    sans-serif;
+  cursor: pointer;
+}
+.canvas-debug button:hover {
+  background: #f8f8f8;
+}
+.canvas-debug button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.canvas-debug button:focus-visible,
+.canvas-debug textarea:focus-visible,
+.canvas-debug select:focus-visible {
+  outline: 2px solid #888;
+  outline-offset: 2px;
+}
+.canvas-debug header button,
+.canvas-debug h2 button {
+  border: 0;
+  padding: 3px;
+}
+.debug-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
+}
+.canvas-debug pre {
+  font: 10px/1.7 monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 7px;
+  padding: 10px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 9px 0;
+}
+.debug-transcript {
+  min-height: 44px;
+}
+.debug-result-message {
+  font-size: 11px;
+  line-height: 1.6;
+}
+.canvas-debug details {
+  margin: 12px 0;
+}
+.canvas-debug summary {
+  font-size: 11px;
+  color: #666;
+  cursor: pointer;
+}
+.debug-log {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow: auto;
+}
+.debug-log li {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 10px;
+  line-height: 1.5;
+  border-bottom: 1px solid #f4f4f4;
+}
+.debug-log time {
+  color: #aaa;
+  white-space: nowrap;
+}
+.debug-log span {
+  color: #666;
+}
+.debug-toggle {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 9px;
+  padding: 10px;
+  color: #777;
+  cursor: pointer;
+  font-size: 11px;
+}
+.canvas-local {
+  display: flex;
+}
+.local-workspace {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  height: 100%;
+}
+.local-workspace > .cv-editor,
+.local-workspace > .cv-scenario {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+@media (max-width: 700px) {
+  .canvas-debug {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: min(360px, 100%);
+    box-shadow: -10px 0 30px #00000008;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .debug-meter > span {
+    transition: none;
+  }
+}
+
+.debug-toggle { top: auto; bottom: 20px; }
