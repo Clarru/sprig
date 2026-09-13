@@ -1,0 +1,441 @@
+{
+  "date": "2026-09-13T15:37:09.756Z",
+  "model": "gpt-5.6-luna",
+  "measurement": "Real production LiveSession with text input and immediate in-process board acknowledgement. Includes bounded reference repair. Excludes microphone/transcription and browser paint time.",
+  "comparison": {
+    "scriptBytes": 92,
+    "operationBytes": 772,
+    "note": "UTF-8 payload bytes, not billed tokens or a universal price estimate. Direct script execution uses zero model calls."
+  },
+  "reports": [
+    {
+      "case": "warehouse",
+      "turns": [
+        {
+          "speech": "A parcel arrives at the loading dock. Someone scans its barcode. If it's damaged, set it aside for inspection; otherwise it can go into storage. That's the process I want to explain.",
+          "meaningEvents": [
+            {
+              "type": "topic",
+              "id": "parcel_receiving",
+              "label": "Parcel receiving process"
+            },
+            {
+              "type": "view",
+              "kind": "sequence"
+            },
+            {
+              "type": "concept",
+              "id": "parcel_arrives",
+              "label": "Parcel arrives at loading dock",
+              "role": "step",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "scan_barcode",
+              "label": "Scan parcel barcode",
+              "role": "step",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "damage_check",
+              "label": "Is the parcel damaged?",
+              "role": "decision",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "set_aside_inspection",
+              "label": "Set parcel aside for inspection",
+              "role": "step",
+              "certainty": "stated",
+              "outcome": "neutral"
+            },
+            {
+              "type": "concept",
+              "id": "storage",
+              "label": "Put parcel into storage",
+              "role": "step",
+              "certainty": "stated",
+              "outcome": "success"
+            },
+            {
+              "type": "relation",
+              "from": "parcel_receiving",
+              "to": "parcel_arrives",
+              "kind": "contains"
+            },
+            {
+              "type": "next",
+              "from": "parcel_arrives",
+              "to": "scan_barcode"
+            },
+            {
+              "type": "next",
+              "from": "scan_barcode",
+              "to": "damage_check"
+            },
+            {
+              "type": "relation",
+              "from": "damage_check",
+              "to": "set_aside_inspection",
+              "kind": "branch",
+              "label": "Damaged",
+              "outcome": "neutral"
+            },
+            {
+              "type": "relation",
+              "from": "damage_check",
+              "to": "storage",
+              "kind": "branch",
+              "label": "Not damaged",
+              "outcome": "success"
+            },
+            {
+              "type": "focus",
+              "ids": [
+                "parcel_receiving",
+                "parcel_arrives",
+                "scan_barcode",
+                "damage_check",
+                "set_aside_inspection",
+                "storage"
+              ]
+            }
+          ],
+          "firstServerEditMs": 2313,
+          "totalMs": 3609,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 3607,
+              "inputTokens": 1838,
+              "outputTokens": 336,
+              "cachedInputTokens": 0,
+              "firstUpdateMs": 2312
+            }
+          ],
+          "summary": "focus none\nparcel_receiving__parcel_arrives [step] \"Parcel arrives at loading dock\"\nparcel_receiving__scan_barcode [step] \"Scan parcel barcode\"\nparcel_receiving__damage_check [decision] \"Is the parcel damaged?\"\nparcel_receiving__set_aside_inspection [step] \"Set parcel aside for inspection\"\nparcel_receiving__storage [step] \"Put parcel into storage\"\nparcel_receiving__parcel_arrives -> parcel_receiving__scan_barcode\nparcel_receiving__scan_barcode -> parcel_receiving__damage_check\nparcel_receiving__damage_check -> parcel_receiving__set_aside_inspection \"Damaged\"\nparcel_receiving__damage_check -> parcel_receiving__storage \"Not damaged\"",
+          "blocks": [
+            {
+              "id": "parcel_receiving__parcel_arrives",
+              "label": "Parcel arrives at loading dock",
+              "kind": "step",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__scan_barcode",
+              "label": "Scan parcel barcode",
+              "kind": "step",
+              "position": {
+                "x": 350,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__damage_check",
+              "label": "Is the parcel damaged?",
+              "kind": "decision",
+              "position": {
+                "x": 660,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__set_aside_inspection",
+              "label": "Set parcel aside for inspection",
+              "kind": "step",
+              "position": {
+                "x": 970,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__storage",
+              "label": "Put parcel into storage",
+              "kind": "step",
+              "position": {
+                "x": 970,
+                "y": 250
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_c4h86y",
+              "source": "parcel_receiving__parcel_arrives",
+              "target": "parcel_receiving__scan_barcode",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__next:parcel_arrives:scan_barcode",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_127zezm",
+              "source": "parcel_receiving__scan_barcode",
+              "target": "parcel_receiving__damage_check",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__next:scan_barcode:damage_check",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_8hsg4b",
+              "source": "parcel_receiving__damage_check",
+              "target": "parcel_receiving__set_aside_inspection",
+              "label": "Damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__branch:damage_check:set_aside_inspection",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_159vo16",
+              "source": "parcel_receiving__damage_check",
+              "target": "parcel_receiving__storage",
+              "label": "Not damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__branch:damage_check:storage",
+              "muted": false,
+              "outcome": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "session-calls",
+      "turns": [
+        {
+          "speech": "On the left there's the browser. On the right, a session service. The browser sends a token to the service; the service validates it and sends either a session or an error back. Show the two sides and those calls.",
+          "meaningEvents": [
+            {
+              "type": "topic",
+              "id": "session-auth-flow",
+              "label": "Browser and session service token validation"
+            },
+            {
+              "type": "view",
+              "kind": "system_flow"
+            },
+            {
+              "type": "concept",
+              "id": "browser",
+              "label": "Browser",
+              "role": "actor",
+              "certainty": "stated",
+              "detail": "Left-side participant."
+            },
+            {
+              "type": "concept",
+              "id": "session-service",
+              "label": "Session service",
+              "role": "system",
+              "certainty": "stated",
+              "detail": "Right-side service that validates the token and returns a session or an error."
+            },
+            {
+              "type": "concept",
+              "id": "send-token",
+              "label": "Browser sends token",
+              "role": "step",
+              "certainty": "stated",
+              "detail": "Token request/call from the browser to the session service."
+            },
+            {
+              "type": "concept",
+              "id": "validate-token",
+              "label": "Service validates token",
+              "role": "step",
+              "certainty": "stated",
+              "detail": "Validation performed by the session service."
+            },
+            {
+              "type": "concept",
+              "id": "session-response",
+              "label": "Session",
+              "role": "option",
+              "certainty": "stated",
+              "outcome": "success",
+              "detail": "Successful response returned by the session service."
+            },
+            {
+              "type": "concept",
+              "id": "error-response",
+              "label": "Error",
+              "role": "option",
+              "certainty": "stated",
+              "outcome": "failure",
+              "detail": "Error response returned when validation does not succeed."
+            },
+            {
+              "type": "relation",
+              "from": "browser",
+              "to": "send-token",
+              "kind": "contains"
+            },
+            {
+              "type": "relation",
+              "from": "session-service",
+              "to": "validate-token",
+              "kind": "contains"
+            },
+            {
+              "type": "relation",
+              "from": "send-token",
+              "to": "validate-token",
+              "kind": "calls"
+            },
+            {
+              "type": "relation",
+              "from": "validate-token",
+              "to": "session-response",
+              "kind": "returns",
+              "label": "valid token",
+              "outcome": "success"
+            },
+            {
+              "type": "relation",
+              "from": "validate-token",
+              "to": "error-response",
+              "kind": "returns",
+              "label": "invalid token",
+              "outcome": "failure"
+            },
+            {
+              "type": "focus",
+              "ids": [
+                "browser",
+                "session-service",
+                "send-token",
+                "validate-token",
+                "session-response",
+                "error-response"
+              ]
+            }
+          ],
+          "firstServerEditMs": 1727,
+          "totalMs": 3705,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 3704,
+              "inputTokens": 1846,
+              "outputTokens": 418,
+              "cachedInputTokens": 1648,
+              "firstUpdateMs": 1726
+            }
+          ],
+          "summary": "focus none\nsession-auth-flow__browser [group] \"Browser\" \"Left-side participant.\"\nsession-auth-flow__session-service [group] \"Session service\" \"Right-side service that validates the token and returns a session or an error.\"\nsession-auth-flow__send-token [step in session-auth-flow__browser] \"Browser sends token\" \"Token request/call from the browser to the session service.\"\nsession-auth-flow__validate-token [step in session-auth-flow__session-service] \"Service validates token\" \"Validation performed by the session service.\"\nsession-auth-flow__session-response [step] \"Session\" \"Successful response returned by the session service.\"\nsession-auth-flow__error-response [step] \"Error\" \"Error response returned when validation does not succeed.\"\nsession-auth-flow__send-token -> session-auth-flow__validate-token\nsession-auth-flow__validate-token -> session-auth-flow__session-response \"valid token\"\nsession-auth-flow__validate-token -> session-auth-flow__error-response \"invalid token\"",
+          "blocks": [
+            {
+              "id": "session-auth-flow__browser",
+              "label": "Browser",
+              "kind": "group",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-auth-flow__session-service",
+              "label": "Session service",
+              "kind": "group",
+              "position": {
+                "x": 450,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-auth-flow__send-token",
+              "label": "Browser sends token",
+              "kind": "step",
+              "position": {
+                "x": 35,
+                "y": 75
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-auth-flow__validate-token",
+              "label": "Service validates token",
+              "kind": "step",
+              "position": {
+                "x": 35,
+                "y": 75
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-auth-flow__session-response",
+              "label": "Session",
+              "kind": "step",
+              "position": {
+                "x": 1480,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "session-auth-flow__error-response",
+              "label": "Error",
+              "kind": "step",
+              "position": {
+                "x": 1790,
+                "y": 60
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_jwla6u",
+              "source": "session-auth-flow__send-token",
+              "target": "session-auth-flow__validate-token",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "session-auth-flow__calls:send-token:validate-token",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_1q8p4ji",
+              "source": "session-auth-flow__validate-token",
+              "target": "session-auth-flow__session-response",
+              "label": "valid token",
+              "highlighted": true,
+              "storyRelationId": "session-auth-flow__returns:validate-token:session-response",
+              "muted": false,
+              "outcome": "success"
+            },
+            {
+              "id": "story_link_b1c0uc",
+              "source": "session-auth-flow__validate-token",
+              "target": "session-auth-flow__error-response",
+              "label": "invalid token",
+              "highlighted": true,
+              "storyRelationId": "session-auth-flow__returns:validate-token:error-response",
+              "muted": false,
+              "outcome": "failure"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

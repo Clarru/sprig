@@ -1,0 +1,220 @@
+{
+  "date": "2026-09-13T15:35:45.011Z",
+  "model": "gpt-5.6-luna",
+  "measurement": "Real production LiveSession with text input and immediate in-process board acknowledgement. Includes bounded reference repair. Excludes microphone/transcription and browser paint time.",
+  "comparison": {
+    "scriptBytes": 92,
+    "operationBytes": 772,
+    "note": "UTF-8 payload bytes, not billed tokens or a universal price estimate. Direct script execution uses zero model calls."
+  },
+  "reports": [
+    {
+      "case": "warehouse",
+      "turns": [
+        {
+          "speech": "A parcel arrives at the loading dock. Someone scans its barcode. If it's damaged, set it aside for inspection; otherwise it can go into storage. That's the process I want to explain.",
+          "meaningEvents": [
+            {
+              "type": "topic",
+              "id": "parcel_receiving",
+              "label": "Parcel receiving process"
+            },
+            {
+              "type": "view",
+              "kind": "screen_flow"
+            },
+            {
+              "type": "concept",
+              "id": "parcel_arrives",
+              "label": "Parcel arrives at the loading dock",
+              "role": "step",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "scan_barcode",
+              "label": "Scan the parcel barcode",
+              "role": "step",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "damage_check",
+              "label": "Is the parcel damaged?",
+              "role": "decision",
+              "certainty": "stated"
+            },
+            {
+              "type": "concept",
+              "id": "set_aside_inspection",
+              "label": "Set the parcel aside for inspection",
+              "role": "step",
+              "certainty": "stated",
+              "outcome": "neutral"
+            },
+            {
+              "type": "concept",
+              "id": "move_to_storage",
+              "label": "Move the parcel into storage",
+              "role": "step",
+              "certainty": "stated",
+              "outcome": "success"
+            },
+            {
+              "type": "relation",
+              "from": "parcel_receiving",
+              "to": "parcel_arrives",
+              "kind": "contains"
+            },
+            {
+              "type": "relation",
+              "from": "parcel_arrives",
+              "to": "scan_barcode",
+              "kind": "next"
+            },
+            {
+              "type": "relation",
+              "from": "scan_barcode",
+              "to": "damage_check",
+              "kind": "next"
+            },
+            {
+              "type": "relation",
+              "from": "damage_check",
+              "to": "set_aside_inspection",
+              "kind": "branch",
+              "label": "Damaged",
+              "outcome": "neutral"
+            },
+            {
+              "type": "relation",
+              "from": "damage_check",
+              "to": "move_to_storage",
+              "kind": "branch",
+              "label": "Not damaged",
+              "outcome": "success"
+            },
+            {
+              "type": "focus",
+              "ids": [
+                "parcel_arrives",
+                "scan_barcode",
+                "damage_check",
+                "set_aside_inspection",
+                "move_to_storage"
+              ]
+            }
+          ],
+          "firstServerEditMs": 2954,
+          "totalMs": 3934,
+          "requests": [
+            {
+              "modelCompletions": 1,
+              "modelState": "complete",
+              "requestMs": 3930,
+              "inputTokens": 1804,
+              "outputTokens": 349,
+              "cachedInputTokens": 1675,
+              "firstUpdateMs": 2950
+            }
+          ],
+          "summary": "focus none\nparcel_receiving__parcel_arrives [screen] \"Parcel arrives at the loading dock\"\nparcel_receiving__scan_barcode [screen] \"Scan the parcel barcode\"\nparcel_receiving__damage_check [decision] \"Is the parcel damaged?\"\nparcel_receiving__set_aside_inspection [screen] \"Set the parcel aside for inspection\"\nparcel_receiving__move_to_storage [screen] \"Move the parcel into storage\"\nparcel_receiving__parcel_arrives -> parcel_receiving__scan_barcode\nparcel_receiving__scan_barcode -> parcel_receiving__damage_check\nparcel_receiving__damage_check -> parcel_receiving__set_aside_inspection \"Damaged\"\nparcel_receiving__damage_check -> parcel_receiving__move_to_storage \"Not damaged\"",
+          "blocks": [
+            {
+              "id": "parcel_receiving__parcel_arrives",
+              "label": "Parcel arrives at the loading dock",
+              "kind": "screen",
+              "position": {
+                "x": 40,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__scan_barcode",
+              "label": "Scan the parcel barcode",
+              "kind": "screen",
+              "position": {
+                "x": 310,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__damage_check",
+              "label": "Is the parcel damaged?",
+              "kind": "decision",
+              "position": {
+                "x": 580,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__set_aside_inspection",
+              "label": "Set the parcel aside for inspection",
+              "kind": "screen",
+              "position": {
+                "x": 890,
+                "y": 60
+              },
+              "tentative": false
+            },
+            {
+              "id": "parcel_receiving__move_to_storage",
+              "label": "Move the parcel into storage",
+              "kind": "screen",
+              "position": {
+                "x": 890,
+                "y": 440
+              },
+              "tentative": false
+            }
+          ],
+          "edges": [
+            {
+              "id": "story_link_c4h86y",
+              "source": "parcel_receiving__parcel_arrives",
+              "target": "parcel_receiving__scan_barcode",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__next:parcel_arrives:scan_barcode",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_127zezm",
+              "source": "parcel_receiving__scan_barcode",
+              "target": "parcel_receiving__damage_check",
+              "label": "",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__next:scan_barcode:damage_check",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_8hsg4b",
+              "source": "parcel_receiving__damage_check",
+              "target": "parcel_receiving__set_aside_inspection",
+              "label": "Damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__branch:damage_check:set_aside_inspection",
+              "muted": false,
+              "outcome": "neutral"
+            },
+            {
+              "id": "story_link_o2s476",
+              "source": "parcel_receiving__damage_check",
+              "target": "parcel_receiving__move_to_storage",
+              "label": "Not damaged",
+              "highlighted": true,
+              "storyRelationId": "parcel_receiving__branch:damage_check:move_to_storage",
+              "muted": false,
+              "outcome": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

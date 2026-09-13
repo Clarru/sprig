@@ -1,0 +1,53 @@
+import {expect,test} from '@playwright/test';
+
+test('native tools, held-key pan, zoom, clipboard, groups and document round trip',async({page,context})=>{
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/');
+ await page.getByRole('button',{name:'Close debug panel',exact:true}).click();
+ const surface=page.locator('.excalidraw');
+ await surface.waitFor();
+ for(const [key,label] of [['r','Rectangle (R)'],['d','Decision (D)'],['o','Ellipse (O)'],['a','Arrow (A)'],['t','Text (T)'],['p','Draw (P)'],['h','Hand (H)'],['v','Select (V)']]){
+  await surface.press(key);await expect(page.getByRole('button',{name:label,exact:true})).toHaveAttribute('aria-pressed','true');
+ }
+ const draw=async(key:string,from:number[],to:number[])=>{await surface.press(key);await page.mouse.move(from[0],from[1]);await page.mouse.down();await page.mouse.move(to[0],to[1],{steps:8});await page.mouse.up();};
+ await draw('r',[350,200],[550,320]);await draw('o',[750,200],[950,320]);await draw('a',[555,260],[745,260]);
+ await draw('d',[570,500],[710,640]);await draw('p',[350,510],[470,600]);
+ await surface.press('t');await page.mouse.click(1000,550);await page.keyboard.insertText('A note in my own words');await page.keyboard.press('Escape');
+ await expect(page.locator('[data-board-object]')).toHaveCount(5);
+ const saved=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('canvas:local:board:v1')!));
+ await expect.poll(async()=> (await saved()).edges.length).toBe(1);
+ expect((await saved()).native.elements.some((e:{type:string;points?:unknown[]})=>e.type==='freedraw'&&(e.points?.length??0)>2)).toBe(true);
+ const viewport=page.locator('.cv-native-stage');
+ await surface.press('v');const beforePan=await viewport.getAttribute('data-scroll-x');
+ await page.keyboard.down('Space');await page.mouse.move(1100,750);await page.mouse.down();await page.mouse.move(1220,810,{steps:8});await page.mouse.up();await page.keyboard.up('Space');
+ await expect(viewport).not.toHaveAttribute('data-scroll-x',beforePan!);
+ const beforeHand=await viewport.getAttribute('data-scroll-y');await draw('h',[1100,750],[1120,820]);
+ await expect(viewport).not.toHaveAttribute('data-scroll-y',beforeHand!);
+ const beforeZoom=await viewport.getAttribute('data-zoom');await page.keyboard.down('Control');await page.mouse.wheel(0,-250);await page.keyboard.up('Control');
+ await expect(viewport).not.toHaveAttribute('data-zoom',beforeZoom!);
+ await surface.press('v');await surface.press('ControlOrMeta+a');await surface.press('ControlOrMeta+g');
+ await expect.poll(async()=> (await saved()).blocks.every((b:{groups?:string[]})=>!!b.groups?.length)).toBe(true);
+ await surface.press('ControlOrMeta+Shift+g');
+ await expect.poll(async()=> (await saved()).blocks.every((b:{groups?:string[]})=>!b.groups?.length)).toBe(true);
+ await surface.press('ControlOrMeta+c');
+ await expect.poll(async()=> (await page.evaluate(()=>navigator.clipboard.readText())).includes('excalidraw')).toBe(true);
+ await surface.press('ControlOrMeta+v');
+ await expect(page.locator('[data-board-object]')).toHaveCount(10);
+ await surface.press('ControlOrMeta+z');await expect(page.locator('[data-board-object]')).toHaveCount(5);
+ await surface.press('ControlOrMeta+a');await surface.press('Backspace');await expect(page.locator('[data-board-object]')).toHaveCount(0);
+ await surface.press('ControlOrMeta+z');await expect(page.locator('[data-board-object]')).toHaveCount(5);
+ const fileChooserPromise=page.waitForEvent('filechooser');await surface.press('9');
+ const imageChooser=await fileChooserPromise;
+ await imageChooser.setFiles({name:'test-image.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8l8AAAAASUVORK5CYII=','base64')});
+ await page.mouse.click(1000,420);
+ await expect(page.locator('[data-kind="image"]')).toHaveCount(1);
+ await expect.poll(async()=> (await saved()).blocks.find((b:{kind:string})=>b.kind==='image')?.image).toMatch(/^data:image\/png;base64,/);
+ const original=await saved();
+ await page.getByRole('button',{name:'Open canvas tools',exact:true}).click();
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export board',exact:true}).click();const download=await downloadPromise;const file=await download.path();
+ await page.reload();await expect(page.locator('[data-board-object]')).toHaveCount(6);
+ await page.locator('input[type=file][accept="application/json,.json"]').setInputFiles(file!);
+ await expect(page.locator('[data-board-object]')).toHaveCount(6);
+ expect((await saved()).blocks.find((b:{kind:string})=>b.kind==='image')?.image).toBe(original.blocks.find((b:{kind:string})=>b.kind==='image')?.image);
+ expect((await saved()).blocks.map((b:{id:string})=>b.id)).toEqual(original.blocks.map((b:{id:string})=>b.id));
+});

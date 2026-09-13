@@ -1,0 +1,383 @@
+{
+  "version": 1,
+  "revision": 14,
+  "title": "session-calls",
+  "story": {
+    "version": 1,
+    "revision": 14,
+    "activeTopic": "session-auth-flow",
+    "focusConcept": "error-response",
+    "topics": {
+      "session-auth-flow": {
+        "id": "session-auth-flow",
+        "label": "Browser and session service token validation",
+        "view": "system_flow",
+        "concepts": {
+          "browser": {
+            "id": "browser",
+            "label": "Browser",
+            "aliases": [],
+            "role": "actor",
+            "certainty": "stated",
+            "detail": "Left-side participant.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 3,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "session-service": {
+            "id": "session-service",
+            "label": "Session service",
+            "aliases": [],
+            "role": "system",
+            "certainty": "stated",
+            "detail": "Right-side service that validates the token and returns a session or an error.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 4,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "send-token": {
+            "id": "send-token",
+            "label": "Browser sends token",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "Token request/call from the browser to the session service.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 5,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "validate-token": {
+            "id": "validate-token",
+            "label": "Service validates token",
+            "aliases": [],
+            "role": "step",
+            "certainty": "stated",
+            "detail": "Validation performed by the session service.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 6,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "session-response": {
+            "id": "session-response",
+            "label": "Session",
+            "aliases": [],
+            "role": "option",
+            "certainty": "stated",
+            "outcome": "success",
+            "detail": "Successful response returned by the session service.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 7,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          },
+          "error-response": {
+            "id": "error-response",
+            "label": "Error",
+            "aliases": [],
+            "role": "option",
+            "certainty": "stated",
+            "outcome": "failure",
+            "detail": "Error response returned when validation does not succeed.",
+            "withdrawn": false,
+            "suppressed": false,
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 8,
+              "origin": "speech"
+            },
+            "labelOrigin": "speech"
+          }
+        },
+        "relations": [
+          {
+            "id": "contains:browser:send-token",
+            "from": "browser",
+            "to": "send-token",
+            "kind": "contains",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 9,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "contains:session-service:validate-token",
+            "from": "session-service",
+            "to": "validate-token",
+            "kind": "contains",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 10,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "calls:send-token:validate-token",
+            "from": "send-token",
+            "to": "validate-token",
+            "kind": "calls",
+            "label": "",
+            "certainty": "stated",
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 11,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "returns:validate-token:session-response",
+            "from": "validate-token",
+            "to": "session-response",
+            "kind": "returns",
+            "label": "valid token",
+            "certainty": "stated",
+            "outcome": "success",
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 12,
+              "origin": "speech"
+            }
+          },
+          {
+            "id": "returns:validate-token:error-response",
+            "from": "validate-token",
+            "to": "error-response",
+            "kind": "returns",
+            "label": "invalid token",
+            "certainty": "stated",
+            "outcome": "failure",
+            "evidence": {
+              "utteranceId": "recording",
+              "revision": 13,
+              "origin": "speech"
+            }
+          }
+        ],
+        "questions": {},
+        "suggestionsAllowed": false,
+        "emphasis": [
+          "browser",
+          "session-service",
+          "send-token",
+          "validate-token",
+          "session-response",
+          "error-response"
+        ]
+      }
+    },
+    "appliedPatches": [
+      "recording_1",
+      "recording_2",
+      "recording_3",
+      "recording_4",
+      "recording_5",
+      "recording_6",
+      "recording_7",
+      "recording_8",
+      "recording_9",
+      "recording_10",
+      "recording_11",
+      "recording_12",
+      "recording_13",
+      "recording_14"
+    ]
+  },
+  "blocks": [
+    {
+      "id": "session-auth-flow__browser",
+      "kind": "group",
+      "label": "Browser",
+      "detail": "Left-side participant.",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 40,
+        "y": 60
+      },
+      "width": 320,
+      "height": 540,
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "browser",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": true
+    },
+    {
+      "id": "session-auth-flow__session-service",
+      "kind": "group",
+      "label": "Session service",
+      "detail": "Right-side service that validates the token and returns a session or an error.",
+      "position": {
+        "x": 450,
+        "y": 60
+      },
+      "autoPosition": {
+        "x": 450,
+        "y": 60
+      },
+      "width": 320,
+      "height": 480,
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "session-service",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": true
+    },
+    {
+      "id": "session-auth-flow__send-token",
+      "kind": "step",
+      "label": "Browser sends token",
+      "detail": "Token request/call from the browser to the session service.",
+      "position": {
+        "x": 35,
+        "y": 75
+      },
+      "autoPosition": {
+        "x": 35,
+        "y": 75
+      },
+      "width": 220,
+      "height": 110,
+      "parentId": "session-auth-flow__browser",
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "send-token",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": true
+    },
+    {
+      "id": "session-auth-flow__validate-token",
+      "kind": "step",
+      "label": "Service validates token",
+      "detail": "Validation performed by the session service.",
+      "position": {
+        "x": 35,
+        "y": 75
+      },
+      "autoPosition": {
+        "x": 35,
+        "y": 75
+      },
+      "width": 220,
+      "height": 110,
+      "parentId": "session-auth-flow__session-service",
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "validate-token",
+      "muted": false,
+      "outcome": "neutral",
+      "tentative": false,
+      "highlighted": true
+    },
+    {
+      "id": "session-auth-flow__session-response",
+      "kind": "step",
+      "label": "Session",
+      "detail": "Successful response returned by the session service.",
+      "position": {
+        "x": 35,
+        "y": 235
+      },
+      "autoPosition": {
+        "x": 35,
+        "y": 235
+      },
+      "width": 220,
+      "height": 110,
+      "parentId": "session-auth-flow__browser",
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "session-response",
+      "muted": false,
+      "outcome": "success",
+      "tentative": false,
+      "highlighted": true
+    },
+    {
+      "id": "session-auth-flow__error-response",
+      "kind": "step",
+      "label": "Error",
+      "detail": "Error response returned when validation does not succeed.",
+      "position": {
+        "x": 35,
+        "y": 395
+      },
+      "autoPosition": {
+        "x": 35,
+        "y": 395
+      },
+      "width": 220,
+      "height": 110,
+      "parentId": "session-auth-flow__browser",
+      "storyTopic": "session-auth-flow",
+      "storyConcept": "error-response",
+      "muted": false,
+      "outcome": "failure",
+      "tentative": false,
+      "highlighted": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "story_link_jwla6u",
+      "source": "session-auth-flow__send-token",
+      "target": "session-auth-flow__validate-token",
+      "label": "",
+      "highlighted": true,
+      "storyRelationId": "session-auth-flow__calls:send-token:validate-token",
+      "muted": false,
+      "outcome": "neutral"
+    },
+    {
+      "id": "story_link_1q8p4ji",
+      "source": "session-auth-flow__validate-token",
+      "target": "session-auth-flow__session-response",
+      "label": "valid token",
+      "highlighted": true,
+      "storyRelationId": "session-auth-flow__returns:validate-token:session-response",
+      "muted": false,
+      "outcome": "success"
+    },
+    {
+      "id": "story_link_b1c0uc",
+      "source": "session-auth-flow__validate-token",
+      "target": "session-auth-flow__error-response",
+      "label": "invalid token",
+      "highlighted": true,
+      "storyRelationId": "session-auth-flow__returns:validate-token:error-response",
+      "muted": false,
+      "outcome": "failure"
+    }
+  ]
+}

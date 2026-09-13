@@ -1,0 +1,33 @@
+"use client";
+import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
+import {createPortal} from 'react-dom';
+import type {ExcalidrawImperativeAPI,AppState} from '@excalidraw/excalidraw/types';
+import type {DrawingElement} from './scene';
+import {cardText} from './scene';
+import {BlockCard} from '../ui-components';
+import type {BoardStore} from '../store';
+function frame(elements:readonly DrawingElement[],state:AppState){
+ const editing=state.editingTextElement;
+ return {elements,scrollX:state.scrollX,scrollY:state.scrollY,zoom:state.zoom.value,
+  editing:editing?.type==='text' ? editing.containerId??editing.id : editing?.id};
+}
+/** Decorative surfaces sit between native drawing and interaction layers. Native geometry remains authoritative. */
+export function NativeSurfaces({api,store,target}:{api:ExcalidrawImperativeAPI;store:BoardStore;target:HTMLElement}){
+ const board=useSyncExternalStore(store.subscribe,()=>store.getSnapshot().board,()=>store.getSnapshot().board);
+ const byId=useMemo(()=>new Map(board.blocks.map(b=>[b.id,b])),[board]);
+ const [drawing,setDrawing]=useState(()=>frame(api.getSceneElements(),api.getAppState()));
+ useEffect(()=>api.onChange((elements,state)=>setDrawing(frame(elements,state))),[api]);
+ return createPortal(<div className="cv-material-layer" aria-hidden="true">{drawing.elements.map(element=>{
+  const block=byId.get(element.id);
+  if(!block || !block.label || element.isDeleted || element.type!=='rectangle' || !['step','screen','note','decision'].includes(block.kind) || drawing.editing===element.id) return null;
+  const label=drawing.elements.find(e=>e.type==='text'&&e.containerId===element.id);
+  if(label?.type==='text' && label.originalText!==cardText(block)) return null;
+  const fontSize=label?.type==='text'?label.fontSize:16;
+  return <div key={element.id} className="cv-material-card" data-material-card={element.id} style={{
+   left:(element.x+drawing.scrollX)*drawing.zoom,top:(element.y+drawing.scrollY)*drawing.zoom,
+   width:element.width,height:element.height,transform:`scale(${drawing.zoom})`,opacity:element.opacity/100,
+  }}><div style={{width:'100%',height:'100%',transform:`rotate(${element.angle}rad)`,fontSize}}>
+    <BlockCard block={{...block,muted:false,backgroundColor:block.backgroundColor==='transparent'?undefined:block.backgroundColor}}/>
+  </div></div>;
+ })}</div>,target);
+}
