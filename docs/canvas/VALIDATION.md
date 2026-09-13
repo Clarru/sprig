@@ -52,3 +52,10 @@ The live API rejected server VAD for GPT Live Transcribe. The app now detects pa
 - **191 unit tests pass** in both the portfolio workspace and refreshed standalone extraction. Targeted lint, portfolio production build, standalone build, 18 case-study contracts, four workbench tests and diff whitespace checks passed.
 - [Recorded measurements](evals/RESULTS.md) retain both early and corrected model runs. The 92-byte direct script compiles to 772 bytes of operations without a model call. Server edit timing is explicitly separate from microphone and browser-paint latency.
 - Browser validation remains pending because the computer-use tool reports the Mac locked, with automatic unlock paused after physical input. Manual unlock was requested; no workaround was attempted. This is a progress checkpoint, not foundation completion. See [ACCEPTANCE.md](ACCEPTANCE.md).
+
+
+## Muted speech cards and embedded scrolling — 2026-09-13
+
+A muted native card applied opacity to its entire decorative layer, including the white plane hiding the native drawing. This exposed a duplicate label and outline. The erasure plane now stays opaque and rotates with the native geometry; opacity applies only to its content. Browser pixel comparisons cover a multiline muted card and a subsequent renamed, resized, rotated card. The unrotated capture is identical with the native canvas hidden; rotation differs by at most one color-channel value at antialiased edges. Native editing/hit testing remains active.
+
+Standalone validation: 191 unit tests, production build, eight browser tests passed (the portfolio-only test is intentionally skipped outside the portfolio). The portfolio has a dedicated scrolling regression: enter the board during a Lenis glide, scroll natively over the authored board, and resume smooth scrolling outside it. The board uses `data-lenis-prevent`; capture-phase handoff cancels the existing interpolation without stopping or locking page scrolling. See [Lenis documentation](https://github.com/darkroomengineering/lenis#nested-scroll).
