@@ -13,6 +13,7 @@ import type {
   UnderstandingResult,
 } from "./understanding-agent";
 import {
+  defaultDebugSettings,
   DebugSettingsSchema,
   type DebugSettings,
   type DiagnosticEvent,
@@ -80,6 +81,7 @@ export type ServerEvent =
       message: string;
       elapsedMs: number;
     }
+  | { type: "connection"; recovering: boolean; message: string }
   | { type: "ready"; input?: "microphone" | "text" }
   | {
       type: "status";
@@ -95,6 +97,15 @@ export type ServerEvent =
     }
   | { type: "settled"; state: Interpretation["state"]; message: string };
 export class LiveSession {
+  private recoveryTimer: ReturnType<typeof setTimeout> | null = null;
+  private stableTimer: ReturnType<typeof setTimeout> | null = null;
+  private transcriptionEpoch = 0;
+  private recoveryAttempts = 0;
+  private announcedReady = false;
+  private recovering = false;
+  private bufferedAudio: Buffer[] = [];
+  private bufferedBytes = 0;
+  private settings: DebugSettings = {...defaultDebugSettings};
   private ignoredTurns = new Set<string>();
   private readonly sessionId = uid("meaning_session");
   private context: Context;
@@ -150,22 +161,49 @@ export class LiveSession {
       this.emit({ type: "ready", input: "text" });
       return;
     }
+    this.openTranscription();
+  }
+  /** Restore context after a browser transport reconnect, without redrawing old speech. */
+  resumeTranscript(text: string) {
+    if (!text) return;
+    this.turns.set("resumed", text);
+    this.consideredTurns.set("resumed", text);
+    this.finalTurns.add("resumed");
+    this.reviewedFinalTurns.add("resumed");
+    this.previous = text;
+  }
+  private openTranscription() {
+    const epoch = ++this.transcriptionEpoch;
+    const current = () => !this.closed && epoch === this.transcriptionEpoch;
     this.connection = this.provider.transcribe({
       ready: () => {
-        if (!this.closed) {
+        if (current()) {
           this.ready = true;
           this.debug({
             kind: "provider-ready",
             message: "OpenAI accepted the transcription setup.",
           });
-          this.emit({ type: "ready", input: "microphone" });
+          if (!this.announcedReady) {
+            this.announcedReady = true;
+            this.emit({ type: "ready", input: "microphone" });
+          }
+          if (this.recovering) {
+            this.recovering = false;
+            this.emit({type:"connection",recovering:false,message:"Audio reconnected. I’m following."});
+          }
+          this.connection?.configure?.(this.settings);
+          const buffered = this.bufferedAudio;
+          this.bufferedAudio = []; this.bufferedBytes = 0;
+          for (const packet of buffered) this.connection?.append(packet);
+          this.stableTimer = setTimeout(() => { this.recoveryAttempts = 0; }, 30000);
         }
       },
       turn: (id) => {
+        if (!current()) return;
         if (!this.turns.has(id)) this.turns.set(id, "");
       },
       transcript: (id, text, final) => {
-        if (this.closed) return;
+        if (!current()) return;
         this.turns.set(id, final ? text : (this.turns.get(id) ?? "") + text);
         if(final)this.finalTurns.add(id);
         // Keep short ASR fragments visible, but do not turn isolated connector
@@ -196,12 +234,42 @@ export class LiveSession {
         this.dirty = true;
         this.schedule(final);
       },
-      debug: (event) => this.debug(event),
-      error: (failure = { kind: "connection" }) =>
-        this.fail(providerFailureMessage(failure)),
+      debug: (event) => {if (current()) this.debug(event);},
+      error: (failure = { kind: "connection" }) => {
+        if (current()) this.recoverTranscription(failure);
+      },
     });
   }
+  private recoverTranscription(failure: ProviderFailure) {
+    this.transcriptionEpoch++;
+    this.connection?.close();
+    this.connection = null;
+    if (this.stableTimer) clearTimeout(this.stableTimer);
+    this.stableTimer = null;
+    const delays = [500, 1500, 3000];
+    if (!["connection", "timeout", "backpressure"].includes(failure.kind) || this.recoveryAttempts >= delays.length) {
+      this.fail(providerFailureMessage(failure));
+      return;
+    }
+    this.recovering = true;
+    const delay = delays[this.recoveryAttempts++];
+    this.debug({kind:"transcription-reconnecting",message:`Transcription ${failure.kind}; reconnect attempt ${this.recoveryAttempts}/3 in ${delay} ms.`});
+    this.emit({type:"connection",recovering:true,message:"Reconnecting audio… keeping your place."});
+    this.recoveryTimer = setTimeout(() => {
+      this.recoveryTimer = null;
+      if (!this.closed) this.openTranscription();
+    }, delay);
+  }
   audio(data: Buffer) {
+    if (!this.closed && this.recovering && data.length <= 48000) {
+      // At most 15 seconds of PCM, only in memory; never silently drop queued speech.
+      if (this.bufferedBytes + data.length > 15 * 48000) {
+        this.fail("Audio stayed disconnected for too long. Please reconnect and repeat the last sentence.");
+        return;
+      }
+      this.bufferedAudio.push(Buffer.from(data)); this.bufferedBytes += data.length;
+      return;
+    }
     if (!this.closed && this.ready && data.length <= 48000) {
       this.receivedPackets++;
       this.receivedSeconds += data.length / 48000;
@@ -219,6 +287,7 @@ export class LiveSession {
   }
   configure(settings: DebugSettings) {
     const parsed = DebugSettingsSchema.parse(settings);
+    this.settings = parsed;
     this.connection?.configure?.(parsed);
     this.debug({
       kind: "settings",
@@ -800,6 +869,11 @@ export class LiveSession {
   }
   close() {
     this.closed = true;
+    this.transcriptionEpoch++;
+    if (this.recoveryTimer) clearTimeout(this.recoveryTimer);
+    if (this.stableTimer) clearTimeout(this.stableTimer);
+    this.recoveryTimer = this.stableTimer = null;
+    this.bufferedAudio = []; this.bufferedBytes = 0;
     this.ready = false;
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;

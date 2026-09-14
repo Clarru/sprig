@@ -7,6 +7,8 @@ class FakeSocket extends EventEmitter {
   bufferedAmount = 0;
   send = vi.fn();
   close = vi.fn();
+  terminate = vi.fn();
+  ping = vi.fn();
   constructor() {
     super();
     sockets.push(this);
@@ -74,7 +76,7 @@ it("reports a safe configuration error once, without forwarding provider text", 
   expect(events.error).toHaveBeenCalledExactlyOnceWith({
     kind: "configuration",
   });
-  expect(socket.close).toHaveBeenCalledOnce();
+  expect(socket.terminate).toHaveBeenCalledOnce();
 });
 it("distinguishes authentication, model access, quota, and transport errors", () => {
   expect(classifyProviderFailure({ status: 401 })).toEqual({
@@ -133,4 +135,19 @@ it("puts the JSON-mode instruction in Responses input, not only instructions", a
   } finally {
     spy.mockRestore();
   }
+});
+
+it("detects a silent transcription socket, but keeps a healthy long session alive", () => {
+  vi.useFakeTimers();
+  const events = {ready:vi.fn(),turn:vi.fn(),transcript:vi.fn(),error:vi.fn()};
+  const transcriber = openAIProvider("test-only").transcribe(events);
+  const socket = sockets[0];
+  socket.emit("message", Buffer.from(JSON.stringify({type:"session.updated"})));
+  for (let i=0;i<16;i++) {vi.advanceTimersByTime(15000);socket.emit("pong");}
+  expect(events.error).not.toHaveBeenCalled();
+  expect(socket.ping).toHaveBeenCalledTimes(16);
+  vi.advanceTimersByTime(30000);
+  expect(events.error).toHaveBeenCalledExactlyOnceWith({kind:"timeout"});
+  transcriber.close();
+  expect(vi.getTimerCount()).toBe(0);
 });

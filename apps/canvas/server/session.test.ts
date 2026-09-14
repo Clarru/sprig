@@ -280,3 +280,77 @@ it("text testing bypasses transcription and exposes input and output diagnostics
   ).toBe(true);
   session.close();
 });
+
+function recoveryHarness() {
+  const connections: {events:Parameters<Provider["transcribe"]>[0];append:ReturnType<typeof vi.fn>;close:ReturnType<typeof vi.fn>;configure:ReturnType<typeof vi.fn>}[] = [];
+  const output: ServerEvent[] = [];
+  const interpret = vi.fn<Provider["interpret"]>().mockResolvedValue({...result,operations:[]});
+  const session = new LiveSession(context(), {interpret,transcribe: events => {
+    const connection = {events,append:vi.fn(),close:vi.fn(),configure:vi.fn()};
+    connections.push(connection); return connection;
+  }}, event=>output.push(event));
+  session.start(); connections[0].events.ready();
+  return {session,connections,output,interpret};
+}
+it("recovers transcription after three minutes, preserving speech context and buffered PCM", async () => {
+  vi.useFakeTimers();
+  const h = recoveryHarness();
+  h.connections[0].events.transcript("intro","We are building a fintech signup flow",true);
+  await vi.advanceTimersByTimeAsync(180000);
+  const settings = {threshold:.012,pauseMs:500,continuous:true};
+  h.session.configure(settings);
+  h.connections[0].events.error({kind:"connection"});
+  const packet = Buffer.alloc(4800,1);h.session.audio(packet);
+  expect(h.connections[0].close).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(500);
+  expect(h.connections).toHaveLength(2);
+  h.connections[1].events.ready();
+  expect(h.connections[1].append).toHaveBeenCalledExactlyOnceWith(packet);
+  expect(h.connections[1].configure).toHaveBeenCalledWith(settings);
+  expect(h.output.filter(e=>e.type==="ready")).toHaveLength(1);
+  expect(h.output).toContainEqual({type:"connection",recovering:false,message:"Audio reconnected. I’m following."});
+  h.connections[0].events.transcript("stale","Do not draw this",true);
+  h.connections[1].events.transcript("next","Then verify the email with a code",true);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(h.interpret.mock.calls.at(-1)?.[0].transcript).toContain("fintech signup flow");
+  expect(h.interpret.mock.calls.at(-1)?.[0].transcript).toContain("verify the email");
+  expect(h.interpret.mock.calls.at(-1)?.[0].transcript).not.toContain("Do not draw");
+  h.session.close();expect(vi.getTimerCount()).toBe(0);
+});
+it("cancels retry and discards queued audio on pause", async () => {
+  vi.useFakeTimers();const h=recoveryHarness();
+  h.connections[0].events.error({kind:"timeout"});h.session.audio(Buffer.alloc(4800));
+  h.session.close();await vi.advanceTimersByTimeAsync(30000);
+  expect(h.connections).toHaveLength(1);expect(vi.getTimerCount()).toBe(0);
+});
+it("bounds reconnect attempts even when unstable sockets briefly become ready", async () => {
+  vi.useFakeTimers();const h=recoveryHarness();
+  for (const delay of [500,1500,3000]) {
+    h.connections.at(-1)!.events.error({kind:"connection"});
+    await vi.advanceTimersByTimeAsync(delay);h.connections.at(-1)!.events.ready();
+  }
+  h.connections.at(-1)!.events.error({kind:"connection"});
+  await vi.advanceTimersByTimeAsync(60000);
+  expect(h.connections).toHaveLength(4);
+  expect(h.output.filter(e=>e.type==="status"&&e.state==="error")).toHaveLength(1);
+  expect(vi.getTimerCount()).toBe(0);
+});
+it.each(["authentication","access","quota","rate-limit","configuration"] as const)("never retries %s failures", async kind => {
+  vi.useFakeTimers();const h=recoveryHarness();h.connections[0].events.error({kind});
+  await vi.advanceTimersByTimeAsync(30000);expect(h.connections).toHaveLength(1);
+  expect(h.output.some(e=>e.type==="status"&&e.state==="error")).toBe(true);
+});
+it("stops instead of silently dropping speech when the recovery buffer fills", () => {
+  vi.useFakeTimers();const h=recoveryHarness();h.connections[0].events.error({kind:"connection"});
+  for(let i=0;i<16;i++)h.session.audio(Buffer.alloc(48000));
+  expect(h.output.some(e=>e.type==="status"&&e.state==="error"&&e.message.includes("repeat the last sentence"))).toBe(true);
+  expect(vi.getTimerCount()).toBe(0);
+});
+it("restores prior speech as context without resubmitting it as a new instruction", async () => {
+  vi.useFakeTimers();const h=recoveryHarness();h.session.resumeTranscript("First verify their ID");
+  await vi.advanceTimersByTimeAsync(2000);expect(h.interpret).not.toHaveBeenCalled();
+  h.connections[0].events.transcript("new","Then ask about their source of funds",true);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(h.interpret.mock.calls[0][0].previousTranscript).toBe("First verify their ID");
+  expect(h.interpret.mock.calls[0][0].transcript).toContain("source of funds");h.session.close();
+});

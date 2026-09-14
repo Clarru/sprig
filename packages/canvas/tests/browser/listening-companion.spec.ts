@@ -100,7 +100,17 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  await expect(control).toHaveAttribute('data-phase','paused');
  await page.getByRole('button',{name:'Start listening',exact:true}).click();
  await expect(control).toHaveAttribute('data-microphone-live','true');
+ const disconnectedSocket=socket!;
+ socket!.send(JSON.stringify({type:'transcript',text:'Keep this fintech flow in mind.'}));
  socket!.close();
+ await expect(control).toContainText('Reconnecting audio');
+ await page.evaluate(()=>(window as unknown as {emitLevel:(n:number)=>void}).emitLevel(.6));
+ await expect.poll(()=>socket!==disconnectedSocket).toBe(true);
+ await expect(control).not.toContainText('Reconnecting audio');
+ await expect(control).toContainText('Should returning runners skip registration?');
+ await expect(control).toHaveAttribute('data-microphone-live','true');
+ expect(await page.evaluate(()=>(window as unknown as {stopped:number}).stopped)).toBe(1);
+ socket!.send(JSON.stringify({type:'status',state:'error',message:'Your OpenAI API quota is exhausted.'}));
  await expect(control).toHaveAttribute('data-phase','error');
  await expect(control).toContainText('Let’s reconnect');
  await expect(control.locator('.cv-mascot')).toHaveAttribute('data-animation','alert');
