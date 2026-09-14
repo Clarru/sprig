@@ -20,6 +20,7 @@ export interface BoardSnapshot {
   editing: boolean;
   arrivals: Record<string, number>;
   historyEpoch: number;
+  lastSource: Transaction["source"] | null;
 }
 /** Retire persisted automatic focus styling without touching manually styled objects. */
 function clearAutomaticEmphasis(board: Board): Board {
@@ -42,6 +43,7 @@ export class BoardStore {
       editing: false,
       arrivals: {},
       historyEpoch: 0,
+      lastSource: null,
     };
   }
   getSnapshot = () => this.snapshot;
@@ -63,6 +65,7 @@ export class BoardStore {
       editing: this.snapshot.editing,
       arrivals: this.snapshot.arrivals,
       historyEpoch: this.snapshot.historyEpoch,
+      lastSource: this.snapshot.lastSource,
       selection: selection.filter(
         (id) =>
           board.blocks.some((n) => n.id === id) ||
@@ -107,7 +110,7 @@ export class BoardStore {
     }
     // Presentation metadata stays out of documents, history, and server context.
     const arrivedAt = Date.now();
-    this.snapshot = { ...this.snapshot, arrivals: transaction.source === "manual" ? {} : {
+    this.snapshot = { ...this.snapshot, lastSource:transaction.source, arrivals: transaction.source === "manual" ? {} : {
       ...Object.fromEntries(Object.entries(this.snapshot.arrivals).filter(([,time]) => arrivedAt - time < 1800)),
       ...Object.fromEntries(board.blocks
         .filter(b => !this.snapshot.board.blocks.some(previous => previous.id === b.id))
@@ -134,23 +137,23 @@ export class BoardStore {
       return;
     this.publish({ ...this.snapshot.board, story: parsed });
   }
-  undo() {
+  undo(source:Transaction["source"] = "manual") {
     const previous = this.past.pop();
     if (!previous) return;
-    this.snapshot = { ...this.snapshot, arrivals: {}, historyEpoch: this.snapshot.historyEpoch + 1 };
+    this.snapshot = { ...this.snapshot, arrivals: {}, lastSource:source, historyEpoch: this.snapshot.historyEpoch + 1 };
     this.future.push(this.snapshot.board);
     this.publish({ ...previous, revision: this.snapshot.board.revision + 1 });
   }
-  redo() {
+  redo(source:Transaction["source"] = "manual") {
     const next = this.future.pop();
     if (!next) return;
-    this.snapshot = { ...this.snapshot, arrivals: {}, historyEpoch: this.snapshot.historyEpoch + 1 };
+    this.snapshot = { ...this.snapshot, arrivals: {}, lastSource:source, historyEpoch: this.snapshot.historyEpoch + 1 };
     this.past.push(this.snapshot.board);
     this.publish({ ...next, revision: this.snapshot.board.revision + 1 });
   }
   replace(board: Board, remember = false) {
     const parsed = BoardSchema.parse(board);
-    this.snapshot = { ...this.snapshot, arrivals: {}, historyEpoch: this.snapshot.historyEpoch + 1 };
+    this.snapshot = { ...this.snapshot, arrivals: {}, lastSource:null, historyEpoch: this.snapshot.historyEpoch + 1 };
     this.past = remember ? [...this.past.slice(-49), this.snapshot.board] : [];
     this.future = [];
     this.seen.clear();

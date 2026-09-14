@@ -1,0 +1,223 @@
+{
+  "date": "2026-09-14T08:02:29.647Z",
+  "model": "gpt-5.6-terra",
+  "reasoning": "medium",
+  "failures": [],
+  "historicalHarnessPassed": true,
+  "interpretation": "See PRESENTATION-VALIDATION.md; early harness success recorded completion, not presentation quality.",
+  "firstAcknowledgedEditMs": 11386,
+  "totalMs": 51508,
+  "transcript": "Hello everyone, so I had a thought in mind that whenever I want to do a stakeholder presentation of an idea, a flow, I can't write as fast as I'm thinking. And normally we'd have to wait or my drawing would be too ugly to revise or to share with others after it. So I thought that right now AI can work as fast and optimize for us that fast too. So we could\nVisualize our thoughts, the same that we explain the flows, so this is what I built. It's a canvas first, listens to you with OpenAI API for GPT Transcribe, and it is something you can share your screen during a meeting while you're discussing and presenting your ideas. And then the app, the Sprig app, will write their visualize it. Thank you.",
+  "blocks": [
+    {
+      "label": "Presentation friction",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Sprig app",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Ideas outpace writing",
+      "detail": "Writing cannot keep up with thinking.",
+      "kind": "step"
+    },
+    {
+      "label": "Sketches resist revision",
+      "detail": "Rough drawings are hard to revise or share.",
+      "kind": "step"
+    },
+    {
+      "label": "AI keeps pace",
+      "detail": "AI can work and optimize at the speed of thought.",
+      "kind": "step"
+    },
+    {
+      "label": "Visualize the flow",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Transcribe speech",
+      "detail": "Canvas uses OpenAI GPT Transcribe.",
+      "kind": "step"
+    },
+    {
+      "label": "Share during meetings",
+      "detail": "Share the canvas while discussing and presenting.",
+      "kind": "note"
+    },
+    {
+      "label": "Explain the flow",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Write the explanation",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Canvas-first app",
+      "detail": "",
+      "kind": "note"
+    }
+  ],
+  "metrics": [
+    {
+      "modelCompletions": 1,
+      "modelState": "complete",
+      "requestMs": 1276,
+      "inputTokens": 2726,
+      "outputTokens": 38,
+      "cachedInputTokens": 0,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 2,
+      "modelState": "complete",
+      "requestMs": 1003,
+      "inputTokens": 2747,
+      "outputTokens": 17,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 3,
+      "modelState": "complete",
+      "requestMs": 1208,
+      "inputTokens": 2763,
+      "outputTokens": 26,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 4,
+      "modelState": "complete",
+      "requestMs": 2116,
+      "inputTokens": 2781,
+      "outputTokens": 168,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 1368
+    },
+    {
+      "modelCompletions": 5,
+      "modelState": "complete",
+      "requestMs": 1506,
+      "inputTokens": 2938,
+      "outputTokens": 52,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 6,
+      "modelState": "complete",
+      "requestMs": 1929,
+      "inputTokens": 2965,
+      "outputTokens": 129,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 1329
+    },
+    {
+      "modelCompletions": 7,
+      "modelState": "complete",
+      "requestMs": 1289,
+      "inputTokens": 3075,
+      "outputTokens": 36,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 8,
+      "modelState": "complete",
+      "requestMs": 1310,
+      "inputTokens": 3086,
+      "outputTokens": 17,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 9,
+      "modelState": "complete",
+      "requestMs": 1127,
+      "inputTokens": 3097,
+      "outputTokens": 29,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 10,
+      "modelState": "complete",
+      "requestMs": 2308,
+      "inputTokens": 3142,
+      "outputTokens": 153,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 2088
+    },
+    {
+      "modelCompletions": 11,
+      "modelState": "complete",
+      "requestMs": 2856,
+      "inputTokens": 3249,
+      "outputTokens": 232,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 2274
+    },
+    {
+      "modelCompletions": 12,
+      "modelState": "complete",
+      "requestMs": 1151,
+      "inputTokens": 3393,
+      "outputTokens": 28,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 13,
+      "modelState": "complete",
+      "requestMs": 4118,
+      "inputTokens": 3408,
+      "outputTokens": 244,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 3738
+    },
+    {
+      "modelCompletions": 14,
+      "modelState": "complete",
+      "requestMs": 1885,
+      "inputTokens": 3523,
+      "outputTokens": 128,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 1601
+    },
+    {
+      "modelCompletions": 15,
+      "modelState": "complete",
+      "requestMs": 1086,
+      "inputTokens": 3618,
+      "outputTokens": 17,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 16,
+      "modelState": "complete",
+      "requestMs": 1050,
+      "inputTokens": 3640,
+      "outputTokens": 27,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 17,
+      "modelState": "complete",
+      "requestMs": 7359,
+      "inputTokens": 3681,
+      "outputTokens": 603,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 5462
+    }
+  ]
+}

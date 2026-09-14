@@ -14,7 +14,7 @@ export interface SketchItem {
   topicId: string;
   label: string;
   detail: string;
-  form: "screen" | "card" | "note" | "lane" | "decision";
+  form: "screen" | "card" | "note" | "lane" | "decision" | "section" | "claim";
   certainty: Certainty;
   outcome?: Outcome;
   emphasized: boolean;
@@ -73,6 +73,8 @@ function recipe(t: StoryTopic): StoryView {
   return "notes";
 }
 function form(role: ConceptRole, view: StoryView): SketchItem["form"] {
+  if (role === "section" && view === "presentation") return "section";
+  if (role === "claim") return "claim";
   if (role === "decision") return "decision";
   if (role === "screen" || (role === "step" && view === "screen_flow")) return "screen";
   if (role === "note" || (role === "option" && view === "notes")) return "note";
@@ -80,23 +82,40 @@ function form(role: ConceptRole, view: StoryView): SketchItem["form"] {
   return "card";
 }
 /** Recipe selection and visual relevance are deterministic. Context alone never becomes a box. */
-export function planSketch(state: StoryState): SketchPlan {
+export function planSketch(state: StoryState, retained: ReadonlySet<string> = new Set()): SketchPlan {
   const scenes: SketchScene[] = [];
   for (const t of Object.values(state.topics)) {
     const view = recipe(t);
-    const visible = Object.values(t.concepts).filter(
-      (c) => !c.withdrawn && !c.suppressed && c.role !== "context",
-    );
+    const candidates = Object.values(t.concepts).filter(c=>!c.withdrawn&&!c.suppressed&&c.role!=="context");
+    const chapters=candidates.filter(c=>c.role==='section');
+    const candidateIds=new Set(candidates.map(c=>c.id));
+    const owners=new Map(t.relations.filter(r=>r.kind==='contains'&&candidateIds.has(r.from)&&candidateIds.has(r.to)).map(r=>[r.to,r.from]));
+    // A supporting fact or processing step can arrive linked to a chapter's child
+    // before an explicit contains event. Infer ownership only when that connected
+    // component belongs to exactly one chapter; never merge two chapters.
+    if(view==='presentation') {
+      const chapterIds=new Set(chapters.map(c=>c.id));
+      const adjacent=new Map<string,Set<string>>();
+      for(const relation of t.relations) {
+        if(relation.kind==='contains'||chapterIds.has(relation.from)||chapterIds.has(relation.to)||!candidateIds.has(relation.from)||!candidateIds.has(relation.to))continue;
+        for(const [from,to] of [[relation.from,relation.to],[relation.to,relation.from]])adjacent.set(from,new Set([...(adjacent.get(from)??[]),to]));
+      }
+      const visited=new Set<string>();
+      for(const candidate of candidates) {
+        if(chapterIds.has(candidate.id)||visited.has(candidate.id))continue;
+        const component:string[]=[],queue=[candidate.id];
+        while(queue.length){const id=queue.pop()!;if(visited.has(id))continue;visited.add(id);component.push(id);queue.push(...(adjacent.get(id)??[]));}
+        const chaptersForComponent=new Set(component.flatMap(id=>{const owner=owners.get(id);return owner&&chapterIds.has(owner)?[owner]:[];}));
+        if(chaptersForComponent.size===1)for(const id of component)if(!owners.has(id))owners.set(id,[...chaptersForComponent][0]);
+      }
+    }
+    const visible=candidates.filter(c=>view!=='presentation'||retained.has(key(t.id,c.id))||c.drawingId||!chapters.length||(c.role==='section'?[...owners.values()].includes(c.id):owners.has(c.id)));
     if (!visible.length && !Object.values(t.questions).some((q) => !q.about))
       continue;
     const ids = new Set(visible.map((c) => c.id));
     const emphasized = new Set(t.emphasis);
     const parents = new Map(
-      t.relations
-        .filter(
-          (r) => r.kind === "contains" && ids.has(r.from) && ids.has(r.to),
-        )
-        .map((r) => [r.to, r.from]),
+      [...owners].filter(([child,parent])=>ids.has(parent)&&ids.has(child)&&!(view==='presentation'&&t.concepts[child].role==='section')),
     );
     // A returned payload belongs with the unique caller when its receiving lane is otherwise implicit.
     if (view === "system_flow") for (const relation of t.relations.filter(r=>r.kind==="returns")) {
@@ -139,7 +158,7 @@ export function planSketch(state: StoryState): SketchPlan {
               ? t.concepts[r.from].certainty
               : t.concepts[r.to].certainty
             : r.certainty,
-        visible: (r.kind !== "contains" || view === "hierarchy") && r.kind !== "alternative",
+        visible: view === "presentation" ? ["next","branch","calls","returns"].includes(r.kind) && t.concepts[r.from].role !== "section" && t.concepts[r.to].role !== "section" : (r.kind !== "contains" || view === "hierarchy") && r.kind !== "alternative",
         muted: false,
       }));
     scenes.push({

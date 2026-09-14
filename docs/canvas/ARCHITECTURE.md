@@ -43,3 +43,14 @@ The server binds only to 127.0.0.1, checks Host and browser Origin, and keeps th
 ## Verification status
 
 See [FOUNDATION.md](FOUNDATION.md) and [VALIDATION.md](VALIDATION.md). The foundation is still under validation: the remaining interaction matrix, mixed speech/manual edits, final UI verification of adopted manual shapes, and broader performance measurements must be completed before the visual design pass.
+
+
+## Presentation view
+
+A presentation is a single evolving topic containing flat chapter sections, one lead claim per chapter, supporting notes, and operational steps when the speaker describes a mechanism. The same meaning events and native editing operations serve public authored examples and live interpretation. Public scenarios are never used as phrase matches by the live server.
+
+`presentation-layout.ts` arranges the chapters and processing chains. It preserves manually moved/resized objects, keeps automatic size provenance during ownership changes, and avoids collisions with prior placements. Chapter names are native editable frame names; material card surfaces share native geometry. Existing content is never dimmed automatically.
+
+Live interpretation receives additions to a growing ASR utterance separately from corrections, along with the complete transcript context. Each final utterance receives one reconciliation pass, even if only punctuation changed. Requests remain serialized; pending speech coalesces, and pause/navigation cancel late edits. `CANVAS_REASONING_EFFORT` accepts `none`, `low`, or `medium`; the default is `low`. The model remains configurable through `CANVAS_MODEL`. See the full presentation rehearsal evidence before choosing a recording configuration.
+
+The standalone public-example mode hides connection diagnostics and reuses the actual drawing toolbar and listening control. Case-study embeds can preserve outer page scrolling; the fullscreen portfolio route opts out of the portfolio scrollbar gutter. Public simulation labels remain persistent, and no microphone is initialized by these components.

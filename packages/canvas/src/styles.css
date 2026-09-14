@@ -439,3 +439,11 @@
   .cv-card-placeholder { display: none; }
   .cv-editor .react-flow__edge-path { transition: none; }
 }
+
+.cv-scenario-companion { position:relative; width:min(380px,100%); margin:auto; }
+.cv-example-choices-panel { position:absolute; left:0; right:0; bottom:calc(100% + 12px); max-height:40dvh; overflow:auto; overscroll-behavior:contain; padding:12px; background:#fff; border:1px solid #e7e7e7; border-radius:18px; box-shadow:0 4px 20px #00000008; }
+.cv-example-choices-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:2px 4px 8px; color:#888; font-size:10px; }
+.cv-example-choices-heading button { display:grid; place-items:center; padding:4px; background:none; color:#777; border:0; border-radius:5px; cursor:pointer; }
+.cv-example-presence { font-size:10px; color:#888; }
+.cv-example-choices-panel .cv-complete p { color:#777; font-size:12px; line-height:1.6; margin:6px 10px 12px; }
+.cv-scenario.cv-compact { height:780px; }

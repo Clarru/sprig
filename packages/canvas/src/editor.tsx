@@ -9,6 +9,7 @@ export interface CanvasEditorProps {
   initialBoard?: Board;
   fitRequest?: number;
   editable?: boolean;
+  preservePageScroll?: boolean;
   storageKey?: string;
   footer?: ReactNode;
   menu?: ReactNode;

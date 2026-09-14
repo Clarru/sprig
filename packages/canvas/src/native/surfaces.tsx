@@ -23,12 +23,19 @@ export function NativeSurfaces({api,store,target}:{api:ExcalidrawImperativeAPI;s
   const label=drawing.elements.find(e=>e.type==='text'&&e.containerId===element.id);
   if(label?.type==='text' && label.originalText!==cardText(block)) return null;
   const fontSize=label?.type==='text'?label.fontSize:16;
-  return <div key={element.id} className="cv-material-card" data-material-card={element.id} style={{
+  const topic=board.story?.topics[block.storyTopic ?? ''];
+  let presentation=topic?.view==='presentation' ? topic.concepts[block.storyConcept ?? '']?.role ?? block.kind : undefined;
+  if(presentation==='claim') {
+    const inFlow=board.edges.some(edge=>(edge.source===block.id||edge.target===block.id)&&board.blocks.find(b=>b.id===(edge.source===block.id?edge.target:edge.source))?.parentId===block.parentId);
+    const lead=board.blocks.find(b=>b.parentId===block.parentId&&b.storyTopic===block.storyTopic&&topic?.concepts[b.storyConcept ?? '']?.role==='claim');
+    presentation=inFlow?'step':lead?.id===block.id?'claim':'note';
+  }
+  return <div key={element.id} className="cv-material-card" data-material-card={element.id} data-presentation={presentation} style={{
    left:(element.x+drawing.scrollX)*drawing.zoom,top:(element.y+drawing.scrollY)*drawing.zoom,
    width:element.width,height:element.height,transform:`scale(${drawing.zoom})`,
   }}><div className="cv-material-plane" style={{transform:`rotate(${element.angle}rad)`,fontSize}}>
    <div className="cv-material-content" style={{opacity:element.opacity/100}}>
-    <BlockCard block={{...block,muted:false,backgroundColor:block.backgroundColor==='transparent'?undefined:block.backgroundColor}}/>
+    <BlockCard block={{...block,muted:false,backgroundColor:block.backgroundColor==='transparent'?undefined:block.backgroundColor, ...(presentation==='claim'?{strokeColor:'transparent'}:{})}}/>
    </div>
   </div></div>;
  })}</div>,target);

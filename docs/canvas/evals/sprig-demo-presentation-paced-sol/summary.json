@@ -1,0 +1,170 @@
+{
+  "date": "2026-09-14T08:20:21.981Z",
+  "model": "gpt-5.6-sol",
+  "reasoning": "medium",
+  "script": "presentation",
+  "pauseBetweenBeatsMs": 1000,
+  "failures": [
+    "The product should be named Sprig once."
+  ],
+  "historicalHarnessPassed": false,
+  "interpretation": "See PRESENTATION-VALIDATION.md; early harness success recorded completion, not presentation quality.",
+  "firstAcknowledgedEditMs": 12665,
+  "totalMs": 69534,
+  "transcript": "Hello everyone, so I had a thought in mind that whenever I want to do a stakeholder presentation of an idea, a flow, I can't write as fast as I'm thinking\nAnd normally we'd have to wait or my drawing would be too ugly to revise or to share with others after it.\nSo I thought that right now AI can work as fast and optimize for us that fast too, so we could visualize our thoughts. The same that we explain the flows\nSo this is what I build.\nIt's a canvas first, listens to you with OpenAI API for GPT transcribe, and it is something you can share your screen during a meeting while you're discussing and presenting your ideas.\nAnd then the app, the sprint gap, we'll write their visualize it\nThank you.",
+  "blocks": [
+    {
+      "label": "The challenge",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "The approach",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "The product",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Thinking outpaces writing",
+      "detail": "Ideas and flows arrive faster than they can be written.",
+      "kind": "step"
+    },
+    {
+      "label": "Presentation delays",
+      "detail": "Stakeholders have to wait while the idea is captured.",
+      "kind": "note"
+    },
+    {
+      "label": "Hard to revise",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Hard to share",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "AI keeps pace",
+      "detail": "AI works and optimizes as fast as ideas emerge.",
+      "kind": "step"
+    },
+    {
+      "label": "Explain the flow",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Real-time optimization",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Write and visualize",
+      "detail": "The app turns transcribed speech into a visual canvas.",
+      "kind": "step"
+    },
+    {
+      "label": "Canvas-first workspace",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Transcribe speech",
+      "detail": "Uses OpenAI API for GPT transcription.",
+      "kind": "step"
+    },
+    {
+      "label": "Share during meetings",
+      "detail": "Screen-share while discussing and presenting ideas.",
+      "kind": "note"
+    }
+  ],
+  "metrics": [
+    {
+      "modelCompletions": 1,
+      "modelState": "complete",
+      "requestMs": 1676,
+      "inputTokens": 2779,
+      "outputTokens": 17,
+      "cachedInputTokens": 0,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 2,
+      "modelState": "complete",
+      "requestMs": 1659,
+      "inputTokens": 2796,
+      "outputTokens": 28,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 3,
+      "modelState": "complete",
+      "requestMs": 3532,
+      "inputTokens": 2804,
+      "outputTokens": 90,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 4,
+      "modelState": "complete",
+      "requestMs": 3645,
+      "inputTokens": 2834,
+      "outputTokens": 153,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 2939
+    },
+    {
+      "modelCompletions": 5,
+      "modelState": "complete",
+      "requestMs": 5016,
+      "inputTokens": 3034,
+      "outputTokens": 136,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 6,
+      "modelState": "complete",
+      "requestMs": 8700,
+      "inputTokens": 3073,
+      "outputTokens": 363,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 6785
+    },
+    {
+      "modelCompletions": 7,
+      "modelState": "complete",
+      "requestMs": 13934,
+      "inputTokens": 3333,
+      "outputTokens": 570,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 11661
+    },
+    {
+      "modelCompletions": 8,
+      "modelState": "complete",
+      "requestMs": 14486,
+      "inputTokens": 3772,
+      "outputTokens": 923,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 12743
+    },
+    {
+      "modelCompletions": 9,
+      "modelState": "complete",
+      "requestMs": 10486,
+      "inputTokens": 4021,
+      "outputTokens": 547,
+      "cachedInputTokens": 2576,
+      "firstUpdateMs": 9784
+    }
+  ]
+}

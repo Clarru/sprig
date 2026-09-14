@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-13T21:05:43.188Z",
+  "model": "gpt-5.6-luna",
+  "failures": [],
+  "historicalHarnessPassed": true,
+  "interpretation": "See PRESENTATION-VALIDATION.md; early harness success recorded completion, not presentation quality.",
+  "firstAcknowledgedEditMs": null,
+  "totalMs": 2657,
+  "transcript": "Hello everyone, so I had a thought in mind that whenever I wanna do a stakeholder presentation of an idea, a flow, I can't write as fast as I'm thinking.\nAnd normally we'd have to wait or my drawing would be too ugly to revise or to share with others after it.\nSo I thought that right now AI can work as fast and optimize for us that fast too, so we could visualize our thoughts, the same that we explain the flows.\nSo this is what I built.\nIt's a canvas first, listens to you with OpenAI API for GPT Transcribe, and it is something you can share your screen during a meeting while you're discussing and presenting your ideas,\nand then the app, the Sprig app, will right there visualize it.\nThank you.",
+  "blocks": [
+    {
+      "label": "What I built",
+      "detail": "Sprig visualizes spoken explanations directly on the canvas.",
+      "kind": "group"
+    },
+    {
+      "label": "Capture ideas faster",
+      "detail": "Writing cannot keep pace with thinking during stakeholder presentations.",
+      "kind": "text"
+    },
+    {
+      "label": "Hard to revise or share",
+      "detail": "Slow capture produces drawings that are difficult to revise or share.",
+      "kind": "text"
+    },
+    {
+      "label": "Visualize thoughts faster",
+      "detail": "AI optimizes visualization at the speed of thinking.",
+      "kind": "text"
+    },
+    {
+      "label": "Canvas-first workspace",
+      "detail": "Ideas begin directly on a visual canvas.",
+      "kind": "text"
+    },
+    {
+      "label": "Voice transcription",
+      "detail": "OpenAI GPT Transcribe listens during explanations.",
+      "kind": "text"
+    },
+    {
+      "label": "Share during meetings",
+      "detail": "Present the canvas by sharing your screen.",
+      "kind": "text"
+    },
+    {
+      "label": "Sprig app",
+      "detail": "The app visualizes the explanation as it is spoken.",
+      "kind": "text"
+    }
+  ],
+  "metrics": [
+    {
+      "modelCompletions": 7,
+      "modelState": "complete",
+      "requestMs": 1135,
+      "inputTokens": 3067,
+      "outputTokens": 44,
+      "cachedInputTokens": 2063,
+      "firstUpdateMs": 0
+    }
+  ]
+}

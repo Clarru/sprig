@@ -127,7 +127,7 @@ export default function App() {
             }
           />
         )}
-        {!debugOpen && (
+        {mode === "board" && !debugOpen && (
           <button
             type="button"
             className="debug-toggle"
@@ -138,7 +138,7 @@ export default function App() {
           </button>
         )}
       </div>
-      {debugOpen && (
+      {mode === "board" && debugOpen && (
         <DebugPanel
           debug={debug}
           board={store}

@@ -8,6 +8,7 @@ import { config } from "dotenv";
 import { ContextSchema, LiveSession } from "./session";
 import { AgentHub, AgentError } from "./agent-hub";
 import { openAIProvider } from "./provider";
+import { understandingReasoningEffort } from "./understanding-agent";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 config({ path: resolve(root, ".env"), quiet: true });
 const port = Number(process.env.CANVAS_PORT ?? 5191);
@@ -64,6 +65,7 @@ const server = createServer(async (req, res) => {
         token,
         configured: !!process.env.OPENAI_API_KEY,
         debugProtocol: 1,
+        reasoningEffort: understandingReasoningEffort(),
         models: {
           transcription: "gpt-live-transcribe",
           interpretation: /^gpt-[a-z0-9.-]{1,80}$/.test(
@@ -114,6 +116,7 @@ vite =
         await import("vite")
       ).createServer({
         root,
+        cacheDir: resolve(root, "node_modules", `.vite-${port}`),
         server: { middlewareMode: true, ws: { server } },
         appType: "spa",
       });

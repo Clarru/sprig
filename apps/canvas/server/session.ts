@@ -1,3 +1,4 @@
+import {speechUpdate} from "./speech-update";
 import { adoptManualBoard, selectedConcepts } from "@clarru/sprig/understanding";
 import {
   emptyStory,
@@ -123,6 +124,8 @@ export class LiveSession {
   }
   private story: StoryState;
   private consideredTurns = new Map<string, string>();
+  private finalTurns = new Set<string>();
+  private reviewedFinalTurns = new Set<string>();
   private ackWaiter: ((applied: boolean) => void) | null = null;
   private receivedPackets = 0;
   private receivedSeconds = 0;
@@ -164,6 +167,7 @@ export class LiveSession {
       transcript: (id, text, final) => {
         if (this.closed) return;
         this.turns.set(id, final ? text : (this.turns.get(id) ?? "") + text);
+        if(final)this.finalTurns.add(id);
         // Keep short ASR fragments visible, but do not turn isolated connector
         // words into concepts. Completed short phrases remain immediately eligible.
         if(!final && (this.turns.get(id)?.trim().split(/\s+/).length ?? 0)<6) this.pendingShortTurns.add(id);
@@ -172,6 +176,8 @@ export class LiveSession {
           const oldest=this.turns.keys().next().value!;
           this.turns.delete(oldest);
           this.pendingShortTurns.delete(oldest);
+          this.finalTurns.delete(oldest);
+          this.reviewedFinalTurns.delete(oldest);
         }
         if (final) {
           this.finalTranscripts++;
@@ -239,7 +245,9 @@ export class LiveSession {
   }
   testText(raw: string) {
     const text = z.string().trim().min(1).max(2000).parse(raw);
-    this.turns.set(uid("text"), text);
+    const id=uid("text");
+    this.turns.set(id, text);
+    this.finalTurns.add(id);
     this.emit({ type: "transcript", text: this.transcript() });
     this.debug({
       kind: "text-test",
@@ -506,14 +514,19 @@ export class LiveSession {
   }
   private async runUnderstanding() {
     const currentTurns = new Map([...this.turns].filter(([id])=>!this.pendingShortTurns.has(id)));
-    const changed = [...currentTurns]
-      .filter(([id, text]) => !this.ignoredTurns.has(id) && this.consideredTurns.get(id) !== text)
-      .map(([, text]) => text)
-      .filter((text) => text.trim());
+    const updates = [...currentTurns]
+      .filter(([id,text])=>!this.ignoredTurns.has(id)&&this.consideredTurns.get(id)!==text)
+      .map(([id,text])=>speechUpdate(this.consideredTurns.get(id),text));
+    const changed=updates.map(update=>update.added).filter(text=>text.trim());
+    const corrections=updates.flatMap(update=>update.correction?[update.correction]:[]);
+    const completedTurns=[...currentTurns.keys()].filter(id=>!this.ignoredTurns.has(id)&&this.finalTurns.has(id)&&!this.reviewedFinalTurns.has(id));
     const forced = this.followUpNeeded;
     this.followUpNeeded = false;
-    if (!changed.length && !forced) {
+    if (!changed.length && !corrections.length && !forced && !completedTurns.length) {
+      this.consideredTurns=currentTurns;
       this.dirty = false;
+      this.debug({kind:"transcript-normalized",message:"Only transcription formatting changed; no model request needed.",stats:{modelState:"complete"}});
+      this.emit({type:"settled",state:"listening",message:"Following along."});
       return;
     }
     this.dirty = false;
@@ -633,7 +646,10 @@ export class LiveSession {
         const input: UnderstandingInput = {
           story: this.story,
           recentSpeech: this.previous.slice(-4000),
-          newSpeech: changed.join("\n") || requestText,
+          newSpeech: changed.join("\n") || (forced && !corrections.length ? requestText : ""),
+          transcriptCorrections: corrections,
+          currentSpeech: requestText,
+          reviewCompletedSpeech: completedTurns.length>0,
           selectedConcepts: selectedConcepts(this.context.board, this.story, this.context.selection),
           drawingSummary: describeBoard(
             this.context.board,
@@ -717,6 +733,7 @@ export class LiveSession {
       }
       this.previous = requestText;
       this.consideredTurns = currentTurns;
+      for(const id of completedTurns)this.reviewedFinalTurns.add(id);
       if (lastError)
         this.emit({
           type: "settled",
