@@ -43,8 +43,8 @@ The mascot stops sampling offscreen, on hidden pages and after unmount. Paused a
 
 ## Validation and limits
 
-Browser regressions cover coalesced camera following, cancellation during manual navigation, no automatic dimming, native/material alignment, companion state handoff, reduced-motion stillness, all original scenario branches, Back/Restart, editable copies, optional sound, and the full presentation example at desktop/mobile sizes. Portfolio checks compare the actual toolbar and companion geometry against local and exercise Lenis-to-native scroll handoff.
+Browser regressions cover coalesced camera following, cancellation during manual navigation, no automatic dimming, native/material alignment, companion state handoff, reduced-motion stillness, all original scenario branches, Back/Restart, editable copies, optional sound, and the public examples at desktop/mobile sizes. Portfolio checks compare the actual toolbar and companion geometry against local and exercise Lenis-to-native scroll handoff.
 
-Recorded synthetic speech exercises the real AudioWorklet, transcription, interpretation and editor. It is not a physical-microphone test. Model interpretation and ASR variability are separate from motion correctness; see `DEMO-SCRIPT.md` and the rehearsal evidence.
+Recorded synthetic speech exercises the real AudioWorklet, transcription, interpretation and editor. It is not a physical-microphone test. Model interpretation and ASR variability are separate from motion correctness; see `REHEARSALS.md` and the rehearsal evidence.
 
 **Most-referenced perspective:** Emil, because repeated drawing interactions must remain responsive. Leaning further toward Jakub would justify more transition polish only after visual stability is proven. Leaning toward Jhey belongs in the companion, not the board geometry.

@@ -221,3 +221,13 @@ it('sends speech additions separately and reviews a completed utterance only onc
  input!.transcript('a','I cannot write as fast as I think while I present.',true);await vi.advanceTimersByTimeAsync(5000);
  expect(understand).toHaveBeenCalledTimes(3);session.close();
 });
+
+it('reports an exhausted reference repair as attention needed, not queued work',async()=>{
+ vi.useFakeTimers();const events:ServerEvent[]=[];
+ const understand=vi.fn<NonNullable<Provider['understand']>>(async(_,signal,emit)=>{await emit({type:'revise',id:'missing',label:'Missing'});return metrics;});
+ const session=new LiveSession({board:emptyBoard(),selection:[],editing:false,canUndo:false},{understand,interpret:vi.fn(),transcribe:vi.fn()},event=>events.push(event));
+ session.start('text');session.testText('Revise the earlier screen');await vi.advanceTimersByTimeAsync(10);
+ expect(understand).toHaveBeenCalledTimes(2);
+ const complete=events.filter(e=>e.type==='debug'&&e.event.kind==='understanding-complete').at(-1);
+ expect(complete?.type==='debug'&&complete.event.stats?.modelState).toBe('error');session.close();
+});

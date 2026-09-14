@@ -36,13 +36,13 @@ test("all public branches, Back, Restart, and editable copies", async ({
       for (const branch2 of [0, 1]) {
         await menuClick(page, "Restart example");
         let branches = 0;
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 14; i++) {
           const choices = page.locator(".cv-message-choices button");
           await expect(choices.first()).toBeEnabled();
           const count = await choices.count();
           const pick = count > 1 ? (branches++ === 0 ? branch1 : branch2) : 0;
           await choices.nth(pick).click();
-          if (i < 6)
+          if (i < 13)
             await expect(
               page.locator(".cv-message-choices button").first(),
             ).toBeEnabled();
@@ -55,9 +55,9 @@ test("all public branches, Back, Restart, and editable copies", async ({
   }
   await menuClick(page, "Back one message");
   await expect(page.locator(".cv-message-choices button")).toHaveCount(1);
-  await expect(page.locator('[data-board-object]').filter({hasText:'Three automatic retries?'})).toHaveCount(1);
+  await expect(page.locator('[data-board-object]').filter({hasText:'Review the recovery paths'})).toHaveCount(0);
   await page.locator('.cv-message-choices button').click();
-  await expect(page.locator('[data-board-object]').filter({hasText:'Three automatic retries?'})).toHaveCount(0);
+  await expect(page.locator('[data-board-object]').filter({hasText:'Review the recovery paths'})).toHaveCount(1);
   await menuClick(page, "Explore this board");
   await page.getByRole("button", {name:"Add note", exact:true}).click();
   await expect(page.locator("[data-board-object]").filter({hasText:"New note"})).toHaveCount(1);

@@ -47,7 +47,7 @@ The package must never import portfolio routes, aliases, private content, or Nex
 
 ## Scenarios
 
-`packages/canvas/src/scenarios.ts` is the source of truth. Each scenario has an initial board, a start step, and choices with text, status, operations, and a next-step ID. Use an explicit undo choice for a reversible detour. Use the tools menu to select scenarios, go Back, Restart, or Explore an editable copy. The Sprig story adds the complete founder presentation with seven messages. Set `initiallyOpen={false}` for a blank fullscreen opening, and `compact` for an embedded board that preserves page scrolling. Each path is tested by replaying every prefix. Keep IDs stable across branches that rejoin. Feature, funnel, and onboarding each have seven turns and four possible full paths.
+`packages/canvas/src/scenarios.ts` is the source of truth. Each scenario has an initial board, a start step, and choices with text, status, operations, and a next-step ID. Use an explicit undo choice for a reversible detour. Use the tools menu to select scenarios, go Back, Restart, or Explore an editable copy. Set `initiallyOpen={false}` for a blank fullscreen opening, and `compact` for an embedded board that preserves page scrolling. Each path is tested by replaying every prefix. Keep IDs stable across branches that rejoin. Feature, funnel, and onboarding each have fourteen turns and four possible full paths.
 
 ## Source of truth and releases
 

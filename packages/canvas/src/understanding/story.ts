@@ -387,9 +387,9 @@ export function applyMeaningPatch(
         state.activeTopic = "current";
         state.topics.current = topic("current", "Current explanation");
       }
-      const t = state.topics[state.activeTopic];
+      let t = state.topics[state.activeTopic];
       const references =
-        e.type === "next" || e.type === "relation"
+        e.type === "next" || e.type === "relation" || e.type === "unrelate"
           ? [e.from, e.to]
           : e.type === "place"
             ? [e.id, e.anchor]
@@ -397,7 +397,16 @@ export function applyMeaningPatch(
               ? [e.id]
               : e.type === "question" && e.about
                 ? [e.about]
-                : [];
+                : e.type === "focus" ? e.ids : [];
+      // Exact IDs can still refer to an earlier topic while the speaker is
+      // explaining another one. Route only when all references share one owner;
+      // labels and genuinely cross-topic relationships remain unresolved.
+      const exactReferences=references.map(ref=>ref==='$selected'&&context.selectedConcepts?.length===1?context.selectedConcepts[0]:ref==='$focus'&&state.focusConcept?state.focusConcept:ref);
+      const owns=(candidate:StoryTopic)=>exactReferences.every(ref=>ref===candidate.id||!!candidate.concepts[ref]);
+      if(exactReferences.length&&!owns(t)){
+        const owners=Object.values(state.topics).filter(owns);
+        if(owners.length===1)t=owners[0];
+      }
       if (references.some((ref) => withheld.has(t.id + ":" + ref))) {
         warnings.push(
           "Relationship to a withheld suggestion was also withheld",
@@ -540,7 +549,7 @@ export function applyMeaningPatch(
             .filter((ref) => ref !== t.id)
             .map((ref) => get(ref).id);
           if (t.emphasis.length)
-            state.focusConcept = t.emphasis[t.emphasis.length - 1];
+            {state.activeTopic=t.id;state.focusConcept = t.emphasis[t.emphasis.length - 1];}
           break;
         case "question":
           t.questions[e.id] = {

@@ -30,7 +30,7 @@ Browser coverage drives the actual LiveClient through controlled WebSocket messa
 
 ## Arrival emphasis
 
-Automatic focus no longer dims earlier blocks or connections, or leaves a persistent selection-like border. Persisted automatic emphasis is cleared on loading, including its drawing metadata reconciliation; manually styled objects retain their own styles. New AI-created cards keep the short loading transition and receive one restrained outline that fades within 1.8 seconds. Unresolved alternatives are placed below their related step while manually positioned options stay put. See DEMO-SCRIPT.md for the recording sequence.
+Automatic focus no longer dims earlier blocks or connections, or leaves a persistent selection-like border. Persisted automatic emphasis is cleared on loading, including its drawing metadata reconciliation; manually styled objects retain their own styles. New AI-created cards keep the short loading transition and receive one restrained outline that fades within 1.8 seconds. Unresolved alternatives are placed below their related step while manually positioned options stay put. See REHEARSALS.md for the recording sequence.
 
 
 ## Playground sounds

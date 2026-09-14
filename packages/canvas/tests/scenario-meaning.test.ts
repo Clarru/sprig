@@ -63,3 +63,26 @@ it('keeps UI destinations in the frontend and delivery policy in the backend',()
   }
  }
 });
+
+it('ships only the three public product conversations',()=>{
+ expect(scenarios.map(s=>s.id)).toEqual(['feature','funnel','onboarding']);
+});
+function finish(id:string,prefix:string[]){const s=scenarios.find(s=>s.id===id)!;let path=[...prefix];while(replayScenario(s,path).step)path.push(replayScenario(s,path).step!.choices[0].id);return replayScenario(s,path).board;}
+it('extends every branch with meaningful recovery and preserves the chosen conversion',()=>{
+ const feature=finish('feature',['problem','meeting','point','manual','flow','extra','undo']);
+ expect(linked(feature,'permission','find')).toBe(true);expect(linked(feature,'expiry','closed')).toBe(true);
+ expect(feature.blocks.some(b=>b.id==='on-way'||b.id==='reminder')).toBe(false);
+ for(const mode of ['estimate','quote']){
+  const b=finish('funnel',['work','services','reviews',mode,'details','account','undo']);
+  expect(linked(b,mode==='estimate'?'estimate':'submit','followup')).toBe(true);
+  expect(linked(b,'connection',mode==='estimate'?'followup':'submit')).toBe(true);
+ }
+ const b=finish('onboarding',['lanes','before','correct','routes','failure','retry','undo']);
+ expect(linked(b,'check','create')).toBe(true);expect(linked(b,'create','session')).toBe(true);expect(linked(b,'check','session')).toBe(true);
+ expect(linked(b,'session','returning')).toBe(true);expect(linked(b,'check','returning')).toBe(false);
+ expect(b.blocks.find(b=>b.id==='new')).toMatchObject({label:'Add username later',tentative:false,parentId:'frontend'});
+ for(const a of b.blocks.filter(b=>b.parentId)){
+  const parent=b.blocks.find(p=>p.id===a.parentId)!;expect(a.position.x+a.width).toBeLessThanOrEqual(parent.width);expect(a.position.y+a.height).toBeLessThanOrEqual(parent.height);
+  for(const c of b.blocks.filter(c=>c.id!==a.id&&c.parentId===a.parentId))expect(a.position.x<c.position.x+c.width&&a.position.x+a.width>c.position.x&&a.position.y<c.position.y+c.height&&a.position.y+a.height>c.position.y).toBe(false);
+ }
+});

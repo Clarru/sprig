@@ -1,5 +1,4 @@
-import {makePresentationExample} from "./presentation-example";
-export {presentationNarration} from "./presentation-example";
+import {addPublicContinuations} from "./scenario-continuations";
 import {
   applyTransaction,
   emptyBoard,
@@ -73,7 +72,6 @@ const step = (
 const steps = (items: ScenarioStep[]) =>
   Object.fromEntries(items.map((s) => [s.id, s]));
 export const scenarios: Scenario[] = [
-  makePresentationExample(),
   {
     id: "feature",
     number: "01",
@@ -142,7 +140,7 @@ export const scenarios: Scenario[] = [
               tentative: false,
               detail: "Choose a spot and send it to friends.",
             }),
-            add("privacy", "Who can see this?", 350, 250, "note", {
+            add("privacy", "Who can see this?", 40, 480, "note", {
               tentative: true,
             }),
           ],
@@ -441,6 +439,8 @@ export const scenarios: Scenario[] = [
     ]),
   },
 ];
+addPublicContinuations(scenarios);
+
 export function replayScenario(
   scenario: Scenario,
   path: string[],
