@@ -213,9 +213,9 @@ describe("authored examples", () => {
   for (const scenario of scenarios) {
     it(`${scenario.id}: every branch, Back, and Restart are valid`, () => {
       const all = paths(scenario);
-      expect(all.length).toBeGreaterThanOrEqual(scenario.id === "presentation" ? 1 : 4);
+      expect(all.length).toBe(4);
       for (const path of all) {
-        expect(path).toHaveLength(7);
+        expect(path).toHaveLength(14);
         for (let i = 0; i <= path.length; i++) {
           const result = replayScenario(scenario, path.slice(0, i));
           expect(parseBoard(JSON.stringify(result.board))).toEqual(
@@ -226,11 +226,13 @@ describe("authored examples", () => {
               replayScenario(scenario, path.slice(0, i - 1)),
             );
         }
-        if(scenario.id === "presentation") continue;
-        const beforeUndo = replayScenario(scenario, path.slice(0, -2)).board;
-        const final = replayScenario(scenario, path).board;
-        expect(final.blocks).toEqual(beforeUndo.blocks);
-        expect(final.edges).toEqual(beforeUndo.edges);
+        for(const [index,id] of path.entries()){
+          const selected=replayScenario(scenario,path.slice(0,index)).step?.choices.find(c=>c.id===id);
+          if(!selected?.undo)continue;
+          const before=replayScenario(scenario,path.slice(0,index-1)).board;
+          const after=replayScenario(scenario,path.slice(0,index+1)).board;
+          expect(after.blocks).toEqual(before.blocks);expect(after.edges).toEqual(before.edges);
+        }
       }
       expect(replayScenario(scenario, []).board).toEqual(scenario.initial);
     });

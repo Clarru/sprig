@@ -169,3 +169,19 @@ it('places a streamed side option below its anchor and preserves later hand plac
  b=update(b,[{type:'relation',from:'option',to:'refine',kind:'alternative',certainty:'tentative'}]);
  expect(b.blocks.find(block=>block.id===option.id)!.position).toEqual({x:860,y:470});
 });
+
+it('attaches a supporting note below a screen instead of leaving it in the next screen slot',()=>{
+ let b=update(emptyBoard(),[{type:'topic',id:'app',label:'App'},{type:'view',kind:'screen_flow'},{type:'concept',id:'start',label:'Start',role:'screen'},{type:'concept',id:'detail',label:'Explain the benefit',role:'note'}]);
+ b=update(b,[{type:'relation',from:'start',to:'detail',kind:'contains'}]);
+ b=update(b,[{type:'concept',id:'account',label:'Create account',role:'screen'},{type:'next',from:'start',to:'account'}]);
+ const start=b.blocks.find(b=>b.storyConcept==='start')!,detail=b.blocks.find(b=>b.storyConcept==='detail')!,account=b.blocks.find(b=>b.storyConcept==='account')!;
+ expect(detail.position.y).toBeGreaterThanOrEqual(start.position.y+start.height);
+ expect(detail.position.x<account.position.x+account.width&&detail.position.x+detail.width>account.position.x&&detail.position.y<account.position.y+account.height&&detail.position.y+detail.height>account.position.y).toBe(false);
+});
+it('keeps a growing sequence clear of unrelated notes without moving those notes',()=>{
+ let b=update(emptyBoard(),[{type:'concept',id:'start',label:'Start',role:'step'},{type:'concept',id:'note',label:'Open question',role:'note'}]);
+ const before=b.blocks.find(b=>b.storyConcept==='note')!;
+ b=update(b,[{type:'concept',id:'next',label:'Continue',role:'step'},{type:'next',from:'start',to:'next'}]);
+ const note=b.blocks.find(b=>b.storyConcept==='note')!,next=b.blocks.find(b=>b.storyConcept==='next')!;
+ expect(note.position).toEqual(before.position);expect(next.position.x).toBeGreaterThanOrEqual(note.position.x+note.width+24);
+});

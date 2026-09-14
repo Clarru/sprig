@@ -364,3 +364,16 @@ it("resolves a model's alternate ID for an existing concept without another inte
  expect(Object.keys(state.topics.current.concepts)).toEqual(["welcome","register"]);
  expect(state.topics.current.relations[0]).toMatchObject({from:"welcome",to:"register"});
 });
+
+it('resolves exact references to an earlier topic without moving the current discussion',()=>{
+ let s=apply(running(),[{type:'topic',id:'other',label:'Another explanation'},{type:'concept',id:'benefit',label:'A benefit',role:'claim'}]);
+ s=apply(s,[{type:'revise',id:'register',label:'Create account'}]);
+ expect(s.activeTopic).toBe('other');expect(s.topics.running.concepts.register.label).toBe('Create account');expect(s.topics.other.concepts.register).toBeUndefined();
+ s=apply(s,[{type:'focus',ids:['welcome']}]);expect(s.activeTopic).toBe('running');expect(s.focusConcept).toBe('welcome');
+ expect(()=>apply(s,[{type:'next',from:'welcome',to:'benefit'}])).toThrow();
+});
+it('does not guess between two earlier topics containing the same reference',()=>{
+ let s=apply(emptyStory(),[{type:'topic',id:'a',label:'A'},{type:'concept',id:'same',label:'First'},{type:'topic',id:'b',label:'B'},{type:'concept',id:'same',label:'Second'},{type:'topic',id:'c',label:'C'}]);
+ expect(()=>apply(s,[{type:'revise',id:'same',label:'Changed'}])).toThrow();
+ s=apply(s,[{type:'topic',id:'b',label:'B'},{type:'revise',id:'same',label:'Changed'}]);expect(s.topics.a.concepts.same.label).toBe('First');expect(s.topics.b.concepts.same.label).toBe('Changed');
+});

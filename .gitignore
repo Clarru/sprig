@@ -10,3 +10,6 @@ playwright-report/
 docs/canvas/evals/*/video/
 
 .artifacts/
+
+# Owner-only recording scripts and narration; never ship these.
+.private/

@@ -1,5 +1,0 @@
-{
-  "failures": [],
-  "passed": true,
-  "note": "Rechecked after fixing the evaluator false negative for “Can’t draw fast enough”. The original result is preserved."
-}

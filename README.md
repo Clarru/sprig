@@ -31,6 +31,6 @@ The [local agent API](docs/canvas/AGENT-API.md) and drawing-script console can e
 Original code is MIT. Preserve [third-party notices](packages/canvas/THIRD_PARTY_NOTICES.md), including the vendored Bloub license and pinned upstream revision.
 
 
-## Rehearse a Sprig demo
+## Rehearse privately
 
-The [recording script](docs/canvas/DEMO-SCRIPT.md) explains Sprig while it draws its own flow. The [listening companion](docs/canvas/LISTENING-COMPANION.md) documents the persistent mascot control, real speech reactions, concise change history, arrival emphasis, and optional playground sounds. `npm run rehearse:demo` is an opt-in, billable test using the local server's configured model.
+Use your own local narration with the [rehearsal harness](docs/canvas/REHEARSALS.md). Scripts and recordings are ignored local files. The [public examples](docs/canvas/PUBLIC-EXAMPLES.md) are separate product conversations, not an owner's recording script.

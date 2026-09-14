@@ -10,7 +10,7 @@ import {BoardStore} from './store';
 import {usePlaygroundSounds} from './playground-sounds';
 import {uid,type AssistantStatus,type Board} from './model';
 
-export function ScenarioPlayer({initialScenario='presentation',compact=false,initiallyOpen=true,menu}:{initialScenario?:string;compact?:boolean;initiallyOpen?:boolean;menu?:ReactNode}){
+export function ScenarioPlayer({initialScenario='feature',compact=false,initiallyOpen=true,menu}:{initialScenario?:string;compact?:boolean;initiallyOpen?:boolean;menu?:ReactNode}){
  const sound=usePlaygroundSounds(),reduced=useReducedMotion()===true;
  const [id,setId]=useState(initialScenario),[path,setPath]=useState<string[]>([]);
  const [pending,setPending]=useState<string|null>(null),[exploring,setExploring]=useState(false),[open,setOpen]=useState(initiallyOpen);

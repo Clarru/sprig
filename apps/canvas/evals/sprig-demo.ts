@@ -3,27 +3,37 @@ import {chromium} from '@playwright/test';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import type {Board} from '@clarru/sprig/model';
-import {reviewPresentation} from './presentation-review';
-import {presentationNarration} from '@clarru/sprig/scenarios';
-const recording=process.env.SPRIG_DEMO_SCRIPT==='recording';
-const presentation=recording||process.env.SPRIG_DEMO_SCRIPT==='presentation';
-const narration: string[]=recording?JSON.parse(await readFile(new URL('./sprig-recording-narration.json',import.meta.url),'utf8')).beats:presentation?[...presentationNarration]:JSON.parse(await readFile(new URL('./sprig-demo-narration.json',import.meta.url),'utf8')).beats;
+import {resolve} from 'node:path';
+import {z} from 'zod';
+const source=process.env.SPRIG_REHEARSAL_FILE;
+if(!source)throw new Error('Set SPRIG_REHEARSAL_FILE to your local narration JSON. No personal script is bundled.');
+const config=z.object({
+ title:z.string().default('Private rehearsal'),beats:z.array(z.string().min(1).max(2000)).min(1).max(80),
+ wordsPerMinute:z.number().min(100).max(190).default(140),pauseMs:z.number().min(0).max(2000).default(700),
+ requiredConcepts:z.array(z.array(z.string()).min(1)).default([]),forbiddenLabels:z.array(z.string()).default([]),
+}).parse(JSON.parse(await readFile(source,'utf8')));
+const narration=config.beats;
 const voice=process.env.SPRIG_DEMO_VOICE==='1';
-const continuous=voice&&process.env.SPRIG_DEMO_CONTINUOUS==='1';
-const pauseMs=Math.max(0,Math.min(2000,Number(process.env.SPRIG_DEMO_PAUSE_MS)||0));
+const continuous=voice&&process.env.SPRIG_DEMO_CONTINUOUS!=='0';
+const pauseMs=config.pauseMs;
 const lines=continuous?[narration.join(pauseMs?` [[slnc ${pauseMs}]] `:' ')]:narration;
 const baseURL=process.env.SPRIG_DEMO_URL ?? 'http://127.0.0.1:5191';
-const destination=`docs/canvas/evals/sprig-demo-${process.env.SPRIG_DEMO_RUN ?? 'rehearsal'}`;
+const run=z.string().regex(/^[a-zA-Z0-9_-]+$/).parse(process.env.SPRIG_DEMO_RUN ?? 'latest');
+const destination=resolve('.artifacts/rehearsals',run);
+const audioDirectory=resolve(destination,'audio');
+let spokenAudioSeconds=0;
+let readBoard:(()=>Promise<Board>)|undefined;
+let finalInterpretationError=false;
 await mkdir(destination,{recursive:true});
 if(voice){
  if(process.platform!=='darwin')throw new Error('The synthesized voice rehearsal uses macOS say. Run the text rehearsal on other platforms.');
- await mkdir('/tmp/sprig-demo-audio',{recursive:true});
- for(const [i,text] of lines.entries())execFileSync('/usr/bin/say',['-v','Samantha','-r','155','-o',`/tmp/sprig-demo-audio/line-${i}.wav`,'--file-format=WAVE','--data-format=LEI16@24000',text]);
+ await mkdir(audioDirectory,{recursive:true});
+ for(const [i,text] of lines.entries())execFileSync('/usr/bin/say',['-v','Samantha','-r',String(config.wordsPerMinute),'-o',`${audioDirectory}/line-${i}.wav`,'--file-format=WAVE','--data-format=LEI16@24000',text]);
 }
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'no-preference',...(continuous?{recordVideo:{dir:destination+'/video',size:{width:1440,height:1000}}}:{})});
 const turns:unknown[]=[];
-const failures:string[]=[];let previousBoard:Board|null=null;
+const failures:string[]=[];
 let events:Record<string,unknown>[]=[];let completed=false;let firstAck:number|null=null;let started=0;let currentLine="";let requestContainsLine=false;let lastModelEvent=0;let latestTranscript="";let requestTranscript="";
 page.on('websocket',socket=>{
  if(!socket.url().includes('/api/live'))return;
@@ -33,7 +43,7 @@ page.on('websocket',socket=>{
    if(e.type==='transcript'){latestTranscript=e.text;if(voice&&latestTranscript!==requestTranscript)completed=false;}
    if(e.type==='debug'&&e.event.kind==='transcript-normalized'){completed=true;requestTranscript=latestTranscript;lastModelEvent=Date.now();}
    if(e.type==='debug'&&e.event.kind==='model-started') {requestTranscript=String(e.event.transcript);requestContainsLine=voice || requestTranscript.includes(currentLine);completed=false;lastModelEvent=Date.now();}
-   if(e.type==='debug'&&e.event.kind==='understanding-complete') {completed=requestContainsLine && (!voice || requestTranscript===latestTranscript) && e.event.stats?.modelState!=='queued';lastModelEvent=Date.now();}
+   if(e.type==='debug'&&e.event.kind==='understanding-complete') {finalInterpretationError=e.event.stats?.modelState==='error';completed=requestContainsLine && (!voice || requestTranscript===latestTranscript) && e.event.stats?.modelState!=='queued';lastModelEvent=Date.now();}
   }catch{}
  });
  socket.on('framesent',({payload})=>{
@@ -42,14 +52,14 @@ page.on('websocket',socket=>{
 });
 try {
  if(voice) {
-  await page.route('**/__demo_audio/*',route=>route.fulfill({path:'/tmp/sprig-demo-audio/'+new URL(route.request().url()).pathname.split('/').at(-1),contentType:'audio/wav'}));
+  await page.route('**/__demo_audio/*',route=>route.fulfill({path:audioDirectory+'/'+new URL(route.request().url()).pathname.split('/').at(-1),contentType:'audio/wav'}));
   await page.addInitScript(()=>{
    navigator.mediaDevices.getUserMedia=async()=>{
     const audio=new AudioContext({sampleRate:24000});await audio.resume();
     const destination=audio.createMediaStreamDestination();
-    (window as unknown as {demoSpeak:(url:string)=>Promise<void>}).demoSpeak=async url=>{
+    (window as unknown as {demoSpeak:(url:string)=>Promise<number>}).demoSpeak=async url=>{
      const data=await(await fetch(url)).arrayBuffer(),buffer=await audio.decodeAudioData(data);
-     await new Promise<void>(resolve=>{const source=audio.createBufferSource();source.buffer=buffer;source.connect(destination);source.onended=()=>{source.disconnect();resolve();};source.start();});
+     await new Promise<void>(resolve=>{const source=audio.createBufferSource();source.buffer=buffer;source.connect(destination);source.onended=()=>{source.disconnect();resolve();};source.start();});return buffer.duration;
     };
     const track=destination.stream.getAudioTracks()[0],stop=track.stop.bind(track);
     track.stop=()=>{stop();void audio.close();};
@@ -63,11 +73,11 @@ try {
  const bootstrap=await(await page.request.get(`${baseURL}/api/bootstrap`)).json();
  if(!bootstrap.configured)throw new Error('Configure the local server key before the opt-in rehearsal.');
  const headers={Authorization:`Bearer ${bootstrap.token}`};
- const board=async()=>(await(await page.request.get(`${baseURL}/api/agent/boards/${editor}`,{headers})).json()).board as Board;
+ const board=readBoard=async()=>(await(await page.request.get(`${baseURL}/api/agent/boards/${editor}`,{headers})).json()).board as Board;
  if(voice){await page.getByRole('button',{name:'Start listening',exact:true}).click();await page.locator('.cv-listening-control[data-microphone-live="true"]').waitFor();if(continuous)await page.getByRole('button',{name:'Close debug panel'}).click();}
  for(const [i,text] of lines.entries()){
   events=[];completed=false;firstAck=null;currentLine=text;requestContainsLine=false;started=Date.now();
-  if(voice) await page.evaluate(async i=>(window as unknown as {demoSpeak:(url:string)=>Promise<void>}).demoSpeak(`/__demo_audio/line-${i}.wav`),i);
+  if(voice) spokenAudioSeconds+=await page.evaluate(async i=>(window as unknown as {demoSpeak:(url:string)=>Promise<number>}).demoSpeak(`/__demo_audio/line-${i}.wav`),i);
   else {
    await page.getByRole('textbox',{name:'Diagnostic test text'}).fill(text);
    await page.getByRole('button',{name:'Send text test',exact:true}).click();
@@ -81,23 +91,17 @@ try {
   if(!completed)throw new Error('The model did not finish within 45 seconds.');
   await page.waitForTimeout(450);
   const current=await board();
-  if(!presentation) {
-  const expectedCount=[1,2,3,4,4,5][i];
-  if(current.blocks.some(b=>b.detail.length>110))failures.push(`Beat ${i+1}: card details are too verbose for the recording.`);
-  if(current.blocks.length!==expectedCount)failures.push(`Beat ${i+1}: expected ${expectedCount} blocks, got ${current.blocks.length}.`);
-  if(current.blocks.some(b=>b.muted)||current.edges.some(e=>e.muted))failures.push(`Beat ${i+1}: an existing item was dimmed.`);
-  if(previousBoard)for(const previous of previousBoard.blocks){const next=current.blocks.find(b=>b.id===previous.id);if(!next||JSON.stringify(next.position)!==JSON.stringify(previous.position))failures.push(`Beat ${i+1}: existing geometry or identity changed for ${previous.label}.`);}
-  if(i===4&&!current.blocks.some(b=>/^refine together$/i.test(b.label)))failures.push('The correction did not rename the existing step.');
-  if(i===5&&!current.blocks.some(b=>/direction/i.test(b.label)&&b.tentative))failures.push('The alternative was not marked unresolved.');
-  if(i>=3&&current.edges.length!==3)failures.push(`Beat ${i+1}: expected three main-flow connections.`);
-  }
-  previousBoard=current;
+  if(current.blocks.some(b=>b.muted)||current.edges.some(e=>e.muted))failures.push('Existing content was dimmed.');
   const result={text,board:current,transcript:latestTranscript,firstAcknowledgedEditMs:firstAck,totalMs:Date.now()-started,blocks:current.blocks.map(b=>({id:b.id,label:b.label,kind:b.kind,tentative:b.tentative,muted:b.muted,position:b.position})),edges:current.edges,meanings:events.flatMap(e=>e.type==='debug'&&(e.event as {meaningEvent?:unknown}).meaningEvent?[(e.event as {meaningEvent:unknown}).meaningEvent]:[]),metrics:events.flatMap(e=>e.type==='debug'&&(e.event as {kind:string}).kind==='understanding-complete'?[(e.event as {stats:unknown}).stats]:[])};
   turns.push(result);await writeFile(`${destination}/progress.json`,JSON.stringify({turns},null,2));console.log(JSON.stringify({turn:i+1,firstAcknowledgedEditMs:firstAck,labels:current.blocks.map(b=>b.label)}));
   await page.locator('.local-workspace').screenshot({path:`${destination}/turn-${i+1}.png`});
  }
  const final=await board();
- if(presentation)failures.push(...reviewPresentation(final));
+ if(finalInterpretationError)failures.push('The final interpretation still needs reference clarification.');
+ const visible=final.blocks.map(b=>`${b.label} ${b.detail}`).join(' ').toLowerCase();
+ for(const alternatives of config.requiredConcepts)if(!alternatives.some(text=>visible.includes(text.toLowerCase())))failures.push(`Missing required concept: ${alternatives.join(' / ')}`);
+ for(const label of config.forbiddenLabels)if(final.blocks.some(b=>b.label.toLowerCase()===label.toLowerCase()))failures.push(`A removed concept remains: ${label}`);
+ for(const [index,a] of final.blocks.entries())for(const b of final.blocks.slice(index+1))if(a.parentId===b.parentId&&a.position.x<b.position.x+b.width-1&&a.position.x+a.width>b.position.x+1&&a.position.y<b.position.y+b.height-1&&a.position.y+a.height>b.position.y+1)failures.push(`Overlapping cards: ${a.label} / ${b.label}`);
  if(voice)await page.getByRole('button',{name:'Pause listening',exact:true}).click();
  if(await page.getByRole('button',{name:'Close debug panel'}).count())await page.getByRole('button',{name:'Close debug panel'}).click();
  await page.waitForTimeout(900);
@@ -106,9 +110,10 @@ try {
  await page.waitForTimeout(500);
  await page.screenshot({path:`${destination}/final.png`});
  await writeFile(`${destination}/board.json`,JSON.stringify(final,null,2));
- await writeFile(`${destination}/results.json`,JSON.stringify({date:new Date().toISOString(),script:recording?'recording':presentation?'presentation':'flow',pauseBetweenBeatsMs:pauseMs,failures,passed:failures.length===0,model:bootstrap.models?.interpretation,reasoning:bootstrap.reasoningEffort,measurement:voice?'Synthesized narration sent through the real browser AudioWorklet, Live Transcribe, interpretation model and editor. No physical microphone or speaker output. Timings include spoken audio duration.':'Real model through the production LiveClient and browser editor. Text input bypasses microphone and transcription. Timings end at browser acknowledgment, not pixel paint.',turns},null,2));
+ await writeFile(`${destination}/results.json`,JSON.stringify({date:new Date().toISOString(),title:config.title,spokenAudioSeconds,wordCount:narration.join(' ').split(/\s+/).length,pauseBetweenBeatsMs:pauseMs,failures,passed:failures.length===0,model:bootstrap.models?.interpretation,reasoning:bootstrap.reasoningEffort,measurement:voice?'Synthesized narration sent through the real browser AudioWorklet, Live Transcribe, interpretation model and editor. No physical microphone or speaker output. Timings include spoken audio duration.':'Real model through the production LiveClient and browser editor. Text input bypasses microphone and transcription. Timings end at browser acknowledgment, not pixel paint.',turns},null,2));
  if(failures.length){console.error(JSON.stringify({failures}));process.exitCode=1;}
 } catch(error) {
+ if(readBoard)try{await writeFile(`${destination}/board-at-failure.json`,JSON.stringify(await readBoard(),null,2));await page.screenshot({path:`${destination}/failure.png`});}catch{}
  await writeFile(`${destination}/failure.json`,JSON.stringify({error:String(error),events,latestTranscript,requestTranscript,turns},null,2));
  throw error;
 } finally {await browser.close();}

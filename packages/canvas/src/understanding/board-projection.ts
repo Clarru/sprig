@@ -217,6 +217,10 @@ export function projectStory(
             position,
             ...(existing.autoPosition ? {autoPosition:position} : {}),
           });
+        } else if(parentItem && !parentIsGroup && existing.autoPosition &&
+          fingerprint(existing.position)===fingerprint(existing.autoPosition) &&
+          board.story?.topics[item.topicId]?.relations.find(r=>r.kind==='contains'&&r.to===item.conceptId)?.from!==parentItem.conceptId) {
+          update(working.blocks.find(b=>b.id===existing.id)!,{position,autoPosition:position});
         }
       } else
         emit({
@@ -261,12 +265,24 @@ export function projectStory(
         let cursor = start;
         const at = { ...first.position };
         const seen = new Set<string>();
+        const chain=new Set<string>();
+        let member:string|undefined=start;
+        while(member&&!chain.has(bindings[member])){chain.add(bindings[member]);member=links.find(l=>l.from===member)?.to;}
+        const explicitMove=events.some(e=>e.type==='place');
+        const movable=(block:Block)=>explicitMove || !!block.autoPosition&&fingerprint(block.position)===fingerprint(block.autoPosition);
         while (!seen.has(cursor)) {
           seen.add(cursor);
           const b = working.blocks.find((b) => b.id === bindings[cursor]);
           if (!b) break;
-          if (events.some(e => e.type === "place") || (b.autoPosition && fingerprint(b.position) === fingerprint(b.autoPosition)))
+          if (movable(b)) {
+            for(let attempt=0;attempt<=working.blocks.length;attempt++){
+              const obstacle=working.blocks.find(other=>other.id!==b.id&&other.parentId===b.parentId&&(!chain.has(other.id)||!movable(other))&&at.x<other.position.x+other.width+24&&at.x+b.width+24>other.position.x&&at.y<other.position.y+other.height+24&&at.y+b.height+24>other.position.y);
+              if(!obstacle)break;
+              if(b.parentId||scene.direction==='down')at.y=obstacle.position.y+obstacle.height+70;
+              else at.x=obstacle.position.x+obstacle.width+90;
+            }
             update(b, { position: { ...at }, autoPosition: { ...at } });
+          }
           else {at.x=b.position.x; at.y=b.position.y;}
           const next = links.find((l) => l.from === cursor);
           if (!next) break;

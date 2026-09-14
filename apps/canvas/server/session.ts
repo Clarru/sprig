@@ -712,7 +712,7 @@ export class LiveSession {
             : (result.response.summary ?? "Understanding updated."),
           stats: {
             modelCompletions: this.modelCompletions,
-            modelState: errors.length ? "queued" : "complete",
+            modelState: errors.length ? (attempt===0 ? "queued" : "error") : "complete",
             requestMs: result.totalMs,
             inputTokens: result.inputTokens,
             outputTokens: result.outputTokens,
