@@ -71,7 +71,7 @@ export function ListeningControl({mode="live", restingLabel, status, active, mic
     : phase==='considered'?latest?.understood || 'Keeping the context. No new shapes yet.'
     : phase==='idle'?'An unfinished thought is enough.'
     : phase==='paused'?'Microphone off. Pick up anytime.'
-    : phase==='connecting'?(microphone==='requesting'?'Allow microphone access to begin.':'Connecting your microphone…')
+    : phase==='connecting'?(microphone==='requesting'?'Allow microphone access to begin.':status.message)
     : phase==='interrupted'?'Microphone interrupted. Pause and reconnect.'
     : phase==='speaking'?(transcript || 'Keep going. I’m following.')
     : phase==='listening'?'Take your time. I’m here.'

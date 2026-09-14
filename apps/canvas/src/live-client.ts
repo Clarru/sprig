@@ -19,6 +19,15 @@ interface Callbacks {
 }
 export class LiveClient {
   private socket: WebSocket | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private connectTimer: ReturnType<typeof setTimeout> | null = null;
+  private stableTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
+  private reconnecting = false;
+  private providerRecovering = false;
+  private networkReady = false;
+  private pendingAudio: ArrayBuffer[] = [];
+  private pendingBytes = 0;
   private media: MediaStream | null = null;
   private audio: AudioContext | null = null;
   private worklet: AudioWorkletNode | null = null;
@@ -39,6 +48,9 @@ export class LiveClient {
     const topic=story?.activeTopic ? story.topics[story.activeTopic] : undefined;
     const question=topic && Object.values(topic.questions).find(item=>item.blocking);
     if(status.state==='listening' && question) status={state:'clarification',message:question.text};
+    if ((this.reconnecting || this.providerRecovering) && status.state !== "error") {
+      status = {state:"working",message:"Reconnecting audio… keeping your place."};
+    }
     this.lastServerStatus = status;
     // Let an acknowledgment finish instead of replacing a wink in the next socket tick.
     if (this.updatedTimer && status.state === "listening") {
@@ -64,7 +76,7 @@ export class LiveClient {
   private sentPackets = 0;
   private sentSeconds = 0;
   async inspectServer() {
-    const response = await fetch("/api/bootstrap");
+    const response = await fetch("/api/bootstrap", {signal: AbortSignal.timeout(8000)});
     if (!response.ok) {
       this.debug.patch({ serverVersion: "offline" });
       throw new Error("The local server is unavailable.");
@@ -184,6 +196,16 @@ export class LiveClient {
             ),
           );
       }
+      await this.connect(epoch, input, testText);
+
+    } catch (error) {
+      if (epoch === this.epoch)
+        this.fail(
+          error instanceof Error ? error.message : "Could not start listening.",
+        );
+    }
+  }
+  private async connect(epoch: number, input: "microphone" | "text", testText = "") {
       const { token, configured, debugProtocol } = await this.inspectServer();
       if (epoch !== this.epoch) return;
       if (debugProtocol !== 1)
@@ -198,24 +220,39 @@ export class LiveClient {
         `${location.origin.replace(/^http/, "ws")}/api/live?token=${encodeURIComponent(token)}`,
       );
       this.socket = socket;
+      this.connectTimer = setTimeout(() => {
+        if (epoch === this.epoch && socket === this.socket) this.reconnect(epoch, input);
+      }, 20000);
       socket.onopen = () => {
-        if (epoch !== this.epoch) return;
+        if (epoch !== this.epoch || socket !== this.socket) return;
         this.debug.patch({ connection: "open" });
         this.debug.event(
           "socket-open",
           "Browser connected to the local server.",
         );
-        this.send({ type: "start", input, context: this.context() });
+        this.send({ type: "start", input, context: this.context(), ...(this.reconnecting ? {resumeTranscript:this.debug.getSnapshot().transcript.slice(-24000)} : {}) });
         this.unsubscribe = this.store.subscribe(() =>
           this.send({ type: "context", context: this.context() }),
         );
       };
       socket.onmessage = (event) => {
-        if (epoch !== this.epoch) return;
+        if (epoch !== this.epoch || socket !== this.socket) return;
         try {
           const message = JSON.parse(event.data);
           switch (message.type) {
+            case "connection":
+              this.providerRecovering = !!message.recovering;
+              this.debug.patch({providerReady: !message.recovering});
+              this.present({state: message.recovering ? "working" : "listening", message:message.message});
+              break;
             case "ready":
+              if (this.connectTimer) clearTimeout(this.connectTimer);
+              this.connectTimer = null;
+              this.networkReady = true;
+              this.reconnecting = false;
+              this.providerRecovering = false;
+              if (this.stableTimer) clearTimeout(this.stableTimer);
+              this.stableTimer = setTimeout(() => {this.reconnectAttempts = 0;}, 30000);
               this.debug.patch({ providerReady: input === "microphone" });
               this.send({ type: "settings", settings: this.settings });
               if (input === "text") {
@@ -227,7 +264,13 @@ export class LiveClient {
                   "provider-ready",
                   "Transcription connection accepted.",
                 );
-                void this.capture(epoch);
+                if (!this.media) void this.capture(epoch);
+                else {
+                  const queued = this.pendingAudio;
+                  this.pendingAudio = []; this.pendingBytes = 0;
+                  for (const packet of queued) socket.send(packet);
+                  this.present({state:"listening",message:"Audio reconnected. I’m following."});
+                }
               }
               break;
             case "understanding": {
@@ -323,20 +366,42 @@ export class LiveClient {
         }
       };
       socket.onerror = () => {
-        if (epoch === this.epoch)
-          this.fail("Could not connect. Start the local server and try again.");
+        if (epoch === this.epoch && socket === this.socket) this.reconnect(epoch, input);
       };
-      socket.onclose = () => {
-        if (epoch === this.epoch)
-          this.fail(
-            "The connection ended. Your board is saved; reconnect when ready.",
-          );
+      socket.onclose = event => {
+        if (epoch === this.epoch && socket === this.socket) {
+          this.debug.event("socket-closed",`Local socket closed (code ${event.code}, clean ${event.wasClean}).`);
+          this.reconnect(epoch, input);
+        }
       };
-    } catch (error) {
-      if (epoch === this.epoch)
-        this.fail(
-          error instanceof Error ? error.message : "Could not start listening.",
-        );
+  }
+  private reconnect(epoch: number, input: "microphone" | "text") {
+    if (epoch !== this.epoch || this.reconnectTimer) return;
+    const delays = [500, 1500, 3000];
+    if (input !== "microphone" || this.reconnectAttempts >= delays.length) {
+      this.fail("The audio connection could not recover. Please reconnect and repeat the last sentence.");
+      return;
+    }
+    this.detachSocket();
+    this.reconnecting = true;
+    this.networkReady = false;
+    this.debug.patch({connection:"connecting",providerReady:false});
+    this.present({state:"working",message:"Reconnecting audio… keeping your place."});
+    const delay = delays[this.reconnectAttempts++];
+    this.debug.event("socket-reconnecting",`Local connection retry ${this.reconnectAttempts}/3 in ${delay} ms.`);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (epoch === this.epoch) void this.connect(epoch, input).catch(() => this.reconnect(epoch, input));
+    }, delay);
+  }
+  private detachSocket() {
+    if (this.connectTimer) clearTimeout(this.connectTimer);
+    if (this.stableTimer) clearTimeout(this.stableTimer);
+    this.connectTimer = this.stableTimer = null;
+    this.unsubscribe?.(); this.unsubscribe = null;
+    if (this.socket) {
+      this.socket.onopen = this.socket.onclose = this.socket.onerror = this.socket.onmessage = null;
+      this.socket.close(); this.socket = null;
     }
   }
   private async capture(epoch: number) {
@@ -413,11 +478,18 @@ export class LiveClient {
             lastAudioAt: Date.now(),
             audioContext: audio.state,
           });
+        if (!this.networkReady || this.socket?.readyState !== WebSocket.OPEN) {
+          if (this.pendingBytes + event.data.audio.byteLength > 15 * 48000) {
+            this.fail("Audio stayed disconnected for too long. Please reconnect and repeat the last sentence.");
+            return;
+          }
+          this.pendingAudio.push(event.data.audio); this.pendingBytes += event.data.audio.byteLength;
+          return;
+        }
         if (this.socket?.readyState === WebSocket.OPEN) {
           if (this.socket.bufferedAmount > 200000) {
-            this.fail(
-              "Audio could not keep up with the connection. Reconnect to continue.",
-            );
+            this.pendingAudio.push(event.data.audio); this.pendingBytes += event.data.audio.byteLength;
+            this.reconnect(epoch, "microphone");
             return;
           }
           this.socket.send(event.data.audio);
@@ -442,6 +514,11 @@ export class LiveClient {
   }
   stop(notify = true) {
     this.epoch++;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.reconnectAttempts = 0;
+    this.reconnecting = this.providerRecovering = this.networkReady = false;
+    this.pendingAudio = []; this.pendingBytes = 0;
     this.textReady = false;
     if (this.updatedTimer) clearTimeout(this.updatedTimer);
     this.updatedTimer = null;
@@ -464,15 +541,8 @@ export class LiveClient {
       void this.audio.close().catch(() => {});
     }
     this.audio = null;
-    if (this.socket) {
-      this.socket.onclose = null;
-      this.socket.onerror = null;
-      this.socket.onmessage = null;
-      if (this.socket.readyState === WebSocket.OPEN)
-        this.socket.send(JSON.stringify({ type: "stop" }));
-      this.socket.close();
-      this.socket = null;
-    }
+    this.send({type:"stop"});
+    this.detachSocket();
     this.callbacks.level(0);
     this.debug.patch({
       running: false,

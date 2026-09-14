@@ -32,12 +32,16 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
       let intentional = false;
       let ready = false;
       let failed = false;
+      let heartbeat: ReturnType<typeof setInterval> | undefined;
+      let awaitingPong = false;
       const fail = (failure: ProviderFailure) => {
         if (intentional || failed) return;
         failed = true;
         clearTimeout(timeout);
+        clearInterval(heartbeat);
+        events.debug?.({kind:"transcription-error",message:`Transcription ${failure.kind} after ${Math.round(forwardedSeconds)} seconds of forwarded audio.`});
         events.error(failure);
-        socket.close();
+        socket.terminate();
       };
       let forwardedPackets = 0,
         forwardedSeconds = 0,
@@ -111,6 +115,7 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
       );
       socket.on("message", (raw) => {
         try {
+          if (intentional || failed) return;
           const e = JSON.parse(raw.toString());
           if (
             e.type === "session.updated" ||
@@ -118,6 +123,10 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
           ) {
             ready = true;
             clearTimeout(timeout);
+            if (!heartbeat) heartbeat = setInterval(() => {
+              if (awaitingPong) {fail({kind:"timeout"}); return;}
+              if (socket.readyState === WebSocket.OPEN) {awaitingPong = true; socket.ping();}
+            }, 15000);
             events.ready();
           }
           if (
@@ -147,7 +156,10 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
       socket.on("error", (error) => {
         fail(classifyProviderFailure(error as { code?: string }));
       });
-      socket.on("close", () => {
+      socket.on("pong", () => {awaitingPong = false;});
+      socket.on("close", (code: number) => {
+        if (!intentional && !failed) events.debug?.({kind:"transcription-closed",message:`Transcription socket closed (code ${code}); forwarded ${Math.round(forwardedSeconds)} seconds of audio.`});
+        clearInterval(heartbeat);
         clearTimeout(timeout);
         fail({ kind: "connection" });
       });
@@ -181,6 +193,7 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
         },
         close() {
           intentional = true;
+          clearInterval(heartbeat);
           clearTimeout(timeout);
           socket.on("error", () => {});
           socket.close();

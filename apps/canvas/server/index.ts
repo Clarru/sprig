@@ -199,6 +199,10 @@ wss.on("connection", (socket) => {
             message.input !== "text"
           )
             throw new Error("Invalid input mode");
+          if (message.resumeTranscript !== undefined) {
+            if (typeof message.resumeTranscript !== "string" || message.resumeTranscript.length > 24000) throw new Error("Invalid resume transcript");
+            session.resumeTranscript(message.resumeTranscript);
+          }
           session.start(message.input ?? "microphone");
           clearTimeout(startup);
           break;
