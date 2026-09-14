@@ -37,9 +37,9 @@ Events run in order. Establish topic/view, then concepts, then relationships. ne
 Keep unresolved questions and withdrawn alternatives distinct. focus changes emphasis without deleting anything. Manual labels and hidden concepts are intentional; change them only on an explicit correction or request to show them. The actual drawing is evidence of what is visible, not proof all earlier intentions were fulfilled. Be a collaborator: build a small useful first interpretation, then revise it as the explanation unfolds. Do not narrate your reasoning or speak back.`;
 const parameters = z.toJSONSchema(MeaningResponseSchema);
 delete parameters.$schema;
-export function understandingReasoningEffort(): 'none'|'low'|'medium' {
+export function understandingReasoningEffort(): 'none'|'low'|'medium'|'high' {
   const value=process.env.CANVAS_REASONING_EFFORT;
-  return value==='none'||value==='medium'?value:'low';
+  return value==='none'||value==='medium'||value==='high'?value:'low';
 }
 export function createUnderstandingAgent(
   client: OpenAI,
