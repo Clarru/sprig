@@ -1,6 +1,6 @@
 {
   "name": "sprig-workspace",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -19,7 +19,8 @@
     "build:canvas": "npm run build",
     "test:canvas": "npm test",
     "test:canvas:browser": "playwright test -c packages/canvas/playwright.config.ts",
-    "rehearse:demo": "tsx apps/canvas/evals/sprig-demo.ts"
+    "rehearse:demo": "tsx apps/canvas/evals/sprig-demo.ts",
+    "sync:brand": "tsx scripts/sync-brand.ts"
   },
   "devDependencies": {
     "vitest": "^4.1.11",

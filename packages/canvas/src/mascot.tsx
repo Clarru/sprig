@@ -1,16 +1,15 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { BotEngine, type BotFrame } from "./vendor/bloub/engine";
-import { NOTIF_BLUE } from "./vendor/bloub/decor";
+import { sprigBrand } from "./sprig-brand";
 import {
   SHAPE_BY_ID,
   COLOR_BY_ID,
-  mixHex,
   type ShapeId,
 } from "./vendor/bloub/skins";
 import { EXPRESSION_BY_ID, type ExpressionId } from "./vendor/bloub/expressions";
 import { POSES, type StateId } from "./vendor/bloub/states";
-import { RAYON as R, DEMI_VIEWBOX as VB } from "./vendor/bloub/repere";
+import { RAYON as R } from "./vendor/bloub/repere";
 import type { AssistantState } from "./model";
 export const mascotStates: Record<AssistantState, StateId> = {
   idle: "idle",
@@ -24,6 +23,7 @@ export const mascotStates: Record<AssistantState, StateId> = {
 export interface MascotProps {
   state?: AssistantState;
   size?: number;
+  /** Legacy engine motion profile; the visible character is always Sprig. */
   shape?: ShapeId;
   color?: string;
   background?: string;
@@ -48,146 +48,54 @@ export function sampleMascot(
     SHAPE_BY_ID.get(shape)?.radii ?? null,
   ).sample(time);
 }
-export function MascotFrame({
-  frame,
-  id,
-  color,
-  background,
-  size = 72,
-  monochrome = false,
-}: {
-  frame: BotFrame;
-  id: string;
-  color: string;
-  background: string;
-  size?: number;
-  monochrome?: boolean;
+/** Sprig keeps its own silhouette in every state; Bloub supplies sampled gaze. */
+export function MascotFrame({frame,id,color,background,size=72,animation='idle',time=0}: {
+  frame:BotFrame; id:string; color:string; background:string; size?:number;
+  monochrome?:boolean; animation?:StateId; time?:number;
 }) {
-  const maskId = `${id}-mask`;
-  const dots = frame.dots.map((d, i) => {
-    const fill =
-      (monochrome ? color : d.color) ??
-      (d.depth === undefined ? color : mixHex(background, color, d.depth));
-    return d.d ? (
-      <path
-        key={i}
-        d={d.d}
-        transform={`translate(${d.x} ${d.y}) rotate(${d.rot ?? 0}) scale(${R})`}
-        fill={fill}
-        opacity={d.opacity}
-      />
-    ) : (
-      <circle
-        key={i}
-        cx={d.x}
-        cy={d.y}
-        r={d.r}
-        fill={fill}
-        opacity={d.opacity}
-      />
-    );
-  });
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`${-VB} ${-VB} ${2 * VB} ${2 * VB}`}
-      aria-hidden="true"
-      data-mascot-frame="true"
-    >
-      <defs>
-        <mask
-          id={maskId}
-          maskUnits="userSpaceOnUse"
-          x={-VB}
-          y={-VB}
-          width={2 * VB}
-          height={2 * VB}
-        >
-          <path d={frame.bodyPath} fill="white" />
-          {frame.eyes.map((e, i) => (
-            <path
-              key={i}
-              d={e.d}
-              transform={e.matrix}
-              opacity={e.alpha}
-              fill="black"
-            />
-          ))}
-          {frame.notch && (
-            <circle
-              {...{ cx: frame.notch.x, cy: frame.notch.y, r: frame.notch.r }}
-              fill="black"
-            />
-          )}
-        </mask>
-        {frame.arcs.map((a) => (
-          <linearGradient
-            key={a.id}
-            id={`${id}-${a.id}`}
-            gradientUnits="userSpaceOnUse"
-            x1={a.grad.x1}
-            y1={a.grad.y1}
-            x2={a.grad.x2}
-            y2={a.grad.y2}
-          >
-            {a.grad.stops.map((c, i) => (
-              <stop
-                key={i}
-                offset={i / (a.grad.stops.length - 1)}
-                stopColor={monochrome ? color : c}
-              />
-            ))}
-          </linearGradient>
-        ))}
-      </defs>
-      <g fill="none" strokeLinecap="round">
-        {frame.arcs.map((a) => (
-          <path
-            key={a.id}
-            d={a.back}
-            stroke={`url(#${id}-${a.id})`}
-            strokeWidth={a.width}
-            opacity={a.opacity}
-          />
-        ))}
+  const maskId=`${id}-mask`;
+  const gaze=frame.eyes.map(eye=>eye.matrix.slice(7,-1).split(/[,\s]+/).map(Number));
+  const average=(axis:number)=>gaze.length?gaze.reduce((sum,m)=>sum+(m[axis]??0),0)/gaze.length:0;
+  const x=time===0?0:Math.max(-2,Math.min(2,average(4)*.035));
+  const y=time===0?0:Math.max(-1.5,Math.min(1.5,average(5)*.025));
+  const sleepy=animation==='sleep',thinking=animation==='thinking',wink=animation==='wink';
+  const wide=animation==='wide'||animation==='notify'||animation==='alert';
+  const phase=time%4.5;
+  const blink=phase>4.25?1-Math.sin((phase-4.25)/.25*Math.PI):1;
+  const eye=(cx:number,cy:number,closed:boolean)=>{
+    if(closed)return `M${cx-3} ${cy}Q${cx} ${cy+2} ${cx+3} ${cy-.5}`;
+    const rx=wide?3.5:3,ry=Math.max(.3,(wide?3.8:3)*blink);
+    return `M${cx-rx} ${cy}a${rx} ${ry} 0 1 0 ${rx*2} 0a${rx} ${ry} 0 1 0 ${-rx*2} 0`;
+  };
+  const tilt=sleepy?-3:Math.sin(time*(thinking?2.8:1.3))*(thinking?1.8:.7);
+  const leafTilt=sleepy?-6:Math.sin(time*(thinking?3:1.7))*(thinking?5:2);
+  const mouth=animation==='alert'?'M43 57a2.5 3 0 1 0 5 0a2.5 3 0 1 0 -5 0'
+    :thinking?'M42 57Q46 58 49 56':sprigBrand.smile;
+  return <svg width={size} height={size} viewBox="0 0 88 88" aria-hidden="true" data-mascot-frame="true" data-character="sprig-seedling">
+    <defs><mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="88" height="88">
+      <path d={sprigBrand.body} fill="white"/>
+      {[0,1].map(index=>{
+        const closed=sleepy||(wink&&index===1);
+        return <path key={index} data-sprig-eye={index?'right':'left'} d={eye(index?52.5:35.5,index?46.5:48,closed)} transform={`translate(${x} ${y})`} fill={closed?'none':'black'} stroke={closed?'black':'none'} strokeWidth="2.2" strokeLinecap="round"/>;
+      })}
+      <path d={mouth} transform={`translate(${x*.6} ${y*.6})`} fill="none" stroke="black" strokeWidth="2.8" strokeLinecap="round"/>
+    </mask></defs>
+    <g transform={`rotate(${tilt} 44 55)`}>
+      <g data-sprig-leaves="true" transform={`rotate(${leafTilt} 44 34)`} fill={color}>
+        {sprigBrand.leaves.map(d=><path key={d} d={d}/>)}
+        <path d={sprigBrand.stem} fill="none" stroke={color} strokeWidth="3.2" strokeLinecap="round"/>
       </g>
-      {frame.dotsBehind && dots}
-      <g opacity={frame.bodyAlpha}>
-        <path d={frame.bodyPath} fill={background} />
-        <g mask={`url(#${maskId})`}>
-          <rect x={-VB} y={-VB} width={2 * VB} height={2 * VB} fill={color} />
-        </g>
-      </g>
-      {!frame.dotsBehind && dots}
-      {frame.notif && (
-        <circle
-          cx={frame.notif.x}
-          cy={frame.notif.y}
-          r={frame.notif.r}
-          fill={monochrome ? color : NOTIF_BLUE}
-        />
-      )}
-      <g fill="none" strokeLinecap="round">
-        {frame.arcs.map((a) => (
-          <path
-            key={a.id}
-            d={a.front}
-            stroke={`url(#${id}-${a.id})`}
-            strokeWidth={a.width}
-            opacity={a.opacity}
-          />
-        ))}
-      </g>
-    </svg>
-  );
+      <path d={sprigBrand.body} fill={background}/>
+      <path d={sprigBrand.body} fill={color} mask={`url(#${maskId})`}/>
+    </g>
+  </svg>;
 }
 export function Mascot({
   state = "idle",
   size = 72,
   shape = "galet",
-  color = "encre",
-  background = "#ffffff",
+  color = sprigBrand.foreground,
+  background = sprigBrand.background,
   playing = true,
   frozenAt,
   onClick,
@@ -199,11 +107,12 @@ export function Mascot({
 }: MascotProps) {
   const pose = animation ?? mascotStates[state];
   const face = expression ? EXPRESSION_BY_ID.get(expression) ?? null : null;
-  const id = `bloub-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const id = `sprig-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const host = useRef<HTMLSpanElement>(null);
-  const [frame, setFrame] = useState(() =>
-    new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? 0),
-  );
+  const [sample, setSample] = useState(() => ({
+    frame:new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? 0),
+    time:frozenAt ?? 0,
+  }));
   const engine = useRef<BotEngine | null>(null);
   const clock = useRef(0);
   const oldShape = useRef(shape);
@@ -229,9 +138,10 @@ export function Mascot({
       raf = 0;
       const frozen = frozenAt !== undefined || media.matches || !playing;
       if (frozen) {
-        setFrame(
-          new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? POSES[pose]),
-        );
+        setSample({
+          frame:new BotEngine(R, pose, SHAPE_BY_ID.get(shape)?.radii ?? null, face).sample(frozenAt ?? POSES[pose]),
+          time:frozenAt ?? POSES[pose],
+        });
         return;
       }
       if (!visible || document.hidden) {
@@ -240,7 +150,7 @@ export function Mascot({
       }
       clock.current += last === null ? 0 : Math.min((now - last) / 1000, 0.05);
       last = now;
-      setFrame(engine.current!.sample(clock.current));
+      setSample({frame:engine.current!.sample(clock.current),time:clock.current});
       raf = requestAnimationFrame(tick);
     };
     const resume = () => {
@@ -281,7 +191,9 @@ export function Mascot({
   }, [pose, face, shape, playing, frozenAt, followPointer]);
   const image = (
     <MascotFrame
-      frame={frame}
+      frame={sample.frame}
+      time={sample.time}
+      animation={pose}
       id={id}
       color={COLOR_BY_ID.get(color)?.hex ?? color}
       background={background}
@@ -293,7 +205,8 @@ export function Mascot({
     <span
       className="cv-mascot"
       ref={host}
-      data-shape={shape}
+      data-shape="seedling"
+      data-motion-profile={shape}
       data-state={state}
       data-animation={pose}
       data-expression={expression}
@@ -308,7 +221,7 @@ export function Mascot({
           {image}
         </button>
       ) : (
-        <span role="img" aria-label={label ?? `Canvas assistant: ${state}`}>
+        <span role="img" aria-label={label ?? `Sprig assistant: ${state}`}>
           {image}
         </span>
       )}

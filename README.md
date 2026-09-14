@@ -1,6 +1,6 @@
 # Sprig
 
-A quiet canvas for explaining ideas. Speak naturally; the assistant builds and revises a sketch, communicating through a pebble mascot and short status bubbles. It never speaks back.
+A quiet canvas for explaining ideas. Speak naturally; the assistant builds and revises a sketch, communicating through a seedling mascot and short status bubbles. It never speaks back.
 
 Sprig is experimental. This repository contains the portable React components, standalone editor, local listening server, examples, tests and project notes.
 
