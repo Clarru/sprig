@@ -128,7 +128,10 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "This drawing could not be saved.");
-    } finally { fromNative.current = false; }
+    } finally {
+      fromNative.current = false;
+      if (!pointer.current && !textEditing.current) store.setEditing(false);
+    }
   }, [store]);
   const history = useCallback((redo = false) => {
     flush();
@@ -173,6 +176,9 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
       if (canonical(selected) !== canonical(previousSelection) && !pointer.current && !textEditing.current && canonical([...selected].sort()) !== canonical(currentSelection.sort()))
         api.updateScene({appState: {selectedElementIds: Object.fromEntries(selected.map(id => [id, true]))}, captureUpdate: CaptureUpdateAction.NEVER});
       previousSelection = selected;
+      // Speech context can arrive mid-gesture without a transaction. Never
+      // reconcile an older saved drawing over a native drag or pending commit.
+      if (pointer.current || textEditing.current || draft.current) return;
       if (board === previous) return;
       previous = board;
       if (fromNative.current) return;
@@ -212,9 +218,9 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
       expected.current = fingerprint(elements);
     }
     if (state.activeTool.type !== tool) setTool(state.activeTool.type);
-    textEditing.current = !!state.editingTextElement;
+    textEditing.current = !!state.editingTextElement || !!state.editingFrame;
     const editing = pointer.current || textEditing.current;
-    if (store.getSnapshot().editing !== editing) store.setEditing(editing);
+    if (editing && !store.getSnapshot().editing) store.setEditing(true);
     const selected = [...new Set(Object.keys(state.selectedElementIds).filter(id => state.selectedElementIds[id]).map(id => {
       const element = elements.find(e => e.id === id);
       return element?.type === "text" && element.containerId ? element.containerId : id;
@@ -222,8 +228,12 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
     draftSelection.current = selected;
     const currentBoard = store.getSnapshot().board;
     if (selected.every(id => currentBoard.blocks.some(b => b.id === id) || currentBoard.edges.some(e => e.id === id))) store.select(selected);
-    if (!editable || fingerprint(elements) === expected.current) return;
+    if (!editable || fingerprint(elements) === expected.current) {
+      if (!editing && !draft.current && store.getSnapshot().editing) store.setEditing(false);
+      return;
+    }
     draft.current = {elements, files};
+    if (!store.getSnapshot().editing) store.setEditing(true);
     clearTimeout(timer.current);
     if (!editing) timer.current = setTimeout(flush, 100);
   };

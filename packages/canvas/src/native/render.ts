@@ -73,13 +73,19 @@ export function renderScene(board: Board): {elements: DrawingElement[]; files: B
     const b = board.blocks.find(b => b.id === e.id), edge = board.edges.find(edge => edge.id === e.id);
     const metadata = binding(before);
     let changed = !metadata.block && !metadata.edge;
-    if (b && metadata.block) changed = !equal({...b, image: undefined}, metadata.block);
+    if (b && metadata.block) {
+      const at = absolutePosition(b, board);
+      // Child metadata stores relative positions; a moved parent still changes
+      // the native absolute geometry of every child, even if metadata is equal.
+      changed = !equal({...b, image: undefined}, metadata.block) || before.x !== at.x || before.y !== at.y;
+    }
     if (edge && metadata.edge) changed = !equal(edge, metadata.edge) || metadata.endpoints !== endpointSignature(board, edge);
     if (e.type === "text" && e.containerId) {
       const owner = board.blocks.find(b => b.id === e.containerId), relation = board.edges.find(edge => edge.id === e.containerId);
       const oldOwner = old.get(e.containerId);
       const oldMetadata = oldOwner && binding(oldOwner);
-      changed = owner ? !equal({...owner, image: undefined}, oldMetadata?.block) : !equal(relation, oldMetadata?.edge) || (relation ? oldMetadata?.endpoints !== endpointSignature(board, relation) : false);
+      const ownerAt = owner && absolutePosition(owner, board);
+      changed = owner ? !equal({...owner, image: undefined}, oldMetadata?.block) || oldOwner?.x !== ownerAt?.x || oldOwner?.y !== ownerAt?.y : !equal(relation, oldMetadata?.edge) || (relation ? oldMetadata?.endpoints !== endpointSignature(board, relation) : false);
     }
     if (!changed) {
       const bindings = [...(e.boundElements ?? []), ...(before.boundElements ?? [])]
