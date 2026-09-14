@@ -49,7 +49,9 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  await expect(control).toHaveAttribute('data-phase','listening');
  socket!.send(JSON.stringify({type:'status',state:'working',message:'Following your explanation…'}));
  await expect(control.locator('.cv-mascot')).toHaveAttribute('data-animation','thinking');
- await expect(control.locator('.cv-mascot svg > circle')).toHaveCount(2);
+ await expect(control.locator('[data-character="sprig-seedling"]')).toHaveCount(1);
+ await expect(control.locator('[data-sprig-leaves] path')).toHaveCount(3);
+ await expect(control.locator('[data-sprig-eye]')).toHaveCount(2);
  await page.screenshot({path:testInfo.outputPath('companion-thinking.png')});
  const send=(id:string,operations:unknown[],revision=board!.revision)=>socket!.send(JSON.stringify({type:'transaction',transaction:{id,baseRevision:revision,source:'ai',operations},message:'Following the explanation.',elapsedMs:200}));
  send('welcome',[{type:'add',block:makeBlock('step','Welcome',{x:200,y:200},{id:'welcome',detail:'The entry screen for new runners.'})}]);
@@ -111,11 +113,13 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  await page.screenshot({path:testInfo.outputPath('companion-mobile-details.png')});
 });
 
-test('pebble gaze follows nearby pointers and freezes cleanly with reduced motion',async({page})=>{
+test('seedling gaze follows nearby pointers and freezes cleanly with reduced motion',async({page})=>{
  await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('/');
  const mascot=page.locator('.cv-listening-control .cv-mascot');await mascot.waitFor();
+ await expect(mascot.locator('[data-character="sprig-seedling"]')).toHaveCount(1);
+ await expect(mascot.locator('[data-sprig-leaves] path')).toHaveCount(3);
  const rect=(await mascot.boundingBox())!;
- const eyes=mascot.locator('mask path').nth(1);
+ const eyes=mascot.locator('[data-sprig-eye=left]');
  await page.mouse.move(rect.x-80,rect.y+20);await page.waitForTimeout(350);
  const left=await eyes.getAttribute('transform');
  await page.mouse.move(rect.x+rect.width+100,rect.y+20);await page.waitForTimeout(350);

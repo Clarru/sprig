@@ -255,7 +255,7 @@
 
 /* One quiet, persistent companion owns listening and its feedback. */
 .cv-listening-control { position:relative; width:min(380px,100%); margin:auto; color:#fff; font:13px/1.4 var(--cv-font,Arial,sans-serif); }
-.cv-listening-pill { overflow:hidden; display:flex; align-items:center; border-radius:28px; background:#202020; box-shadow:0 4px 16px #00000012; padding-right:10px; }
+.cv-listening-pill { overflow:hidden; display:flex; align-items:center; border-radius:28px; background:var(--cv-companion-background,#101013); box-shadow:0 4px 16px #00000012; padding-right:10px; }
 .cv-listening-main { display:flex; align-items:center; gap:2px; flex:1; min-width:0; padding:0 7px 0 0; border:0; border-radius:28px; background:transparent; color:inherit; text-align:left; cursor:pointer; }
 .cv-listening-character { flex:none; display:flex; transform:translateY(calc(var(--cv-voice,0) * -2px)) scale(calc(1 + var(--cv-voice,0) * .07)); transition:transform 140ms ease-out; }
 .cv-listening-copy { flex:1; min-width:0; padding:13px 0; }
