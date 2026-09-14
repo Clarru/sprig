@@ -1,6 +1,6 @@
 # Sprig
 
-An experimental canvas for thinking out loud. Built inside Clau Marin’s portfolio; designed to be extracted as an independent open-source project.
+An experimental canvas for thinking out loud. Originally built inside Clau Marin’s portfolio; this repository is now the independent source of truth. The portfolio consumes pinned package releases.
 
 ## Run
 
@@ -11,7 +11,7 @@ npm install
 npm run dev:canvas
 ```
 
-Open http://127.0.0.1:5191. The app opens on your white board. Open the + menu and choose Interactive examples to try it without a key. For live mode, copy `apps/canvas/.env.example` to `apps/canvas/.env`, add your own `OPENAI_API_KEY`, restart and click **Start listening**. Do not put credentials in a `VITE_` or `NEXT_PUBLIC_` variable. The port binds only to 127.0.0.1; use that hostname, not localhost. This version is a local application, not a multi-user server.
+Open http://127.0.0.1:5191. The app opens on your white board. Open the tools menu and choose Interactive examples to try it without a key. For live mode, copy `apps/canvas/.env.example` to `apps/canvas/.env`, add your own `OPENAI_API_KEY`, restart and click **Start listening**. Do not put credentials in a `VITE_` or `NEXT_PUBLIC_` variable. The port binds only to 127.0.0.1; use that hostname, not localhost. This version is a local application, not a multi-user server.
 
 The public portfolio provides `/sprig` (case study), `/playground` (index), and `/playground/sprig` (interactive scenarios). These routes contain no AI service endpoints. There is no funded trial or hosted bring-your-own-key form.
 
@@ -20,14 +20,13 @@ The public portfolio provides `/sprig` (case study), `/playground` (index), and 
 - `npm run build:canvas`: type-check the package and build the standalone app.
 - `npm run test:canvas`: board, scenario, live-session, and upstream Bloub tests; no API costs.
 - `npm run test:canvas:browser`: browser acceptance tests (build the apps first). Uses installed Chrome.
-- `npm run build && npm run test:case-studies:contracts`: portfolio verification.
-- `npm run export:canvas -- /absolute/path/to/new-directory`: create a standalone workspace without portfolio content or secrets.
+- Portfolio verification runs in the separate portfolio checkout, not this workspace.
 
 ## Experience
 
 Public examples use authored clickable messages, including corrections and alternatives. A persistent label identifies the example. Every choice uses the same transaction contract as the live interpreter. Back and Restart reconstruct the authored board; Explore creates an editable copy and returning restores the authored state.
 
-The first release supports steps, decisions, notes, groups, images, connections, resizing, selection, undo/redo, JSON export/import, and browser persistence. Select blocks for properties; Shift-click to select several; Group wraps selected blocks; selecting a group and deleting it leaves its children at their world positions. Drag between connector handles to create an edge. Select an edge to edit its label. Keyboard: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Delete. Touch users can use the toolbar and properties panel.
+The first release supports steps, decisions, notes, groups, images, connections, resizing, selection, undo/redo, JSON export/import, and browser persistence. Select blocks for properties; Shift-click to select several; Group wraps selected blocks; selecting a group and deleting it leaves its children at their world positions. Use the arrow tool to connect shapes. Double-click a shape or connection to edit its text. Keyboard: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Delete. Touch users can use the toolbar and properties panel.
 
 New/import replace the current workspace and can be undone. Export boards you want to retain separately. Images are embedded PNG/JPEG/WebP files under 2 MB. Imports are limited to 12 MB, 300 blocks, and 600 edges. Browser storage may fill before those limits; errors explain how to export. These are document limits, not scale or performance claims.
 
@@ -48,13 +47,11 @@ The package must never import portfolio routes, aliases, private content, or Nex
 
 ## Scenarios
 
-`packages/canvas/src/scenarios.ts` is the source of truth. Each scenario has an initial board, a start step, and choices with text, status, operations, and a next-step ID. Use an explicit undo choice for a reversible detour. Use the + menu to select scenarios, go Back, Restart, or Explore an editable copy. Each path is tested by replaying every prefix. Keep IDs stable across branches that rejoin. Feature, funnel, and onboarding each have seven turns and four possible full paths.
+`packages/canvas/src/scenarios.ts` is the source of truth. Each scenario has an initial board, a start step, and choices with text, status, operations, and a next-step ID. Use an explicit undo choice for a reversible detour. Use the tools menu to select scenarios, go Back, Restart, or Explore an editable copy. The Sprig story adds the complete founder presentation with seven messages. Set `initiallyOpen={false}` for a blank fullscreen opening, and `compact` for an embedded board that preserves page scrolling. Each path is tested by replaying every prefix. Keep IDs stable across branches that rejoin. Feature, funnel, and onboarding each have seven turns and four possible full paths.
 
-## Open-source extraction
+## Source of truth and releases
 
-The export contains both workspace packages, their tests, documents, and licenses. It intentionally excludes the portfolio and local credentials. Install and build the export independently before publishing. Original code is MIT; Bloub remains attributed under its upstream MIT license and its provenance notice is preserved. No public project name or repository URL is invented.
-
-After publishing, the standalone repo becomes the source of truth. The portfolio should depend on an exact released `@clarru/sprig` version; remove its workspace copy in that migration. Do not continue maintaining duplicate editors.
+The standalone repository is [Clarru/sprig](https://github.com/Clarru/sprig). The portfolio consumes an exact GitHub release tarball, with integrity pinned in its lockfile. Do not maintain a second editor copy. Original code is MIT; Bloub retains its license and upstream provenance. Server environment files and credentials never belong in a release.
 
 The rebuilt native editing foundation and its verification status are in [FOUNDATION.md](FOUNDATION.md). Local agents can use the [agent API](AGENT-API.md) or optional debug script console without a model call.
 

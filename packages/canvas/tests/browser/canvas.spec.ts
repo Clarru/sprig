@@ -4,7 +4,7 @@ async function menuClick(page: Page, name: string) {
   const menu = page.getByRole("button", { name: "Open canvas tools" });
   if ((await menu.getAttribute("aria-expanded")) === "false")
     await menu.click();
-  await page.getByRole("button", { name, exact: true }).click();
+  await page.locator('.cv-menu-section').getByRole("button", { name, exact: true }).click();
 }
 async function myBoard(page: Page) {
   await expect(page.getByRole("button", {name:"Start listening",exact:true})).toBeVisible();
@@ -55,6 +55,9 @@ test("all public branches, Back, Restart, and editable copies", async ({
   }
   await menuClick(page, "Back one message");
   await expect(page.locator(".cv-message-choices button")).toHaveCount(1);
+  await expect(page.locator('[data-board-object]').filter({hasText:'Three automatic retries?'})).toHaveCount(1);
+  await page.locator('.cv-message-choices button').click();
+  await expect(page.locator('[data-board-object]').filter({hasText:'Three automatic retries?'})).toHaveCount(0);
   await menuClick(page, "Explore this board");
   await page.getByRole("button", {name:"Add note", exact:true}).click();
   await expect(page.locator("[data-board-object]").filter({hasText:"New note"})).toHaveCount(1);
@@ -62,6 +65,8 @@ test("all public branches, Back, Restart, and editable copies", async ({
   await expect(
     page.locator("[data-board-object]").filter({ hasText: "New note" }),
   ).toHaveCount(0);
+  await menuClick(page, "Explore this board");
+  await expect(page.locator("[data-board-object]").filter({hasText:"New note"})).toHaveCount(1);
   expect(apiRequests).toEqual([]);
   expect(errors).toEqual([]);
 });

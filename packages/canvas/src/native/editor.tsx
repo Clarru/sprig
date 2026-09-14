@@ -31,7 +31,7 @@ const tools = [
   ["arrow", "Arrow", "A", ArrowRightIcon], ["freedraw", "Draw", "P", PencilSimpleIcon],
   ["text", "Text", "T", TextTIcon], ["hand", "Hand", "H", HandIcon],
 ] as const;
-export default function NativeEditor({store: provided, initialBoard, editable = true, storageKey, footer, menu, onReset, fitRequest = 0, className = ""}: CanvasEditorProps) {
+export default function NativeEditor({store: provided, initialBoard, editable = true, preservePageScroll = false, storageKey, footer, menu, onReset, fitRequest = 0, className = ""}: CanvasEditorProps) {
   const [own] = useState(() => new BoardStore(initialBoard));
   const store = provided ?? own;
   const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
@@ -56,7 +56,7 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const cameraTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const cameraFrame = useRef<number | undefined>(undefined);
-  const cameraTarget = useRef<string | null>(null);
+  const cameraTarget = useRef<{id:string;overview:boolean} | null>(null);
   const queuedAt = useRef<number | null>(null);
   const lastCameraMove = useRef(0);
   const manualCameraUntil = useRef(0);
@@ -66,27 +66,43 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
     cameraTarget.current = null; queuedAt.current = null;
     manualCameraUntil.current = Date.now() + 1000;
   }, []);
-  const followNewBox = useCallback((id: string) => {
-    cameraTarget.current = id;
+  const followNewBox = useCallback((id: string, overview = false) => {
+    cameraTarget.current = {id,overview};
     queuedAt.current ??= Date.now();
     clearTimeout(cameraTimer.current);
     const due = Math.max(lastCameraMove.current + 1200, manualCameraUntil.current, Math.min(Date.now() + 350, queuedAt.current + 900));
     cameraTimer.current = setTimeout(() => {
-      const targetId = cameraTarget.current;
+      const request = cameraTarget.current;
       cameraTarget.current = null; queuedAt.current = null;
-      if (!api || !targetId || pointer.current || textEditing.current || store.getSnapshot().editing) return;
-      const target = api.getSceneElements().find(e => e.id === targetId);
-      if (!target) return;
+      if (!api || !request || pointer.current || textEditing.current || store.getSnapshot().editing) return;
+      const board=store.getSnapshot().board;
+      const block=board.blocks.find(b=>b.id===request.id);
+      const active=board.story?.activeTopic ? board.story.topics[board.story.activeTopic] : undefined;
+      const presentation=active?.view==='presentation';
+      const targetId=presentation&&block?.parentId?block.parentId:request.id;
       const state = api.getAppState(), zoom = state.zoom.value;
-      const destination = {x: state.width / (2 * zoom) - target.x - target.width / 2, y: state.height / (2 * zoom) - target.y - target.height / 2};
-      if (Math.hypot(destination.x - state.scrollX, destination.y - state.scrollY) * zoom < 24) return;
+      const footerRects=[...root.current?.querySelectorAll('.cv-editor-footer,[data-canvas-overlay]')??[]].map(e=>e.getBoundingClientRect()).filter(rect=>rect.height>0);
+      const footer=footerRects.sort((a,b)=>a.top-b.top)[0];
+      const safeTop=presentation?120:80;
+      const safeBottom=Math.min(state.height-32,footer?footer.top-(root.current?.getBoundingClientRect().top??0)-24:state.height-32);
+      const safeHeight=Math.max(160,safeBottom-safeTop);
+      const overviewItems=api.getSceneElements().filter(e=>!e.isDeleted&&board.blocks.some(b=>b.id===e.id&&!b.parentId&&(!presentation||b.storyTopic===active?.id)));
+      const bounds=(items:readonly DrawingElement[])=>({left:Math.min(...items.map(e=>e.x)),top:Math.min(...items.map(e=>e.y))-(presentation?32:0),right:Math.max(...items.map(e=>e.x+e.width)),bottom:Math.max(...items.map(e=>e.y+e.height))});
+      let candidates=request.overview?overviewItems:api.getSceneElements().filter(e=>e.id===targetId);
+      if(presentation&&overviewItems.length){const all=bounds(overviewItems);if(Math.min((state.width-96)/(all.right-all.left),safeHeight/(all.bottom-all.top))>=.78)candidates=overviewItems;}
+      if (!candidates.length) return;
+      const {left,top,right,bottom}=bounds(candidates);
+      const targetZoom=presentation?Math.min(1,(state.width-96)/Math.max(1,right-left),safeHeight/Math.max(1,bottom-top)):zoom;
+      const centerY=safeTop+safeHeight/2;
+      const destination = {x: state.width / (2 * targetZoom) - (left+right)/2, y: centerY / targetZoom - (top+bottom)/2};
+      if (Math.hypot(destination.x - state.scrollX, destination.y - state.scrollY) * zoom < 24 && Math.abs(zoom-targetZoom)<.01) return;
       lastCameraMove.current = Date.now();
       const started = performance.now();
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const move = (now: number) => {
         const progress = reduced ? 1 : Math.min(1, (now - started) / 620);
         const ease = 1 - Math.pow(1 - progress, 3);
-        api.updateScene({appState: {scrollX: state.scrollX + (destination.x - state.scrollX) * ease, scrollY: state.scrollY + (destination.y - state.scrollY) * ease}, captureUpdate: CaptureUpdateAction.NEVER});
+        api.updateScene({appState: {scrollX: state.scrollX + (destination.x - state.scrollX) * ease, scrollY: state.scrollY + (destination.y - state.scrollY) * ease, zoom:{value:(zoom+(targetZoom-zoom)*ease) as AppState["zoom"]["value"]}}, captureUpdate: CaptureUpdateAction.NEVER});
         if (progress < 1) cameraFrame.current = requestAnimationFrame(move);
         else cameraFrame.current = undefined;
       };
@@ -97,7 +113,7 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
   useEffect(() => () => interruptFollow(), [interruptFollow]);
   useEffect(()=>{const frame=requestAnimationFrame(()=>setSurfaceTarget(root.current?.querySelector<HTMLElement>(".excalidraw")??null));return ()=>cancelAnimationFrame(frame);},[api]);
   const focus = () => root.current?.querySelector<HTMLElement>(".excalidraw")?.focus({preventScroll: true});
-  const fit = useCallback(() => api?.scrollToContent(undefined, {fitToViewport: true, viewportZoomFactor: hasFooter ? .82 : .9, animate: false, maxZoom: 1}), [api, hasFooter]);
+  const fit = useCallback(() => {interruptFollow();api?.scrollToContent(undefined, {fitToViewport: true, viewportZoomFactor: hasFooter ? .82 : .9, animate: false, maxZoom: 1});}, [api, hasFooter, interruptFollow]);
   const flush = useCallback(() => {
     clearTimeout(timer.current);
     const pending = draft.current;
@@ -144,7 +160,12 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
     const sync = () => {
       const board = store.getSnapshot().board;
       const selected = store.getSnapshot().selection;
-      const added = previous ? board.blocks.filter(b => ['step','screen','decision','note'].includes(b.kind) && !previous!.blocks.some(old => old.id === b.id)) : [];
+      const activeTopic=board.story?.activeTopic ? board.story.topics[board.story.activeTopic] : undefined;
+      const presentation=activeTopic?.view==='presentation';
+      const focusChanged=presentation && previous?.story?.focusConcept!==board.story?.focusConcept;
+      const focusBlock=focusChanged?board.blocks.find(b=>b.storyTopic===activeTopic?.id && b.storyConcept===board.story?.focusConcept):undefined;
+      const overview=focusChanged && !!previous?.story?.focusConcept && !board.story?.focusConcept;
+      const added = previous ? board.blocks.filter(b => (presentation || ['step','screen','decision','note'].includes(b.kind)) && !previous!.blocks.some(old => old.id === b.id)) : [];
       const initialScene = previous === null;
       if (!board.blocks.length) interruptFollow();
       if (fromNative.current) {previous = board; previousSelection = selected; if (added.length) followNewBox(added[added.length - 1].id); return;}
@@ -165,8 +186,10 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
       expected.current = fingerprint(scene.elements);
       awaitingScene.current = scene.elements.filter(e => !e.isDeleted).map(e => e.id).sort();
       api.addFiles(Object.values(scene.files));
-      api.updateScene({elements: scene.elements, captureUpdate: CaptureUpdateAction.NEVER});
+      api.updateScene({elements: scene.elements, appState:{frameRendering:{enabled:true,name:true,outline:!presentation,clip:true}}, captureUpdate: CaptureUpdateAction.NEVER});
       if (initialScene) requestAnimationFrame(() => api.scrollToContent(undefined, {fitToViewport: true, viewportZoomFactor: hasFooter ? .82 : .9, animate: false, maxZoom: 1}));
+      else if(overview) followNewBox('',true);
+      else if(focusBlock) followNewBox(focusBlock.id);
       else if (added.length) followNewBox(added[added.length - 1].id);
     };
     sync();
@@ -215,13 +238,13 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
     store.commit([{type: "add", block: makeBlock("note", "New note", availablePosition(board))}]);
     focus();
   };
-  return <div ref={root} className={`cv-editor cv-native-editor ${className}`} role="region" aria-label="Canvas board"
-    onPointerDownCapture={interruptFollow}
-    onWheelCapture={event => {interruptFollow(); if (!editable && !event.ctrlKey && !event.metaKey) event.stopPropagation();}}
+  return <div ref={root} className={`cv-editor cv-native-editor ${className}`} role="region" aria-label="Canvas board" data-presentation={snapshot.board.story?.activeTopic && snapshot.board.story.topics[snapshot.board.story.activeTopic]?.view === "presentation" || undefined}
+    onPointerDownCapture={event=>{if((event.target as HTMLElement).closest('.cv-native-stage'))interruptFollow();}}
+    onWheelCapture={event => {if((event.target as HTMLElement).closest('.cv-native-stage'))interruptFollow(); if ((!editable || preservePageScroll) && !event.ctrlKey && !event.metaKey) event.stopPropagation();}}
     onKeyDownCapture={event => {
-      interruptFollow();
       const target = event.target as HTMLElement;
-      if (target.matches("input,textarea,select,[contenteditable=true]")) return;
+      if (target.matches("input,textarea,select,[contenteditable=true]") || target.closest("[data-canvas-overlay],.cv-editor-footer,.cv-native-topbar,.cv-native-menu")) return;
+      interruptFollow();
       if (!pointer.current && !textEditing.current) flush();
       if (editable && event.key === "9" && !event.metaKey && !event.ctrlKey && !event.altKey) {
         event.preventDefault(); event.stopPropagation(); imageInput.current?.click(); return;
@@ -254,6 +277,7 @@ export default function NativeEditor({store: provided, initialBoard, editable = 
         })}
       </div>
     </div>
+    {snapshot.board.story?.activeTopic && snapshot.board.story.topics[snapshot.board.story.activeTopic]?.view==='presentation' && <h1 className="cv-presentation-heading">{snapshot.board.story.topics[snapshot.board.story.activeTopic].label}</h1>}
     {api && surfaceTarget && <NativeSurfaces api={api} store={store} target={surfaceTarget}/>}
     <div className="cv-board-outline" data-board-revision={snapshot.board.revision}>
       <ol aria-label="Board objects">{snapshot.board.blocks.map(b => <li key={b.id} data-board-object={b.id} data-kind={b.kind}>

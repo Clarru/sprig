@@ -35,7 +35,7 @@ export function renderScene(board: Board): {elements: DrawingElement[]; files: B
       angle: b.angle ?? 0, locked: b.locked ?? false, roundness: {type: 3 as const},
     };
     const label = {text: cardText(b), fontFamily: oldLabel?.type === "text" ? oldLabel.fontFamily : 2,
-      fontSize: oldLabel?.type === "text" ? oldLabel.fontSize : 16, strokeColor: "#282d29"};
+      fontSize: original && binding(original).block?.fontSize !== b.fontSize ? b.fontSize ?? 16 : oldLabel?.type === "text" ? oldLabel.fontSize : b.fontSize ?? 16, strokeColor: "#282d29"};
     if (b.kind === "group") skeleton.push({...base, type: "frame", name: b.label, children: [...board.blocks.filter(child => child.parentId === b.id).map(child => child.id), ...(anchors.has(b.id)?[anchors.get(b.id)!]:[])]});
     else if (b.kind === "image") {
       const fileId = original?.type === "image" && original.fileId ? original.fileId : `${b.id}_file`;

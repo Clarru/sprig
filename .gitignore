@@ -5,3 +5,8 @@ dist/
 !.env.example
 test-results/
 playwright-report/
+
+# Rehearsal recordings remain local; JSON and selected frames document results.
+docs/canvas/evals/*/video/
+
+.artifacts/

@@ -99,7 +99,7 @@ export function openAIProvider(key: string, model = "gpt-5.6-luna"): Provider {
                     model: "gpt-live-transcribe",
                     delay: "low",
                     prompt:
-                      "A designer discussing product features, website funnels, frontend and backend onboarding.",
+                      "A designer presenting ideas, product features, website funnels, and frontend/backend onboarding. Vocabulary: Sprig (the canvas app), OpenAI, GPT Transcribe, stakeholder, diagram.",
                     languages: ["en", "ro"],
                   },
                   turn_detection: null,

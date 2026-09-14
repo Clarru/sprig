@@ -6,6 +6,7 @@ const id = z
   .regex(/^[a-zA-Z0-9_-]+$/);
 const ref = z.string().min(1).max(120);
 export const ViewSchema = z.enum([
+  "presentation",
   "screen_flow",
   "sequence",
   "page_outline",
@@ -17,6 +18,7 @@ export const ViewSchema = z.enum([
 export type StoryView = z.infer<typeof ViewSchema>;
 export const RoleSchema = z.enum([
   "context",
+  "claim",
   "screen",
   "step",
   "decision",

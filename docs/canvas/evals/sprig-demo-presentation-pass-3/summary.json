@@ -1,0 +1,83 @@
+{
+  "date": "2026-09-13T21:31:21.881Z",
+  "model": "gpt-5.6-luna",
+  "failures": [],
+  "historicalHarnessPassed": true,
+  "interpretation": "See PRESENTATION-VALIDATION.md; early harness success recorded completion, not presentation quality.",
+  "firstAcknowledgedEditMs": null,
+  "totalMs": 2873,
+  "transcript": "Hello everyone, so I had a thought in mind that whenever I wanna do a stakeholder presentation of an idea, a flow, I can't write as fast as I'm thinking.\nAnd normally we'd have to wait or my drawing would be too ugly to revise or to share with others after it.\nSo I thought that right now AI can work as fast and optimize for us that fast too, so we could visualize our thoughts, the same that we explain the flows.\nSo this is what I built.\nIt's a canvas first, listens to you with OpenAI API for GPT Transcribe, and it is something you can share your screen during a meeting while you're discussing and presenting your ideas,\nand then the app, the Sprig app, will right there visualize it.\nThank you.",
+  "blocks": [
+    {
+      "label": "Presentation motivation",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Proposed approach",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Sprig app",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Thinking outpaces writing",
+      "detail": "Ideas move faster than notes during presentations.",
+      "kind": "step"
+    },
+    {
+      "label": "Revision takes time",
+      "detail": "Presenters must wait before sharing a usable version.",
+      "kind": "note"
+    },
+    {
+      "label": "Ugly drawings hinder sharing",
+      "detail": "Rough drawings are difficult to revise or share.",
+      "kind": "note"
+    },
+    {
+      "label": "AI visualizes thoughts quickly",
+      "detail": "AI keeps pace with spoken explanations of flows.",
+      "kind": "step"
+    },
+    {
+      "label": "Faster flow sharing",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Canvas-first interface",
+      "detail": "The app visualizes spoken flows directly on a canvas.",
+      "kind": "step"
+    },
+    {
+      "label": "OpenAI transcription",
+      "detail": "Uses OpenAI API for GPT Transcribe.",
+      "kind": "note"
+    },
+    {
+      "label": "Meeting screen sharing",
+      "detail": "Share the canvas while discussing and presenting ideas.",
+      "kind": "note"
+    },
+    {
+      "label": "Live flow visualization",
+      "detail": "Sprig visualizes the explained flow in real time.",
+      "kind": "step"
+    }
+  ],
+  "metrics": [
+    {
+      "modelCompletions": 7,
+      "modelState": "complete",
+      "requestMs": 1378,
+      "inputTokens": 3385,
+      "outputTokens": 42,
+      "cachedInputTokens": 2243,
+      "firstUpdateMs": 0
+    }
+  ]
+}

@@ -205,3 +205,19 @@ it('buffers short unfinished audio fragments but still interprets longer ongoing
  expect(understand.mock.calls[1][0].newSpeech).toBe('Welcome');
  session.close();
 });
+
+it('sends speech additions separately and reviews a completed utterance only once',async()=>{
+ vi.useFakeTimers();
+ let input:Parameters<Provider['transcribe']>[0]|undefined;
+ const understand=vi.fn<NonNullable<Provider['understand']>>().mockResolvedValue(metrics);
+ const session=new LiveSession({board:emptyBoard(),selection:[],editing:false,canUndo:false},{understand,interpret:vi.fn(),transcribe:events=>{input=events;return {append:vi.fn(),close:vi.fn(),commit:vi.fn()};}},()=>{});
+ session.start();input!.ready();
+ input!.transcript('a','I cannot write as fast as I think',false);await vi.advanceTimersByTimeAsync(1300);
+ expect(understand.mock.calls[0][0]).toMatchObject({newSpeech:'I cannot write as fast as I think',reviewCompletedSpeech:false});
+ input!.transcript('a',' while I present.',false);await vi.advanceTimersByTimeAsync(1300);
+ expect(understand.mock.calls[1][0].newSpeech).toBe('while I present.');
+ input!.transcript('a','I cannot write as fast as I think while I present.',true);await vi.advanceTimersByTimeAsync(1300);
+ expect(understand.mock.calls[2][0]).toMatchObject({newSpeech:'',reviewCompletedSpeech:true,currentSpeech:'I cannot write as fast as I think while I present.'});
+ input!.transcript('a','I cannot write as fast as I think while I present.',true);await vi.advanceTimersByTimeAsync(5000);
+ expect(understand).toHaveBeenCalledTimes(3);session.close();
+});

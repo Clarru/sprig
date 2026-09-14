@@ -29,3 +29,8 @@ Include `packages/canvas`, `apps/canvas`, Sprig documentation/tests, MIT license
 The public demo and case study are deployed at https://www.clarru.com/playground/sprig and https://www.clarru.com/sprig. The standalone source of truth is https://github.com/Clarru/sprig. Versioned package tarballs are published through GitHub Releases; the portfolio consumes an exact release URL with lockfile integrity. The local checkout is now the sibling `../sprig`, with the ignored local server environment retained there.
 
 References: [Vercel project configuration](https://vercel.com/docs/project-configuration), [Vercel deployments](https://vercel.com/docs/deployments). Existing project settings above were read from the authenticated Vercel CLI.
+
+
+## Updating the extracted project
+
+Sprig is already extracted. Publish updates from this repository and attach the versioned npm pack tarball to a GitHub release. Update the portfolio dependency to that exact URL and refresh its lockfile. The portfolio Git integration deploys pushes automatically; do not also issue a duplicate Vercel CLI deployment. Verify the live routes after the deployment is ready.

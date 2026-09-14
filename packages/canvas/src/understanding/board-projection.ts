@@ -6,6 +6,7 @@ import {
   type Edge,
   type Operation,
 } from "../model";
+import { presentationLayout } from "./presentation-layout";
 import { type MeaningEvent, type StoryState } from "./story";
 import {
   planSketch,
@@ -23,7 +24,7 @@ function hash(text: string) {
   return (h >>> 0).toString(36);
 }
 const shapeKind = (item: SketchItem): Block["kind"] =>
-  item.form === "screen"
+  item.form === "claim" ? "step" : item.form === "section" ? "group" : item.form === "screen"
     ? "screen"
     : item.form === "lane"
       ? "group"
@@ -33,7 +34,7 @@ const shapeKind = (item: SketchItem): Block["kind"] =>
           ? "note"
           : "step";
 const size = (item: SketchItem) =>
-  item.form === "screen"
+  item.form === "section" ? {width:444,height:160} : item.form === "claim" ? {width:396,height:132} : item.form === "screen"
     ? { width: 180, height: 300 }
     : item.form === "lane"
       ? { width: 320, height: 480 }
@@ -55,7 +56,7 @@ export function projectStory(
   story: StoryState,
   events: MeaningEvent[] = [],
 ): StoryProjection {
-  const plan = planSketch(story);
+  const plan = planSketch(story,new Set(board.blocks.filter(b=>b.storyTopic&&b.storyConcept).map(b=>`${b.storyTopic}__${b.storyConcept}`)));
   const operations: Operation[] = [];
   let working = board;
   const bindings: Record<string, string> = {};
@@ -124,12 +125,12 @@ export function projectStory(
   for (const scene of plan.scenes) {
     const anchor = origin(scene);
     const ordered = [...scene.items].sort(
-      (a, b) => Number(b.form === "lane") - Number(a.form === "lane"),
+      (a, b) => Number(b.form === "lane" || b.form === "section") - Number(a.form === "lane" || a.form === "section"),
     );
     for (const item of ordered) {
       const existing = working.blocks.find((b) => b.id === bindings[item.id]);
       const parentItem = scene.items.find((i) => i.id === item.parent);
-      const parentIsGroup = parentItem && (parentItem.form === "lane" || working.blocks.find(b=>b.id===bindings[parentItem.id])?.kind === "group");
+      const parentIsGroup = parentItem && (parentItem.form === "lane" || parentItem.form === "section" || working.blocks.find(b=>b.id===bindings[parentItem.id])?.kind === "group");
       const previousOwnership = board.story?.topics[item.topicId]?.relations.some(r=>r.kind==="contains" && r.to===item.conceptId);
       const parentId = parentIsGroup ? bindings[parentItem.id] : item.sourceBlockId && existing && !previousOwnership ? existing.parentId : undefined;
       const related = scene.links.find(
@@ -202,6 +203,7 @@ export function projectStory(
         outcome: item.outcome ?? "neutral",
         storyTopic: item.topicId,
         storyConcept: item.conceptId,
+        ...(!item.sourceBlockId && item.form === "claim" ? {fontSize:existing?.fontSize ?? 16} : {}),
       };
       if (existing) {
         update(existing, attributes);
@@ -223,6 +225,7 @@ export function projectStory(
             id: bindings[item.id],
             parentId,
             autoPosition: position,
+            ...(scene.recipe === "presentation" ? {autoSize:size(item)} : {}),
             ...size(item),
             ...attributes,
           }),
@@ -247,7 +250,7 @@ export function projectStory(
     // Explicit reordering moves the affected sequence, while mere mentions/renames preserve hand placement.
     if (
       events.some((e) => e.type === "place" || e.type === "next" || (e.type === "relation" && e.kind === "next")) &&
-      story.activeTopic === scene.id
+      story.activeTopic === scene.id && scene.recipe !== "presentation"
     ) {
       const links = scene.links.filter((l) => l.kind === "next");
       const ids = new Set(links.flatMap((l) => [l.from, l.to]));
@@ -301,8 +304,9 @@ export function projectStory(
         offset = vertical ? position.x - source.position.x + target.width + 80 : position.y - source.position.y + target.height + 80;
       }
     }
+    if(scene.recipe === "presentation") for(const operation of presentationLayout(working,scene,bindings)) emit(operation);
     for (const frame of working.blocks.filter(
-      (b) => b.kind === "group" && b.storyTopic === scene.id,
+      (b) => b.kind === "group" && b.storyTopic === scene.id && scene.recipe !== "presentation",
     )) {
       const children = working.blocks.filter((b) => b.parentId === frame.id);
       if (children.length)

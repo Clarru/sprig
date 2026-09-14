@@ -1,0 +1,159 @@
+{
+  "date": "2026-09-14T08:15:58.295Z",
+  "model": "gpt-5.6-sol",
+  "reasoning": "low",
+  "failures": [
+    "Missing visible meaning: the thinking / drawing gap."
+  ],
+  "historicalHarnessPassed": false,
+  "interpretation": "See PRESENTATION-VALIDATION.md; early harness success recorded completion, not presentation quality.",
+  "firstAcknowledgedEditMs": 10874,
+  "totalMs": 49644,
+  "transcript": "Hi everyone, when I present an idea or a flow to stakeholders, I can't draw as fast as I think. Everyone has to wait while I catch up. And afterwards, the rough drawing is hard to revise or share. I thought AI could help the drawing keep up with the explanation. We could visualize our thoughts as we explain the flow. So I built Sprig.\nIt's a canvas first app. You explain an idea aloud and OpenAI's GPT transcribe turns your speech into text. Sprig uses that to update the diagram while you talk, share your screen in a meeting and everyone can follow the idea as it takes shape. It listens without talking back. That's Sprig. Thanks for watching.",
+  "blocks": [
+    {
+      "label": "Presentation challenge",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Live visualization",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Sprig",
+      "detail": "",
+      "kind": "group"
+    },
+    {
+      "label": "Can\u2019t draw fast enough",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Stakeholders wait",
+      "detail": "Everyone waits while the presenter catches up.",
+      "kind": "note"
+    },
+    {
+      "label": "Hard to revise",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Hard to share",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Drawing keeps up",
+      "detail": "AI visualizes thoughts as the flow is explained.",
+      "kind": "step"
+    },
+    {
+      "label": "Canvas-first app",
+      "detail": "",
+      "kind": "note"
+    },
+    {
+      "label": "Explain idea aloud",
+      "detail": "",
+      "kind": "step"
+    },
+    {
+      "label": "Transcribe speech",
+      "detail": "OpenAI\u2019s GPT transcribe turns speech into text.",
+      "kind": "step"
+    },
+    {
+      "label": "Update the diagram",
+      "detail": "Updates the diagram while you talk.",
+      "kind": "step"
+    },
+    {
+      "label": "Share live in meetings",
+      "detail": "Everyone follows the idea as it takes shape.",
+      "kind": "note"
+    },
+    {
+      "label": "Listens without interrupting",
+      "detail": "",
+      "kind": "note"
+    }
+  ],
+  "metrics": [
+    {
+      "modelCompletions": 1,
+      "modelState": "complete",
+      "requestMs": 3426,
+      "inputTokens": 2726,
+      "outputTokens": 27,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    },
+    {
+      "modelCompletions": 2,
+      "modelState": "complete",
+      "requestMs": 5033,
+      "inputTokens": 2753,
+      "outputTokens": 186,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 4593
+    },
+    {
+      "modelCompletions": 3,
+      "modelState": "complete",
+      "requestMs": 4243,
+      "inputTokens": 2910,
+      "outputTokens": 157,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 3323
+    },
+    {
+      "modelCompletions": 4,
+      "modelState": "complete",
+      "requestMs": 7788,
+      "inputTokens": 3017,
+      "outputTokens": 231,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 6476
+    },
+    {
+      "modelCompletions": 5,
+      "modelState": "complete",
+      "requestMs": 6725,
+      "inputTokens": 3212,
+      "outputTokens": 409,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 5280
+    },
+    {
+      "modelCompletions": 6,
+      "modelState": "complete",
+      "requestMs": 7981,
+      "inputTokens": 3465,
+      "outputTokens": 274,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 5927
+    },
+    {
+      "modelCompletions": 7,
+      "modelState": "complete",
+      "requestMs": 4264,
+      "inputTokens": 3697,
+      "outputTokens": 219,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 2724
+    },
+    {
+      "modelCompletions": 8,
+      "modelState": "complete",
+      "requestMs": 3780,
+      "inputTokens": 3874,
+      "outputTokens": 78,
+      "cachedInputTokens": 2523,
+      "firstUpdateMs": 0
+    }
+  ]
+}

@@ -62,3 +62,15 @@
 .cv-native-loading { animation:cv-native-reveal 440ms linear both; }
 .cv-native-arrival::after { content:""; position:absolute; inset:-4px; border:1px solid #bbb; border-radius:16px; animation:cv-native-fresh 1800ms ease-out both; }
 @keyframes cv-native-fresh { 0% {opacity:0;transform:scale(.99)} 20% {opacity:.7;transform:scale(1)} 65% {opacity:.35} 100% {opacity:0;transform:scale(1.015)} }
+
+/* Presentation chapters use native editable frame names and spacious claims. */
+.cv-native-editor[data-presentation="true"] [id*="-frame-name-"] { font-family:Arial,Helvetica,sans-serif!important; font-size:15px!important; line-height:1.3!important; font-weight:500; letter-spacing:.055em; text-transform:uppercase; color:#777!important; }
+.cv-native-editor[data-presentation="true"] [id*="-frame-name-"] input { font:inherit!important; }
+.cv-material-card[data-presentation="note"] .cv-block[data-outcome="neutral"] { background:#f7f7f7; border-color:transparent; box-shadow:none; }
+.cv-material-card[data-presentation] .cv-block p { font-size:.875em; line-height:1.5; }
+
+.cv-material-card[data-presentation="claim"] .cv-block { border-color:transparent; box-shadow:none; background:#fff; padding:16px 0; }
+.cv-material-card[data-presentation="claim"] .cv-block strong { font-size:1.375em; font-weight:500; line-height:1.2; letter-spacing:-.025em; }
+.cv-material-card[data-presentation="claim"] .cv-block p { font-size:.875em; line-height:1.5; margin-top:10px; color:#777; }
+
+.cv-presentation-heading { position:absolute; top:78px; left:32px; max-width:calc(100% - 64px); margin:0; z-index:3; font:400 14px/1.4 Arial,Helvetica,sans-serif; color:#777; pointer-events:none; }

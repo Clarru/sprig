@@ -1,3 +1,5 @@
+import {makePresentationExample} from "./presentation-example";
+export {presentationNarration} from "./presentation-example";
 import {
   applyTransaction,
   emptyBoard,
@@ -71,6 +73,7 @@ const step = (
 const steps = (items: ScenarioStep[]) =>
   Object.fromEntries(items.map((s) => [s.id, s]));
 export const scenarios: Scenario[] = [
+  makePresentationExample(),
   {
     id: "feature",
     number: "01",
@@ -104,7 +107,7 @@ export const scenarios: Scenario[] = [
           "Maybe a live map? Although… I’m not sure people want that.",
           "Keeping location sharing tentative.",
           [
-            add("solution", "Live location map", 350, 60, "decision", {
+            add("solution", "Live location map", 350, 60, "step", {
               tentative: true,
               detail: "Privacy and battery use are still open.",
             }),
@@ -135,6 +138,7 @@ export const scenarios: Scenario[] = [
           [
             update("solution", {
               label: "Share a meeting point",
+              kind: "step",
               tentative: false,
               detail: "Choose a spot and send it to friends.",
             }),
@@ -164,7 +168,8 @@ export const scenarios: Scenario[] = [
           "Keeping expiry manual for now.",
           [
             add("expiry", "End the meeting point", 650, 60, "step", {
-              detail: "The person who shared it ends it.",
+              detail: "The person who shared it ends it. Timing is still open.",
+              tentative: true,
             }),
             connect("solution", "expiry"),
           ],
@@ -184,6 +189,8 @@ export const scenarios: Scenario[] = [
             connect("problem", "audience"),
             connect("audience", "solution"),
             update("privacy", {
+              label: "Invited friends only",
+              tentative: false,
               detail:
                 "Only the selected friends. Public visibility remains out of scope.",
             }),
@@ -196,13 +203,13 @@ export const scenarios: Scenario[] = [
         "You’re allowed to explore a detour.",
         choice(
           "extra",
-          "We could also send push reminders? I don’t know yet.",
+          "We could remind friends before the point expires? I don’t know yet.",
           "A reminder is a possibility, not a decision.",
           [
             add("reminder", "Send a reminder?", 650, 250, "note", {
               tentative: true,
             }),
-            connect("expiry", "reminder"),
+            connect("solution", "reminder", "possible reminder before expiry"),
           ],
           "undo",
         ),
@@ -281,7 +288,7 @@ export const scenarios: Scenario[] = [
             add("reviews", "Customer reviews", 40, 260, "note", {
               detail: "Proof from people who have been here.",
             }),
-            connect("work", "reviews"),
+            connect("work", "reviews", "reassurance"),
           ],
           "conversion",
         ),
@@ -294,41 +301,52 @@ export const scenarios: Scenario[] = [
           "They can choose a service and get a rough estimate instantly.",
           "An instant estimate is the chosen direction.",
           [
-            add("conversion", "Get an estimate", 620, 70, "decision", {
+            add("conversion", "Get an estimate", 620, 70, "step", {
               detail: "Indicative price, based on service and car.",
             }),
             connect("middle", "conversion"),
           ],
-          "details",
+          "estimate-details",
         ),
         choice(
           "quote",
           "We need to review the car first. They should send photos.",
           "A reviewed quote needs a short enquiry flow.",
           [
-            add("conversion", "Request a quote", 620, 70, "decision", {
+            add("conversion", "Request a quote", 620, 70, "step", {
               detail: "A person reviews the car and photos.",
             }),
             connect("middle", "conversion"),
           ],
-          "details",
+          "quote-details",
         ),
       ),
       step(
-        "details",
-        "Turn that choice into a small journey.",
+        "quote-details",
+        "What information does the studio need?",
         choice(
           "details",
-          "They choose the service, add the car details, then submit.",
+          "They choose the service, add their car details and photos, then send the request.",
           "Breaking the action into understandable steps.",
           [
             add("details", "Service + car details", 620, 260),
-            add("submit", "Submit request", 330, 260),
+            add("photos", "Upload car photos", 910, 260),
+            add("submit", "Send quote request", 910, 450, "step", {detail:"The studio reviews the car and replies."}),
             connect("conversion", "details"),
-            connect("details", "submit"),
+            connect("details", "photos"),
+            connect("photos", "submit"),
           ],
           "account",
         ),
+      ),
+      step(
+        "estimate-details",
+        "Keep the instant estimate self-service.",
+        choice("details", "They choose the service and car, then see an indicative price straight away.", "Showing the estimate immediately, without a reviewed request.", [
+          add("details", "Service + car details", 620, 260),
+          add("estimate", "View instant estimate", 910, 260, "step", {detail:"An indicative range, not a final quote."}),
+          connect("conversion", "details"), connect("details", "estimate"),
+        ], "account"),
       ),
       step(
         "account",
@@ -338,10 +356,10 @@ export const scenarios: Scenario[] = [
           "Do we need them to make an account? Maybe.",
           "Keeping account creation unresolved.",
           [
-            add("account", "Create an account?", 40, 450, "note", {
+            add("account", "Require an account?", 620, 450, "note", {
               tentative: true,
             }),
-            connect("submit", "account"),
+            connect("conversion", "account", "possible requirement"),
           ],
           "undo",
         ),
@@ -351,8 +369,8 @@ export const scenarios: Scenario[] = [
         "Keep the path focused.",
         choice(
           "undo",
-          "Actually, undo that. Let’s keep the enquiry simple.",
-          "Account step removed. The enquiry remains intact.",
+          "Actually, undo that. Let’s keep this easy to finish.",
+          "Account requirement removed. The chosen conversion path remains intact.",
           [],
           null,
           { undo: true },
@@ -361,181 +379,65 @@ export const scenarios: Scenario[] = [
     ]),
   },
   {
-    id: "onboarding",
-    number: "03",
-    title: "Make the handoff visible.",
-    subtitle: "Explain onboarding",
-    description:
-      "Follow an email from the interface to the backend. Revisit a decision and see the calls in between.",
-    initial: emptyBoard("Email onboarding"),
-    start: "lanes",
+    id: "onboarding", number: "03", title: "Make the handoff visible.", subtitle: "Explain onboarding",
+    description: "Follow email verification across the frontend and backend, then separate new and returning users.",
+    initial: emptyBoard("Email onboarding"), start: "lanes",
     steps: steps([
-      step(
-        "lanes",
-        "Explain it as you would to a developer.",
-        choice(
-          "lanes",
-          "They enter their email here. Then we send them a code.",
-          "Separating the interface from the backend.",
-          [
-            add("frontend", "Frontend", 20, 20, "group", {
-              width: 280,
-              height: 640,
-            }),
-            add("backend", "Backend", 410, 20, "group", {
-              width: 280,
-              height: 640,
-            }),
-            add("email", "Enter email", 30, 70, "step", {
-              parentId: "frontend",
-            }),
-            add("send", "Send verification code", 30, 70, "step", {
-              parentId: "backend",
-            }),
-            connect("email", "send", "request"),
-          ],
-          "check",
-        ),
-      ),
-      step(
-        "check",
-        "Choose where to explore account handling.",
-        choice(
-          "before",
-          "Before sending, check whether they already have an account.",
-          "Adding a provisional account check.",
-          [
-            add("check", "Check account exists", 30, 240, "decision", {
-              parentId: "backend",
-              tentative: true,
-            }),
-            connect("send", "check"),
-          ],
-          "correct",
-        ),
-        choice(
-          "after",
-          "They get a code either way. Check their account after verification.",
-          "Leaving the account branch after verification.",
-          [
-            add("check", "Check verified account", 30, 240, "decision", {
-              parentId: "backend",
-            }),
-            connect("send", "check"),
-          ],
-          "correct",
-        ),
-      ),
-      step(
-        "correct",
-        "Corrections should preserve the rest of the board.",
-        choice(
-          "correct",
-          "Right, the code is for everyone. Branch only after they verify.",
-          "Making verification explicit before the branch.",
-          [
-            update("check", {
-              label: "New or returning?",
-              tentative: false,
-              detail: "Only after successful verification.",
-            }),
-            add("verify", "Enter and verify code", 30, 240, "step", {
-              parentId: "frontend",
-            }),
-            { type: "disconnect", ids: ["send_check"] },
-            connect("send", "verify", "code delivered"),
-            connect("verify", "check", "verify request"),
-          ],
-          "routes",
-        ),
-      ),
-      step(
-        "routes",
-        "Some decisions can stay unresolved.",
-        choice(
-          "routes",
-          "Returning users go straight in. New users choose a username… maybe later.",
-          "Drawing both paths; leaving username timing open.",
-          [
-            add("returning", "Open the app", 30, 440, "step", {
-              parentId: "frontend",
-            }),
-            add("new", "Choose username?", 30, 440, "step", {
-              parentId: "backend",
-              tentative: true,
-            }),
-            connect("check", "returning", "returning"),
-            connect("check", "new", "new"),
-          ],
-          "failure",
-        ),
-      ),
-      step(
-        "failure",
-        "Follow the happy path or inspect a failure.",
-        choice(
-          "happy",
-          "Let’s focus on the happy path for now.",
-          "Highlighting the returning-user journey.",
-          [
-            {
-              type: "highlight",
-              ids: [
-                "email",
-                "send",
-                "verify",
-                "check",
-                "returning",
-                "email_send",
-                "send_verify",
-                "verify_check",
-                "check_returning",
-              ],
-            },
-          ],
-          "retry",
-        ),
-        choice(
-          "failure",
-          "What happens when sending the email fails?",
-          "Adding a failure branch without inventing retry behavior.",
-          [
-            add("failure", "Could not send code", 770, 100, "note", {
-              tentative: true,
-              detail: "Frontend feedback and retry policy need a decision.",
-            }),
-            connect("send", "failure", "delivery failure"),
-          ],
-          "retry",
-        ),
-      ),
-      step(
-        "retry",
-        "A technical assumption can be provisional too.",
-        choice(
-          "retry",
-          "Maybe retry automatically three times?",
-          "Recording this as a proposed policy.",
-          [
-            add("retry", "Three automatic retries?", 770, 300, "note", {
-              tentative: true,
-            }),
-          ],
-          "undo",
-        ),
-      ),
-      step(
-        "undo",
-        "End with an honest picture of what is known.",
-        choice(
-          "undo",
-          "Undo that assumption. We’ll decide retries with engineering.",
-          "Removed the assumption; the agreed flow stays.",
-          [],
-          null,
-          { undo: true },
-        ),
-      ),
+      step("lanes", "Start with the user action and its backend request.",
+        choice("lanes", "They enter their email here. Then we send them a code.", "The interface requests a verification code from the backend.", [
+          add("frontend", "Frontend", 20, 20, "group", {width:280,height:820}),
+          add("backend", "Backend", 410, 20, "group", {width:280,height:820}),
+          add("email", "Enter email", 30, 70, "step", {parentId:"frontend"}),
+          add("send", "Send verification code", 30, 70, "step", {parentId:"backend"}),
+          connect("email", "send", "request code"),
+        ], "check")),
+      step("check", "Where should account lookup happen?",
+        choice("before", "Maybe check whether they have an account before sending the code.", "Trying the account lookup before sending; the decision is provisional.", [
+          add("check", "Check account exists?", 30, 70, "decision", {parentId:"backend",tentative:true}),
+          update("send", {position:{x:30,y:260}}),
+          {type:"disconnect",ids:["email_send"]},connect("email","check","request code"),connect("check","send"),
+        ], "correct-before"),
+        choice("after", "Send a code either way. Check the account only after the code is verified.", "Verifying on the backend before looking up the account.", [
+          add("code", "Enter code", 30, 260, "step", {parentId:"frontend"}),
+          add("verify", "Verify code", 30, 260, "step", {parentId:"backend"}),
+          add("check", "Check verified account", 30, 450, "decision", {parentId:"backend"}),
+          connect("send","code","code delivered"),connect("code","verify","submit code"),connect("verify","check","valid code"),
+        ], "correct-after")),
+      step("correct-before", "Revise the sequence while preserving the same objects.",
+        choice("correct", "Actually, the code is for everyone. Verify it first, then check if they are new or returning.", "Moving the lookup after backend verification.", [
+          update("send",{position:{x:30,y:70}}),
+          update("check",{label:"New or returning?",tentative:false,position:{x:30,y:450},detail:"Look up the account after successful verification."}),
+          add("code", "Enter code", 30, 260, "step", {parentId:"frontend"}),
+          add("verify", "Verify code", 30, 260, "step", {parentId:"backend"}),
+          {type:"disconnect",ids:["email_check","check_send"]},
+          connect("email","send","request code"),connect("send","code","code delivered"),
+          connect("code","verify","submit code"),connect("verify","check","valid code"),
+        ], "routes")),
+      step("correct-after", "Make the account decision explicit.",
+        choice("correct", "Right. Once the backend verifies the code, branch into new and returning users.", "Keeping verification before the account branch.", [
+          update("check",{label:"New or returning?",tentative:false,detail:"Look up the account after successful verification."}),
+        ], "routes")),
+      step("routes", "Show UI destinations on the frontend side.",
+        choice("routes", "Returning users go straight in. New users might choose a username first, but that timing is still open.", "Both paths lead into the app. Username setup remains tentative.", [
+          add("returning","Open the app",30,650,"step",{parentId:"frontend"}),
+          add("new","Choose username?",30,450,"step",{parentId:"frontend",tentative:true}),
+          connect("check","returning","returning"),connect("check","new","new"),connect("new","returning","continue"),
+        ], "failure")),
+      step("failure", "Stay with successful sign-in or inspect delivery failure.",
+        choice("happy", "The successful route should open the app immediately for returning users.", "Returning users skip profile setup after verified sign-in.", [
+          update("returning",{detail:"Returning users skip username setup.",outcome:"success"}),
+        ], "retry"),
+        choice("failure", "If the email cannot be sent, show the user an error in the interface.", "The backend reports the delivery failure to the frontend.", [
+          update("frontend",{height:1000}),update("backend",{height:1000}),
+          add("failure","Could not send code",30,840,"note",{parentId:"frontend",outcome:"failure",detail:"Tell the user delivery failed."}),
+          {type:"connect",edge:{id:"send_failure",source:"send",target:"failure",label:"delivery failure",highlighted:false,outcome:"failure"}},
+        ], "retry")),
+      step("retry", "A delivery policy is a separate design decision.",
+        choice("retry", "Maybe failed deliveries should retry automatically three times?", "Keeping automatic retries as a backend policy proposal.", [
+          add("retry","Three automatic retries?",30,650,"note",{parentId:"backend",tentative:true,detail:"Possible policy for failed code delivery."}),
+        ], "undo")),
+      step("undo", "Leave the flow honest about what is still undecided.",
+        choice("undo", "Undo that assumption. We’ll decide retries with engineering.", "Removed the retry assumption. The verification flow stays.", [], null, {undo:true})),
     ]),
   },
 ];
@@ -555,7 +457,7 @@ export function replayScenario(
   let state: AssistantState = "idle";
   let lastText = "";
   const history: Board[] = [];
-  for (const selected of path) {
+  for (const [index, selected] of path.entries()) {
     const c: ScenarioChoice | undefined = cursor
       ? scenario.steps[cursor]?.choices.find((c) => c.id === selected)
       : undefined;
@@ -566,7 +468,7 @@ export function replayScenario(
     } else {
       history.push(board);
       board = applyTransaction(board, {
-        id: `scenario_${path.indexOf(selected)}_${selected}`,
+        id: `scenario_${index}_${selected}`,
         baseRevision: board.revision,
         source: "scenario",
         operations: c.operations,
@@ -577,6 +479,7 @@ export function replayScenario(
     lastText = c.text;
     cursor = c.next;
   }
+  if (cursor && !scenario.steps[cursor]) throw new Error(`Unknown scenario step: ${cursor}`);
   return {
     board,
     step: cursor ? scenario.steps[cursor] : null,
