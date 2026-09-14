@@ -49,7 +49,7 @@ Luna remains the inexpensive configurable default. Sol is the quality-oriented r
 
 ## Code and browser validation
 
-- 211 unit tests passed after the structural, state and geometry fixes.
+- 212 unit tests passed after the structural, state and geometry fixes.
 - 15 standalone browser tests passed; one legacy portfolio test is intentionally skipped in the standalone config. Actual portfolio coverage lives in the portfolio's own browser suite.
 - Three portfolio browser tests passed: local/public control geometry and no microphone/AI calls; actual companion and mobile embed; Lenis/native scrolling without a second glide.
 - Portfolio lint, build and 18 case-study contracts passed during integration.
@@ -57,3 +57,5 @@ Luna remains the inexpensive configurable default. Sol is the quality-oriented r
 See `MOTION-REVIEW.md` for the motion audit and `DEMO-SCRIPT.md` for the complete original and recording narration. A human rehearsal with the intended microphone remains necessary before recording a social video.
 
 Selected full traces, board exports and frames are committed alongside compact summaries of the other runs. Full development recordings remain in the ignored local `.artifacts/presentation-2026-09-14/` directory.
+
+Release verification found an exact workspace dependency still pinned to the old version. Version 0.3.1 aligns the app/package/lockfile and adds a regression check. A fresh Git archive installed with `npm ci`, built both workspaces, and passed the unit suite outside the portfolio. Its production server also completed the 12-object public presentation without browser errors.
