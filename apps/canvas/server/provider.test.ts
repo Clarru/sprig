@@ -151,3 +151,10 @@ it("detects a silent transcription socket, but keeps a healthy long session aliv
   transcriber.close();
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it("preserves explicitly configured high reasoning instead of silently using low", async () => {
+  const {understandingReasoningEffort} = await import("./understanding-agent");
+  vi.stubEnv("CANVAS_REASONING_EFFORT", "high");
+  try {expect(understandingReasoningEffort()).toBe("high");}
+  finally {vi.unstubAllEnvs();}
+});
