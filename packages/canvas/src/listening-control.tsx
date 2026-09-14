@@ -80,7 +80,9 @@ export function ListeningControl({mode="live", restingLabel, status, active, mic
   const pose=phase==='working'||phase==='connecting' ? 'thinking'
     : phase==='updated' ? 'wink'
     : phase==='clarification'||phase==='interrupted' ? 'notify'
-    : phase==='error' ? 'alert' : 'idle';
+    : phase==='error' ? 'alert'
+    : phase==='paused' ? 'sleep'
+    : phase==='listening'||phase==='speaking' ? 'wide' : 'idle';
   const expression=phase==='paused'?'somnolent':phase==='speaking'||phase==='considered'?'attentif':'curieux';
   const close=()=>{setOpen(false);detailsButton.current?.focus();};
   return <div className="cv-listening-control" style={{'--cv-companion-background':sprigBrand.background} as CSSProperties} data-phase={phase} data-microphone-live={live}>
