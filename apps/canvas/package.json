@@ -1,6 +1,6 @@
 {
   "name": "@clarru/sprig-app",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "start": "tsx server/index.ts --production"
   },
   "dependencies": {
-    "@clarru/sprig": "0.3.2",
+    "@clarru/sprig": "0.3.3",
     "dotenv": "^17.0.0",
     "openai": "^6.0.0",
     "react": "19.2.8",

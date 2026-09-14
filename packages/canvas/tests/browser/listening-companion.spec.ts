@@ -91,6 +91,8 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  socket!.send(JSON.stringify({type:'status',state:'working',message:'Following your next thought…'}));
  await page.getByRole('button',{name:'Pause listening'}).click();
  await expect(control).toHaveAttribute('data-phase','paused');
+ await expect(control.locator('.cv-mascot')).toHaveAttribute('data-animation','sleep');
+ await expect(control.locator('[data-sprig-eye=left]')).toHaveAttribute('fill','none');
  await expect(control).toHaveAttribute('data-microphone-live','false');
  await expect(control.locator('.cv-mascot')).toHaveAttribute('data-expression','somnolent');
  expect(await page.evaluate(()=>(window as unknown as {stopped:number}).stopped)).toBe(1);
