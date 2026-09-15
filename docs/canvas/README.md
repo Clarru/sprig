@@ -20,15 +20,19 @@ The public portfolio provides `/sprig` (case study), `/playground` (index), and 
 - `npm run build:canvas`: type-check the package and build the standalone app.
 - `npm run test:canvas`: board, scenario, live-session, and upstream Bloub tests; no API costs.
 - `npm run test:canvas:browser`: browser acceptance tests (build the apps first). Uses installed Chrome.
+- `npm run eval:semantic`: opt-in model evaluation across the versioned Story, Flow, scene-transition and correction corpus; uses the configured local API key.
+- `npm run eval:layout`: deterministic warm benchmark for a 100-node Flow scene; writes the p50/p95 report without model calls.
 - Portfolio verification runs in the separate portfolio checkout, not this workspace.
 
 ## Experience
 
 Public examples use authored clickable messages, including corrections and alternatives. A persistent label identifies the example. Every choice uses the same transaction contract as the live interpreter. Back and Restart reconstruct the authored board; Explore creates an editable copy and returning restores the authored state.
 
-The first release supports steps, decisions, notes, groups, images, connections, resizing, selection, undo/redo, JSON export/import, and browser persistence. Select blocks for properties; Shift-click to select several; Group wraps selected blocks; selecting a group and deleting it leaves its children at their world positions. Use the arrow tool to connect shapes. Double-click a shape or connection to edit its text. Keyboard: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Delete. Touch users can use the toolbar and properties panel.
+The semantic scene engine supports Story and Flow as production recipes, with System, Hierarchy and Comparison visibly experimental. One conversation can create several scenes on the same infinite canvas. The scene navigator switches, renames, organizes, duplicates and types scenes. Present mode advances scene by scene.
 
-New/import replace the current workspace and can be undone. Export boards you want to retain separately. Images are embedded PNG/JPEG/WebP files under 2 MB. Imports are limited to 12 MB, 300 blocks, and 600 edges. Browser storage may fill before those limits; errors explain how to export. These are document limits, not scale or performance claims.
+The editor supports steps, decisions, notes, groups, images, connections, resizing, selection, undo/redo, JSON export/import, and local-first persistence. Select blocks for properties; Shift-click to select several; Group wraps selected blocks; selecting a group and deleting it leaves its children at their world positions. Use the arrow tool to connect shapes. Double-click a shape or connection to edit its text. Keyboard: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Delete. Touch users can use the toolbar and properties panel.
+
+New/import replace the current workspace and can be undone. IndexedDB autosaves version-2 boards and periodic local snapshots. Standard export omits transcript text; “Export with transcript” is explicit. Audio is never saved. Version-1 imports migrate without replacing native IDs and receive a recoverable localStorage backup. Images are embedded PNG/JPEG/WebP files under 2 MB. Imports are limited to 12 MB, 300 blocks, and 600 edges. Browser storage may fill before those limits; errors explain how to export. These are document limits, not scale or performance claims.
 
 ## Reuse in a case study
 

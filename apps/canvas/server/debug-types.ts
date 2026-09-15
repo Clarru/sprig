@@ -1,4 +1,4 @@
-import type { MeaningEvent, StoryState } from "@clarru/sprig/understanding";
+import type { StoryState, UnderstandingEvent } from "@clarru/sprig/understanding";
 import { z } from "zod";
 import type { Interpretation } from "@clarru/sprig/model";
 export const DebugSettingsSchema = z
@@ -42,13 +42,15 @@ export interface PipelineStats {
   outputTokens?: number;
   cachedInputTokens?: number;
   firstUpdateMs?: number;
+  reasoningEffort?: 'none'|'low'|'medium'|'high';
+  interpretationPhase?: 'live'|'review'|'repair';
 }
 export interface DiagnosticEvent {
   kind: string;
   message: string;
   stats?: Partial<PipelineStats>;
   result?: Interpretation;
-  meaningEvent?: MeaningEvent;
+  meaningEvent?: UnderstandingEvent;
   understanding?: StoryState;
   requestId?: number;
   transcript?: string;

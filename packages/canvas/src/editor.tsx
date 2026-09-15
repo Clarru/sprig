@@ -2,6 +2,7 @@
 import { lazy, Suspense, useSyncExternalStore, type ReactNode } from "react";
 import type { BoardStore } from "./store";
 import type { Board } from "./model";
+import type { BoardStorageAdapter } from "./storage";
 const NativeEditor = lazy(() => import("./native/editor"));
 const subscribe = () => () => {};
 export interface CanvasEditorProps {
@@ -11,6 +12,7 @@ export interface CanvasEditorProps {
   editable?: boolean;
   preservePageScroll?: boolean;
   storageKey?: string;
+  storageAdapter?: BoardStorageAdapter;
   footer?: ReactNode;
   menu?: ReactNode;
   onReset?: () => void;

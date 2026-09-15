@@ -200,7 +200,7 @@ it('buffers short unfinished audio fragments but still interprets longer ongoing
  expect(understand).toHaveBeenCalledTimes(1);
  expect(understand.mock.calls[0][0].newSpeech).toBe('After that comes an editable diagram');
  input!.turn('short-final');input!.transcript('short-final','Welcome',true);
- await vi.advanceTimersByTimeAsync(1);
+ await vi.advanceTimersByTimeAsync(1201);
  expect(understand).toHaveBeenCalledTimes(2);
  expect(understand.mock.calls[1][0].newSpeech).toBe('Welcome');
  session.close();
@@ -230,4 +230,75 @@ it('reports an exhausted reference repair as attention needed, not queued work',
  expect(understand).toHaveBeenCalledTimes(2);
  const complete=events.filter(e=>e.type==='debug'&&e.event.kind==='understanding-complete').at(-1);
  expect(complete?.type==='debug'&&complete.event.stats?.modelState).toBe('error');session.close();
+});
+
+it('yields a stale review to meaningful new speech, then reviews the completed utterances together',async()=>{
+ vi.useFakeTimers();let input:Parameters<Provider['transcribe']>[0]|undefined;const output:ServerEvent[]=[];let reviewSignal:AbortSignal|undefined;
+ const understand=vi.fn<NonNullable<Provider['understand']>>(async(request,signal)=>{
+  if(request.reviewCompletedSpeech&&!reviewSignal){reviewSignal=signal;await new Promise<void>((_,reject)=>signal.addEventListener('abort',()=>reject(new Error('aborted')),{once:true}));}
+  return metrics;
+ });
+ const session=new LiveSession({board:emptyBoard(),selection:[],editing:false,canUndo:false},{understand,interpret:vi.fn(),transcribe:events=>{input=events;return{append:vi.fn(),close:vi.fn()};}},event=>output.push(event));
+ session.start();input!.ready();input!.transcript('a','The first complete point is clear.',true);await vi.advanceTimersByTimeAsync(1201);expect(reviewSignal).toBeDefined();
+ input!.transcript('b','Now there is a new clearly stated idea',false);await vi.advanceTimersByTimeAsync(1500);expect(reviewSignal!.aborted).toBe(true);expect(understand.mock.calls[1][0].reviewCompletedSpeech).toBe(false);
+ input!.transcript('b','Now there is a new clearly stated idea.',true);await vi.advanceTimersByTimeAsync(1500);expect(understand.mock.calls[2][0].reviewCompletedSpeech).toBe(true);
+ expect(output.some(e=>e.type==='settled'&&e.state==='clarification')).toBe(false);session.close();
+});
+
+it('lets a long stream finish while meaningful events continue arriving',async()=>{
+ vi.useFakeTimers();
+ const h=harness(async(_,signal,emit)=>{
+  await emit({type:'concept',id:'first',label:'First step'});
+  await new Promise(r=>setTimeout(r,20000));
+  await emit({type:'concept',id:'second',label:'Second step'});
+  await new Promise(r=>setTimeout(r,20000));
+  expect(signal.aborted).toBe(false);
+  await emit({type:'next',from:'first',to:'second'});
+  return metrics;
+ });
+ h.session.start('text');h.session.testText('A longer explanation');
+ await vi.advanceTimersByTimeAsync(41000);
+ expect(h.board().edges).toHaveLength(1);
+ h.session.close();
+});
+
+it('retains the opening of a long explanation across more than 24 transcription fragments',async()=>{
+ vi.useFakeTimers();
+ let input:Parameters<Provider['transcribe']>[0]|undefined;
+ const understand=vi.fn<NonNullable<Provider['understand']>>().mockResolvedValue(metrics);
+ const session=new LiveSession({board:emptyBoard(),selection:[],editing:false,canUndo:false},{understand,interpret:vi.fn(),transcribe:events=>{input=events;return {append:vi.fn(),close:vi.fn()};}},()=>{});
+ session.start();input!.ready();
+ for(let i=0;i<40;i++){input!.transcript(`fragment-${i}`,i===0?'The process starts with a welcome screen.':`The speaker adds concrete point number ${i}.`,true);await vi.advanceTimersByTimeAsync(1);}
+ await vi.advanceTimersByTimeAsync(1200);
+ expect(understand.mock.calls.at(-1)![0].currentSpeech).toContain('The process starts with a welcome screen.');
+ expect(understand.mock.calls.at(-1)![0].currentSpeech).toContain('point number 39');
+ session.close();
+});
+
+it('repairs a malformed streamed tool event without abandoning the rest of the utterance',async()=>{
+ vi.useFakeTimers();
+ const {z}=await import('zod');let count=0;
+ const h=harness(async(input,_,emit)=>{
+  if(++count===1){await emit({type:'concept',id:'first',label:'First'});z.object({type:z.literal('next')}).parse({type:'invalid'});}
+  expect(input.lastError).toContain('Invalid tool event');
+  await emit({type:'concept',id:'second',label:'Second'});await emit({type:'next',from:'first',to:'second'});return metrics;
+ });
+ h.session.testText('First then second');await vi.advanceTimersByTimeAsync(1);
+ expect(count).toBe(2);expect(h.board().edges).toHaveLength(1);h.session.close();
+});
+
+it('applies a completed-utterance semantic review as one undoable transaction',async()=>{
+ vi.useFakeTimers();
+ const h=harness(async(_,__,emit)=>{
+  await emit({type:'openScene',id:'review',title:'Reviewed flow',kind:'flow',transition:'initial',confidence:1});
+  await emit({type:'upsertNode',sceneId:'review',node:{id:'a',label:'A',role:'start'}});
+  await emit({type:'upsertNode',sceneId:'review',node:{id:'b',label:'B',role:'end'}});
+  await emit({type:'setPath',sceneId:'review',ids:['a','b']});
+  await emit({type:'setSceneMaturity',sceneId:'review',maturity:'stable'});
+  return metrics;
+ });
+ h.session.testText('A then B');await vi.advanceTimersByTimeAsync(1);
+ const transactions=h.events.filter(event=>event.type==='transaction');
+ expect(transactions).toHaveLength(1);expect(h.board().blocks.map(block=>block.label)).toEqual(['A','B']);
+ h.session.close();
 });

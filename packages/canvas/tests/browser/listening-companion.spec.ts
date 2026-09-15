@@ -65,6 +65,7 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  const details=page.getByRole('dialog',{name:'Your conversation with Sprig'});
  await expect(details).toContainText('The entry screen for new runners.');
  await expect(details).toContainText('Add a welcome screen before registration.');
+ await page.screenshot({path:'.impeccable/review/neo/listening-details-desktop.png',fullPage:true});
  await details.press('Escape');
  await expect(page.getByRole('button',{name:'Show conversation details'})).toBeFocused();
  socket!.send(JSON.stringify({type:'transcript',text:'Actually, call it Start your run.'}));
@@ -120,6 +121,7 @@ test('mascot owns speech, understanding, corrections, pause and recovery without
  await page.setViewportSize({width:390,height:844});
  await page.getByRole('button',{name:'Show conversation details'}).click();
  await expect(details).toBeVisible();
+ await page.screenshot({path:'.impeccable/review/neo/listening-details-mobile.png',fullPage:true});
  const bounds=(await control.boundingBox())!;
  expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.x+bounds.width).toBeLessThanOrEqual(390);
  await page.screenshot({path:testInfo.outputPath('companion-mobile-details.png')});

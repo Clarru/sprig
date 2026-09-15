@@ -185,3 +185,26 @@ it('keeps a growing sequence clear of unrelated notes without moving those notes
  const note=b.blocks.find(b=>b.storyConcept==='note')!,next=b.blocks.find(b=>b.storyConcept==='next')!;
  expect(note.position).toEqual(before.position);expect(next.position.x).toBeGreaterThanOrEqual(note.position.x+note.width+24);
 });
+
+it('keeps later corrections clear of annotations attached to different screens',()=>{
+ let b=update(emptyBoard(),[{type:'topic',id:'flow',label:'Flow'},{type:'view',kind:'screen_flow'},{type:'concept',id:'a',role:'screen',label:'First'},{type:'concept',id:'b',role:'screen',label:'Second'},{type:'next',from:'a',to:'b'},{type:'concept',id:'note',role:'note',label:'Discuss this path'},{type:'relation',from:'b',to:'note',kind:'contains'},{type:'concept',id:'skip',role:'note',label:'Skip the first screen'},{type:'relation',from:'a',to:'skip',kind:'contains'},{type:'next',from:'skip',to:'b'}]);
+ for(const [i,a] of b.blocks.entries())for(const c of b.blocks.slice(i+1))if(a.parentId===c.parentId)expect(a.position.x<c.position.x+c.width&&a.position.x+a.width>c.position.x&&a.position.y<c.position.y+c.height&&a.position.y+a.height>c.position.y).toBe(false);
+ expect(projectStory(b,b.story!).operations).toEqual([]);
+});
+
+it('wraps a long flow without moving earlier topics or losing the retry connection',()=>{
+ let b=update(emptyBoard(),[{type:'topic',id:'intro',label:'Context'},{type:'concept',id:'prior',label:'Earlier discussion',role:'note'}]);
+ const prior=b.blocks[0];
+ const ids=['welcome','email','verify-email','phone','verify-phone','name','address','questions','document','readable','selfie'];
+ const events:MeaningEvent[]=[{type:'topic',id:'onboarding',label:'Onboarding'},{type:'view',kind:'screen_flow'},
+ ...ids.flatMap((id,i):MeaningEvent[]=>[{type:'concept',id,label:id,role:id==='readable'?'decision':'screen'},...(i?[{type:'next',from:ids[i-1],to:id} as MeaningEvent]:[])]),
+ {type:'relation',from:'readable',to:'document',kind:'branch',label:'Blurry: retake'}];
+ for(const event of events)b=update(b,[event]);
+ expect(b.blocks.find(b=>b.id===prior.id)?.position).toEqual(prior.position);
+ const flow=b.blocks.filter(b=>b.storyTopic==='onboarding');
+ expect(Math.max(...flow.map(b=>b.position.x+b.width))-Math.min(...flow.map(b=>b.position.x))).toBeLessThan(1100);
+ expect(b.edges).toHaveLength(11);
+ expect(b.edges.some(e=>e.source==='onboarding__readable'&&e.target==='onboarding__document')).toBe(true);
+ for(const [i,a] of flow.entries())for(const c of flow.slice(i+1))expect(a.position.x<c.position.x+c.width&&a.position.x+a.width>c.position.x&&a.position.y<c.position.y+c.height&&a.position.y+a.height>c.position.y).toBe(false);
+ expect(projectStory(b,b.story!).operations).toEqual([]);
+});

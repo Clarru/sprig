@@ -45,11 +45,9 @@
 .cv-material-layer { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
 .cv-material-card { position:absolute; transform-origin:top left; pointer-events:none; }
 .cv-material-card .cv-block { font-size:inherit; }
-/* Keep the erasure plane opaque, including when a native card is muted or animating.
-   Only the decorative content fades; otherwise native text shows through twice. */
-.cv-material-plane { position:relative; width:100%; height:100%; isolation:isolate; }
+.cv-material-plane { position:relative; width:100%; height:100%; }
 .cv-material-content { width:100%; height:100%; }
-.cv-material-plane::before { content:""; position:absolute; inset:-2px; background:#fff; border-radius:10px; z-index:-1; }
+.cv-native-paint-mask { position:absolute; pointer-events:none; }
 .cv-native-arrivals { z-index:3; }
 /* Native property controls use monochrome surfaces too; color swatches retain their meaning. */
 .cv-native-editor .excalidraw {
@@ -63,14 +61,98 @@
 .cv-native-arrival::after { content:""; position:absolute; inset:-4px; border:1px solid #bbb; border-radius:16px; animation:cv-native-fresh 1800ms ease-out both; }
 @keyframes cv-native-fresh { 0% {opacity:0;transform:scale(.99)} 20% {opacity:.7;transform:scale(1)} 65% {opacity:.35} 100% {opacity:0;transform:scale(1.015)} }
 
-/* Presentation chapters use native editable frame names and spacious claims. */
-.cv-native-editor[data-presentation="true"] [id*="-frame-name-"] { font-family:Arial,Helvetica,sans-serif!important; font-size:15px!important; line-height:1.3!important; font-weight:500; letter-spacing:.055em; text-transform:uppercase; color:#777!important; }
-.cv-native-editor[data-presentation="true"] [id*="-frame-name-"] input { font:inherit!important; }
-.cv-material-card[data-presentation="note"] .cv-block[data-outcome="neutral"] { background:#f7f7f7; border-color:transparent; box-shadow:none; }
-.cv-material-card[data-presentation] .cv-block p { font-size:.875em; line-height:1.5; }
+/* Frame captions retain native editing and scale with the native viewport. */
+.cv-native-editor [id*="-frame-name-"] { font-family:'Sprig Hanken',Arial,sans-serif!important; font-weight:500; letter-spacing:0; color:#697565!important; }
+.cv-native-editor [id*="-frame-name-"] input { font-family:inherit!important; }
+.cv-presentation-heading { position:absolute; top:78px; left:32px; max-width:calc(100% - 64px); margin:0; z-index:3; font:400 14px/1.4 'Sprig Hanken',Arial,sans-serif; color:#697565; pointer-events:none; padding:4px 8px; background:#ffffffeb; backdrop-filter:blur(5px); border-radius:6px; }
+.cv-native-stage { background-color:#ffffff; background-image:radial-gradient(#eeeeee .85px,transparent .85px); background-size:var(--cv-grid-size,20px) var(--cv-grid-size,20px); background-position:var(--cv-grid-x,0px) var(--cv-grid-y,0px); }
+.cv-native-editor .excalidraw { background:transparent; }
+/* Containers remain native frames: visible structure, transparent interiors, editable children. */
+.cv-native-editor [id*="-frame-name-"]{font-family:'Sprig Mono',ui-monospace,monospace!important;font-weight:700;letter-spacing:.03em;color:#000!important;text-transform:uppercase;background:#fff;padding:3px 6px;border:1px solid #000}
+.cv-presentation-heading{font-family:'Sprig Mono',ui-monospace,monospace;font-weight:700;color:#000;background:#fff;border:1px solid #000;border-radius:0;backdrop-filter:none}
+.cv-native-arrival::after{border:2px solid #000;border-radius:0}
 
-.cv-material-card[data-presentation="claim"] .cv-block { border-color:transparent; box-shadow:none; background:#fff; padding:16px 0; }
-.cv-material-card[data-presentation="claim"] .cv-block strong { font-size:1.375em; font-weight:500; line-height:1.2; letter-spacing:-.025em; }
-.cv-material-card[data-presentation="claim"] .cv-block p { font-size:.875em; line-height:1.5; margin-top:10px; color:#777; }
+.cv-container-frame{position:absolute;box-sizing:border-box;border:2px solid #000;background:transparent;pointer-events:none}
+.cv-semantic-scene-frame{position:absolute;box-sizing:border-box;border:1px dashed #c8c8c8;pointer-events:none}.cv-semantic-scene-frame[data-active="true"]{border-color:#000}.cv-semantic-scene-frame>span{position:absolute;left:0;top:-25px;display:flex;align-items:center;gap:8px;padding:3px 6px;background:#fff;border:1px solid currentColor;color:#000;font:700 10px 'Sprig Display','Sprig Mono',monospace;text-transform:uppercase;white-space:nowrap}.cv-semantic-scene-frame>span small{font:400 8px 'Sprig Mono',monospace}.cv-semantic-scene-frame[data-maturity="needs_review"]>span{background:#fc702c}.cv-semantic-scene-frame[data-maturity="stable"]>span{background:#b5ff2c}
 
-.cv-presentation-heading { position:absolute; top:78px; left:32px; max-width:calc(100% - 64px); margin:0; z-index:3; font:400 14px/1.4 Arial,Helvetica,sans-serif; color:#777; pointer-events:none; }
+/* Shared containers: tool strips, native properties, palettes, menus, and dialogs. */
+.cv-native-editor .excalidraw{--island-bg-color:#fff;--shadow-island:5px 5px 0 #000;--border-radius-lg:0px;--border-radius-md:0px;--border-radius-sm:0px;--color-primary:#000;--color-primary-darker:#000;--color-primary-darkest:#000;--color-primary-light:#ffd000;--color-primary-light-darker:#ffd000;--color-primary-hover:#ff006f;--color-selection:#000;--color-surface-high:#fff;--color-surface-mid:#fff;--color-surface-low:#eee;--color-surface-lowest:#fff;--color-on-surface:#000;--color-on-primary-container:#000;--color-surface-primary-container:#ffd000;--color-brand-hover:#ffd000;--color-brand-active:#b5ff2c;--color-border-outline:#000;--color-border-outline-variant:#000;--focus-highlight-color:#000;--button-gray-1:#fff;--button-gray-2:#ffd000;--button-gray-3:#b5ff2c;--input-border-color:#000}
+.cv-native-editor .excalidraw .Island{border:2px solid #000;border-radius:0;box-shadow:5px 5px 0 #000;background:#fff;transition:none}
+.cv-native-editor .excalidraw .Island.zen-mode{box-shadow:none}
+.cv-native-button,.cv-native-toolbar,.cv-native-history,.cv-native-menu,.cv-board-outline:focus-within{border:2px solid #000;border-radius:0;background:#fff;box-shadow:4px 4px 0 #000;color:#000}
+.cv-native-topbar button{border-radius:0;color:#000;box-sizing:border-box;border:1px solid transparent}
+.cv-native-topbar>.cv-native-button{border:2px solid #000}
+.cv-native-topbar button:hover{background:#ffd000}
+.cv-native-topbar button[aria-pressed="true"]{background:#b5ff2c;border-color:#000;color:#000}
+.cv-native-topbar button:focus-visible,.cv-native-menu button:focus-visible{outline:2px dashed #000;outline-offset:2px}
+.cv-native-menu{padding:10px;max-width:calc(100% - 40px)}
+.cv-native-menu .cv-menu-section button,.cv-native-menu .cv-menu-section a{border-radius:0;color:#000}
+.cv-native-menu .cv-menu-section button:hover,.cv-native-menu .cv-menu-section a:hover{background:#ffd000}
+.cv-native-menu summary{font-family:'Sprig Mono',ui-monospace,monospace;font-weight:700;color:#000}
+.cv-native-error{background:#fc702c;color:#000;border:2px solid #000;border-radius:0;box-shadow:4px 4px 0 #000}
+.cv-native-editor .excalidraw .selected-shape-actions h3,.cv-native-editor .excalidraw .color-picker__heading,.cv-native-editor .excalidraw .legend{color:#000;font-family:'Sprig Mono',ui-monospace,monospace;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.03em}
+.cv-native-editor .excalidraw .color-picker__button,.cv-native-editor .excalidraw .color-picker-swatch,.cv-native-editor .excalidraw .color-picker-label-swatch{border-radius:0;border:1px solid #000}
+.cv-native-editor .excalidraw .color-picker-content--default{border-radius:0}
+.cv-native-editor .excalidraw .color-picker__button.active-color{box-shadow:2px 2px 0 #000}
+.cv-native-editor .excalidraw .color-picker__input-label{border:1px solid #000;border-radius:0}
+.cv-native-editor .excalidraw .ToolIcon__icon,.cv-native-editor .excalidraw .buttonList button{border-radius:0;color:#000}
+.cv-native-editor .excalidraw .ToolIcon .ToolIcon_type_radio:checked+.ToolIcon__icon,.cv-native-editor .excalidraw .ToolIcon .ToolIcon_type_checkbox:checked+.ToolIcon__icon,.cv-native-editor .excalidraw .buttonList button.active{background:#ffd000;color:#000;box-shadow:inset 0 0 0 1px #000}
+.cv-native-editor .excalidraw input[type="range"]{accent-color:#000}
+.cv-native-editor .excalidraw .dropdown-menu,.cv-native-editor .excalidraw .Modal__content{border:2px solid #000;border-radius:0;background:#fff;box-shadow:6px 6px 0 #000}
+.cv-native-editor .excalidraw input[type="range"]::-webkit-slider-runnable-track{background:#000;background-image:none;border-radius:0}
+.cv-native-editor .excalidraw input[type="range"]::-moz-range-track{background:#000;border-radius:0}
+.cv-native-editor .excalidraw .Tooltip{border-radius:0;background:#000;color:#fff}
+
+/* Swatch selection: one square outline, a clean white gutter, no rounded double ring. */
+.cv-native-editor .excalidraw .color-picker__button{--radius:0px;border-radius:0}
+.cv-native-editor .excalidraw .color-picker__button.active .color-picker__button-outline{inset:-3px;border:1px solid #000;border-radius:0;box-shadow:0 0 0 1px #fff;pointer-events:none}
+.cv-native-editor .excalidraw .color-picker__button:hover::after{inset:-2px;border:0;border-radius:0;box-shadow:0 0 0 1px #000;pointer-events:none}
+.cv-native-editor .excalidraw .color-picker__button.active:hover::after{content:none}
+.cv-native-editor .excalidraw .color-picker__button:focus-visible::after{inset:-4px;border:2px solid #000;border-radius:0;box-shadow:0 0 0 1px #fff;pointer-events:none}
+.cv-native-editor .excalidraw .color-picker__button.active:focus-visible::after{content:""}
+.cv-native-editor .excalidraw input[type="range"]::-webkit-slider-runnable-track{height:3px}
+.cv-native-editor .excalidraw input[type="range"]::-webkit-slider-thumb{border:1px solid #000;border-radius:0;background:#b5ff2c;width:11px;height:17px;margin-top:-7px}
+.cv-native-editor .excalidraw input[type="range"]::-moz-range-thumb{border:1px solid #000;border-radius:0;background:#b5ff2c;width:11px;height:17px}
+
+/* Native paint is authoritative: decorations never mask or cover shape/text canvases. */
+.cv-material-layer[data-native-decoration]{z-index:0}
+.cv-native-shadow{position:absolute;left:-12px;top:-12px;overflow:visible;pointer-events:none}
+
+.cv-native-history .cv-presenter-button{width:auto;padding:0 10px;font:700 11px 'Sprig Mono',monospace;text-transform:uppercase}
+.cv-native-editor[data-presenting="true"] .cv-native-toolbar,.cv-native-editor[data-presenting="true"] .cv-native-menu,.cv-native-editor[data-presenting="true"] .excalidraw .App-menu__left{display:none}
+.cv-native-editor[data-presenting="true"] .cv-native-history>button[aria-label="Undo"],.cv-native-editor[data-presenting="true"] .cv-native-history>button[aria-label="Redo"]{display:none}
+.cv-presentation-notes{position:absolute;z-index:16;top:76px;right:18px;width:320px;max-width:calc(100% - 36px);max-height:65%;overflow:auto;padding:18px;background:#fff;border:2px solid #000;box-shadow:5px 5px 0 #000;font:13px/1.55 'Sprig Hanken',Arial,sans-serif;color:#000;scrollbar-color:#000 #fff;scrollbar-width:thin}
+.cv-presentation-notes header{display:flex;justify-content:space-between;align-items:center;margin:-18px -18px 15px;padding:12px 15px;border-bottom:2px solid #000;background:#ffd000}
+.cv-presentation-notes header strong,.cv-presentation-notes h2{font:700 13px/1.35 'Sprig Display','Sprig Mono',monospace;text-transform:uppercase;margin:0}
+.cv-presentation-notes header button{display:grid;place-items:center;padding:4px;background:#fff;color:#000;border:1px solid #000;cursor:pointer}
+.cv-presentation-notes section{padding:14px 0;border-bottom:1px solid #ddd}
+.cv-presentation-notes section>button{padding:0;border:0;background:transparent;color:#000;text-align:left;cursor:pointer}.cv-presentation-notes section>button:hover h2{text-decoration:underline;text-underline-offset:3px}.cv-presentation-notes section>button:focus-visible{outline:2px dashed #000;outline-offset:3px}
+.cv-presentation-notes p{margin:7px 0 0;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.cv-notes-scene{margin:0 0 4px!important;font:700 10px 'Sprig Mono',monospace;text-transform:uppercase}.cv-scene-transcript article{margin-top:12px;padding:10px;border:1px solid #000;background:#f8f8f8}.cv-scene-transcript article p{margin:0}.cv-scene-transcript article button{margin-top:9px;padding:6px 8px;border:1px solid #000;background:#ffd000;color:#000;font:700 9px 'Sprig Mono',monospace;text-transform:uppercase;cursor:pointer}
+.cv-presentation-notes:focus-visible{outline:2px dashed #000;outline-offset:4px}
+@media(max-width:700px){.cv-native-history .cv-presenter-button{padding:0 7px;font-size:10px}.cv-presentation-notes{top:110px;max-height:calc(100dvh - 215px);right:12px}}
+.cv-native-editor[data-presenting="true"] .cv-native-topbar>.cv-native-button{display:none}
+.cv-native-editor[data-presenting="true"] .cv-presentation-heading{top:22px;left:24px;border:0;background:transparent;padding:0;font:700 16px/1.3 'Sprig Display','Sprig Mono',monospace}
+
+/* Scene navigation is the semantic spine of a long conversation. */
+.cv-scene-navigator{position:absolute;z-index:12;top:72px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;background:#fff;border:2px solid #000;box-shadow:4px 4px 0 #000;color:#000;font-family:'Sprig Hanken',Arial,sans-serif}
+.cv-scene-navigator>button{display:grid;place-items:center;min-width:38px;border:0;background:#fff;color:#000;cursor:pointer}
+.cv-scene-navigator>button:first-child{border-right:1px solid #000}.cv-scene-navigator>button:last-of-type{border-left:1px solid #000}
+.cv-scene-navigator>button:hover{background:#ffd000}.cv-scene-navigator>button:disabled{opacity:.3;cursor:default;background:#fff}
+.cv-scene-navigator>button:focus-visible,.cv-scene-menu button:focus-visible,.cv-scene-menu input:focus-visible{outline:2px dashed #000;outline-offset:-4px}
+.cv-scene-current{display:flex!important;gap:9px!important;justify-content:flex-start!important;min-width:230px!important;padding:7px 10px!important;text-align:left}
+.cv-scene-current>span{display:grid;min-width:0}.cv-scene-current strong{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 12px/1.2 'Sprig Display','Sprig Mono',monospace;text-transform:uppercase}
+.cv-scene-current small{margin-top:2px;font-size:10px;text-transform:capitalize}
+.cv-scene-issue{display:flex!important;grid-auto-flow:column!important;align-items:center;gap:3px;margin-left:auto!important;padding:3px 5px;background:#fc702c;border:1px solid #000;font:700 10px 'Sprig Mono',monospace}
+.cv-scene-menu{position:absolute;top:calc(100% + 10px);left:38px;width:330px;max-width:calc(100vw - 32px);padding:12px;background:#fff;border:2px solid #000;box-shadow:5px 5px 0 #000}
+.cv-scene-menu>strong,.cv-scene-menu legend,.cv-scene-menu label{font:700 11px/1.3 'Sprig Display','Sprig Mono',monospace;text-transform:uppercase}
+.cv-scene-menu ol{display:grid;gap:3px;max-height:180px;overflow:auto;margin:9px 0 12px;padding:0;list-style:none;scrollbar-color:#000 #fff;scrollbar-width:thin}
+.cv-scene-menu li button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px;border:1px solid transparent;background:#fff;color:#000;cursor:pointer;text-align:left}
+.cv-scene-menu li button:hover,.cv-scene-menu li button[aria-current="page"]{border-color:#000;background:#b5ff2c}
+.cv-scene-menu li small{font-size:9px;text-transform:uppercase}
+.cv-scene-menu form{padding-top:12px;border-top:1px solid #000}.cv-scene-menu form>div{display:flex;margin-top:6px}.cv-scene-menu input{min-width:0;flex:1;padding:8px;border:1px solid #000;border-radius:0;font:12px 'Sprig Hanken',Arial,sans-serif}.cv-scene-menu form button{padding:0 10px;border:1px solid #000;border-left:0;background:#ffd000;font:700 10px 'Sprig Mono',monospace;text-transform:uppercase;cursor:pointer}
+.cv-scene-menu fieldset{margin:12px 0 0;padding:10px 0 0;border:0;border-top:1px solid #000}.cv-scene-menu fieldset>div{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px}
+.cv-scene-menu fieldset button{display:flex;align-items:center;justify-content:space-between;min-height:34px;padding:6px 8px;border:1px solid #000;background:#fff;color:#000;font:700 10px 'Sprig Mono',monospace;text-transform:uppercase;cursor:pointer}.cv-scene-menu fieldset button[aria-pressed="true"]{background:#b5ff2c}.cv-scene-menu fieldset button:hover{background:#ffd000}.cv-scene-menu fieldset small{font-size:7px;font-weight:400}
+.cv-scene-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:10px}.cv-scene-actions button{min-height:34px;padding:6px;border:1px solid #000;background:#fff;color:#000;font:700 9px 'Sprig Mono',monospace;text-transform:uppercase;cursor:pointer}.cv-scene-actions button:hover{background:#ffd000}.cv-scene-actions button:last-child:hover{background:#fc702c}.cv-scene-actions button:disabled{opacity:.35;cursor:default;background:#fff}
+.cv-native-editor[data-presenting="true"] .cv-scene-navigator{top:16px}.cv-native-editor[data-presenting="true"] .cv-scene-menu form,.cv-native-editor[data-presenting="true"] .cv-scene-menu fieldset{display:none}
+@media(max-width:700px){.cv-scene-navigator{top:96px;left:8px;right:8px;transform:none}.cv-scene-current{min-width:0!important;flex:1}.cv-scene-current strong{max-width:150px}.cv-scene-menu{left:0;width:calc(100vw - 32px)}.cv-native-editor[data-presenting="true"] .cv-scene-navigator{top:8px;right:156px}.cv-native-editor[data-presenting="true"] .cv-scene-current small{display:none}}

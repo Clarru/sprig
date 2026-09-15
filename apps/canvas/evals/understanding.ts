@@ -7,6 +7,14 @@ import {
   applyMeaningPatch,
   planSketch,
   diffSketch,
+  SemanticOperationSchema,
+  applySemanticPatch,
+  documentFromStory,
+  storyFromScenes,
+  validateSemanticDocument,
+  type BoardDocumentV2,
+  type SemanticOperation,
+  type MeaningEvent,
   type StoryState,
   type SketchPlan,
 } from "@clarru/sprig/understanding";
@@ -107,6 +115,7 @@ for (const model of models) {
   for (const test of cases) {
     let story: StoryState = emptyStory(),
       plan = planSketch(story),
+      document: BoardDocumentV2 = documentFromStory({id:`eval_${test.id}`,title:test.id,revision:0,story:emptyStory(),blocks:[],createdAt:0}),
       recent = "";
     const turns: unknown[] = [];
     let eventNumber = 0;
@@ -119,6 +128,8 @@ for (const model of models) {
         const result = await agent(
           {
             story: inputStory,
+            document,
+            validationIssues: validateSemanticDocument(document),
             recentSpeech: recent,
             newSpeech: speech,
             selectedConcepts: [],
@@ -139,15 +150,22 @@ for (const model of models) {
           },
           AbortSignal.timeout(20000),
           (event) => {
-            const next = applyMeaningPatch(story, {
-              id: `${test.id}_${index}_${++eventNumber}`,
-              evidence: {
-                utteranceId: `${test.id}_${index}`,
-                revision: 1,
-                origin: "speech",
-              },
-              events: [event],
-            }).state;
+            let next: StoryState;
+            if(SemanticOperationSchema.safeParse(event).success){
+              document=applySemanticPatch(document,{id:`${test.id}_${index}_${++eventNumber}`,source:'ai',operations:[event as SemanticOperation]});
+              next=storyFromScenes(document.scenes,document.activeSceneId);
+            }else{
+              next = applyMeaningPatch(story, {
+                id: `${test.id}_${index}_${++eventNumber}`,
+                evidence: {
+                  utteranceId: `${test.id}_${index}`,
+                  revision: 1,
+                  origin: "speech",
+                },
+                events: [event as MeaningEvent],
+              }).state;
+              document=documentFromStory({id:`eval_${test.id}`,title:test.id,revision:document.revision+1,story:next,blocks:[],createdAt:0});
+            }
             const nextPlan = planSketch(next);
             const changes = diffSketch(plan, nextPlan);
             if (
@@ -193,7 +211,7 @@ for (const model of models) {
           ),
       };
       const passed = Object.values(checks).every(Boolean);
-      reports.push({ model, case: test.id, passed, checks, turns, plan });
+      reports.push({ model, case: test.id, passed, checks, turns, plan, document, validationIssues:validateSemanticDocument(document) });
       console.log(
         JSON.stringify({
           model,

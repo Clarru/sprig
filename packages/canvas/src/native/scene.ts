@@ -1,3 +1,4 @@
+import {diagramIntent,diagramFill,isLegacyDiagramColor,diagramStroke} from '../diagram-design';
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { BinaryFiles } from "@excalidraw/excalidraw/types";
 import { absolutePosition, makeBlock, type Block, type Board, type Edge, type NativeScene } from "../model";
@@ -12,10 +13,14 @@ export interface Binding {
 export function binding(element: DrawingElement): Binding {
   return (element.customData?.canvas ?? {}) as Binding;
 }
-export function cardText(block: Block) {
-  return [block.label, block.detail, block.tentative ? "Unresolved" : ""].filter(Boolean).join("\n\n");
+export function isPresentationCard(block:Block,board?:Board){
+ return !!(board&&block.autoPosition&&block.storyTopic&&board.story?.topics[block.storyTopic]?.view==='presentation'&&block.kind!=='group');
 }
-export const outcomeColor = (outcome?: string) => outcome === "success" ? "#29815a" : outcome === "failure" ? "#ba4a46" : "#555555";
+export function cardText(block: Block,board?:Board) {
+  const expanded=board?.native?.elements.some(e=>e.type==='text'&&e.containerId===block.id&&(e.customData as Record<string,unknown>|undefined)?.presentationText==='expanded');
+  return [block.label, isPresentationCard(block,board)&&!expanded?'':block.detail, block.tentative ? "Unresolved" : ""].filter(Boolean).join("\n\n");
+}
+export const outcomeColor = (outcome?: string) => outcome === "success" ? "#29815a" : outcome === "failure" ? "#ba4a46" : "#879486";
 export const outcomeBackground = (outcome?: string) => outcome === "success" ? "#edf8f1" : outcome === "failure" ? "#fff1f0" : "#ffffff";
 export function endpointSignature(board: Board, edge: Edge) {
   return JSON.stringify([edge.source, edge.target].map(id => {
@@ -47,6 +52,7 @@ export function readScene(board: Board, all: readonly DrawingElement[], files: B
   const isEdge = (e: DrawingElement) => e.type === "arrow" && e.startBinding && e.endBinding &&
     e.startBinding.elementId !== e.endBinding.elementId && byId.has(e.startBinding.elementId) && byId.has(e.endBinding.elementId);
   const blocks: Block[] = [];
+  const expandedLabels=new Set<string>();
   for (const e of elements) {
     if (e.customData?.canvasAnchor === true || (e.type === "text" && e.containerId && byId.has(e.containerId)) || isEdge(e)) continue;
     const old = board.blocks.find(b => b.id === e.id);
@@ -54,24 +60,29 @@ export function readScene(board: Board, all: readonly DrawingElement[], files: B
       e.type === "ellipse" ? "ellipse" : e.type === "freedraw" ? "draw" : e.type === "line" || e.type === "arrow" || e.type === "text" || e.type === "image" ? e.type :
       old?.kind === "screen" || old?.kind === "note" || old?.kind === "decision" ? old.kind : "step";
     const label = e.type === "text" ? e : boundLabel(e);
-    const text = label?.type === "text" ? label.originalText ?? label.text : e.type === "frame" || e.type === "magicframe" ? e.name ?? "Group" : old?.label ?? "";
-    const unchangedText = old && text === cardText(old);
+    const text = label?.type === "text" ? label.originalText ?? label.text : e.type === "frame" || e.type === "magicframe" ? e.name ?? "Group" : ["rectangle","diamond","ellipse","arrow","line"].includes(e.type) ? "" : old?.label ?? "";
+    const unchangedText = old && text === cardText(old,board);
+    if(old&&isPresentationCard(old,board)&&!unchangedText&&text.includes('\n\n')&&label)expandedLabels.add(label.id);
     const parts = text.split("\n\n");
     if (old?.tentative && parts.at(-1) === "Unresolved") parts.pop();
     const parent = e.frameId ? byId.get(e.frameId) : undefined;
     const image = e.type === "image" && e.fileId ? files[e.fileId]?.dataURL : undefined;
+    const storedNative=old&&board.native?.elements.find(n=>n.id===old.id);
+    const previousTheme=(storedNative?.customData as Record<string,unknown>|undefined)?.diagramTheme;
+    const previousFill=old&&isLegacyDiagramColor(old.backgroundColor)&&!previousTheme?undefined:old?.backgroundColor;
+    const unchangedFill=old&&e.backgroundColor===diagramFill(diagramIntent(board,old),old.outcome,previousFill);
     blocks.push(makeBlock(kind, unchangedText ? old.label : parts.shift() ?? "", {
       x: e.x - (parent?.x ?? 0), y: e.y - (parent?.y ?? 0),
     }, {
       ...old,
       id: e.id, kind,
       label: unchangedText ? old.label : text ? (text.split("\n\n")[0]) : "",
-      detail: unchangedText ? old.detail : parts.join("\n\n"),
+      detail: unchangedText ? old.detail : old&&isPresentationCard(old,board)&&!text.includes("\n\n")?old.detail:parts.join("\n\n"),
       position: {x: e.x - (parent?.x ?? 0), y: e.y - (parent?.y ?? 0)},
       width: Math.max(1, e.width), height: Math.max(1, e.height),
       parentId: parent && kind !== "group" ? parent.id : undefined,
       groups: [...e.groupIds], angle: e.angle, locked: e.locked,
-      strokeColor: e.strokeColor, backgroundColor: e.backgroundColor,
+      strokeColor:old&&e.strokeColor===diagramStroke(old.strokeColor)?old.strokeColor:e.strokeColor, backgroundColor:unchangedFill?previousFill:e.backgroundColor,
       ...(e.type === "text" ? {fontSize: e.fontSize} : {}),
       ...("points" in e ? {points: e.points.map(p => [p[0], p[1]] as [number, number])} : {}),
       ...(image && /^data:image\/(png|jpeg|webp);base64,/.test(image) ? {image} : {}),
@@ -91,7 +102,7 @@ export function readScene(board: Board, all: readonly DrawingElement[], files: B
   const next = {...board, blocks, edges};
   const usedFiles = new Set<string>(elements.flatMap(e => e.type === "image" && e.fileId ? [e.fileId] : []));
   return {blocks, edges, native: {
-    elements: stampScene(elements, next) as unknown as NativeScene["elements"],
+    elements: stampScene(elements.map(e=>expandedLabels.has(e.id)?{...e,customData:{...e.customData,presentationText:'expanded'}}:e), next) as unknown as NativeScene["elements"],
     files: Object.fromEntries(Object.entries(files).filter(([id]) => usedFiles.has(id))),
   }};
 }

@@ -8,7 +8,8 @@ import { config } from "dotenv";
 import { ContextSchema, LiveSession } from "./session";
 import { AgentHub, AgentError } from "./agent-hub";
 import { openAIProvider } from "./provider";
-import { understandingReasoningEffort } from "./understanding-agent";
+import { understandingReasoningEffort,liveUnderstandingReasoningEffort } from "./understanding-agent";
+import { diagramRecipes } from "@clarru/sprig/understanding";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 config({ path: resolve(root, ".env"), quiet: true });
 const port = Number(process.env.CANVAS_PORT ?? 5191);
@@ -65,7 +66,10 @@ const server = createServer(async (req, res) => {
         token,
         configured: !!process.env.OPENAI_API_KEY,
         debugProtocol: 1,
-        reasoningEffort: understandingReasoningEffort(),
+        semanticProtocol: 2,
+        documentVersion: 2,
+        sceneRecipes: Object.fromEntries(Object.entries(diagramRecipes).map(([id,recipe])=>[id,recipe.status])),
+        reasoningEffort: understandingReasoningEffort(),liveReasoningEffort:liveUnderstandingReasoningEffort(),
         models: {
           transcription: "gpt-live-transcribe",
           interpretation: /^gpt-[a-z0-9.-]{1,80}$/.test(

@@ -6,7 +6,10 @@ import {
 } from "../server/debug-types";
 import {
   BoardStore,
+  boardDocument,
+  sceneLabel,
   TransactionSchema,
+  validateSemanticDocument,
   type AssistantStatus,
   type AssistantMoment,
 } from "@clarru/sprig";
@@ -44,10 +47,20 @@ export class LiveClient {
     private debug = new DebugStore(),
   ) {}
   private present(status: AssistantStatus) {
-    const story=this.store.getSnapshot().board.story;
+    const board=this.store.getSnapshot().board;
+    const story=board.story;
     const topic=story?.activeTopic ? story.topics[story.activeTopic] : undefined;
+    const scene=board.scenes.find(candidate=>candidate.id===board.activeSceneId);
+    const issues=scene?validateSemanticDocument(boardDocument(board)).filter(issue=>issue.sceneId===scene.id):[];
     const question=topic && Object.values(topic.questions).find(item=>item.blocking);
     if(status.state==='listening' && question) status={state:'clarification',message:question.text};
+    else if(status.state==='working'&&scene){
+      const phase=this.debug.getSnapshot().server.interpretationPhase;
+      const visible=Object.values(scene.nodes).filter(node=>!node.hidden&&node.role!=="note"&&node.role!=="section").length;
+      status={state:'working',message:phase==='review'?`Reviewing ${sceneLabel(scene.kind)}`:`Building ${sceneLabel(scene.kind)} · ${visible} ${scene.kind==='flow'?'stages':'ideas'}`};
+    } else if(status.state==='listening'&&issues.length){
+      status={state:'clarification',message:`${issues.length} connection${issues.length===1?'':'s'} need attention`};
+    }
     if ((this.reconnecting || this.providerRecovering) && status.state !== "error") {
       status = {state:"working",message:"Reconnecting audio… keeping your place."};
     }

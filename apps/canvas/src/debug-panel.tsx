@@ -8,8 +8,8 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { prepareAgentAction } from "@clarru/sprig/agent";
-import { describeUnderstanding } from "@clarru/sprig/understanding";
-import type { BoardStore } from "@clarru/sprig";
+import { describeUnderstanding, validateSemanticDocument } from "@clarru/sprig/understanding";
+import { boardDocument, sceneLabel, type BoardStore } from "@clarru/sprig";
 import { DebugStore, diagnosticHint } from "./debug-store";
 import {
   defaultDebugSettings,
@@ -68,6 +68,7 @@ export function DebugPanel({
   const [settings, setSettings] = useState<DebugSettings>(defaultDebugSettings);
   const [text, setText] = useState("Add a step called Enter email.");
   const [now, setNow] = useState(() => Date.now());
+  const semanticIssues=validateSemanticDocument(boardDocument(b.board));
   useEffect(() => {
     if (!s.running) return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -287,6 +288,7 @@ export function DebugPanel({
           </pre>
         </section>
         <section>
+          {s.server.interpretationPhase&&<p className="debug-small">{s.server.interpretationPhase} pass · {s.server.reasoningEffort} reasoning</p>}
           <h2>
             Model requests{" "}
             <output>
@@ -356,7 +358,10 @@ export function DebugPanel({
             </details>
           ))}
         </section>
-        {s.understanding && <section><h2>Working understanding</h2><pre>{describeUnderstanding(s.understanding)}</pre></section>}
+        <section><h2>Semantic scenes <output>v{b.board.version}</output></h2>
+          {b.board.scenes.length?<ol className="debug-scenes">{[...b.board.scenes].sort((a,c)=>a.order-c.order).map(scene=><li key={scene.id} data-active={scene.id===b.board.activeSceneId||undefined}><strong>{scene.title}</strong><span>{sceneLabel(scene.kind)} · {scene.maturity} · {Object.keys(scene.nodes).length} nodes · {scene.relations.length} relations</span>{semanticIssues.filter(issue=>issue.sceneId===scene.id).map(issue=><small key={`${issue.code}-${issue.nodeIds.join('-')}`}>{issue.code}: {issue.message}</small>)}</li>)}</ol>:<p className="debug-small">No semantic scene yet.</p>}
+        </section>
+        {s.understanding && <section><h2>Compatibility projection</h2><pre>{describeUnderstanding(s.understanding)}</pre></section>}
         <section>
           <h2>Local agent tools</h2>
           <p className="debug-small">{s.agentId ? `Connected editor: ${s.agentId}` : "Agent connection offline. Reload after a server restart."}</p>

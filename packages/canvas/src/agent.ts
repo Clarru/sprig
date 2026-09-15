@@ -1,12 +1,15 @@
 import { adoptManualBoard, selectedConcepts } from "./understanding/manual";
 import { z } from "zod";
-import { applyTransaction, uid, type Board, type Transaction } from "./model";
+import { applyTransaction, boardDocument, uid, type Board, type Transaction } from "./model";
 import { compileScript } from "./foundation/script";
 import { MeaningEventSchema, applyMeaningPatch, emptyStory } from "./understanding/story";
 import { projectStory } from "./understanding/board-projection";
+import { SemanticOperationSchema, applySemanticPatch } from "./semantic-operations";
+import { projectSemanticDocument } from "./semantic-projection";
 export const AgentActionSchema = z.discriminatedUnion("kind", [
   z.object({kind: z.literal("script"), script: z.string().min(1).max(16000)}).strict(),
   z.object({kind: z.literal("meaning"), events: z.array(MeaningEventSchema).min(1).max(30)}).strict(),
+  z.object({kind: z.literal("semantic"), operations: z.array(SemanticOperationSchema).min(1).max(100)}).strict(),
   z.object({kind: z.literal("history"), direction: z.enum(["undo", "redo"])}).strict(),
 ]);
 export type AgentAction = z.infer<typeof AgentActionSchema>;
@@ -25,7 +28,7 @@ export function prepareAgentAction(board: Board, action: AgentAction, selection:
     }
     operations = compiled.transactions.flatMap(tx => tx.operations);
     message = compiled.commands.map(c => c.message).filter(Boolean).at(-1) ?? message;
-  } else {
+  } else if (parsed.kind === "meaning") {
     const adopted = adoptManualBoard(board, board.story ?? emptyStory(), selection);
     const story = applyMeaningPatch(adopted, {id: requestId,
       evidence: {utteranceId: requestId, revision: board.revision, origin: "agent"}, events: parsed.events}, {
@@ -34,6 +37,15 @@ export function prepareAgentAction(board: Board, action: AgentAction, selection:
     const projection = projectStory(board, story, parsed.events);
     operations = [...projection.operations, {type: "remember", story}];
     message = projection.message;
+  } else {
+    const document = applySemanticPatch(boardDocument(board), {
+      id: requestId,
+      source: "ai",
+      operations: parsed.operations,
+    });
+    const fitted = projectSemanticDocument(board, document);
+    operations = [...fitted.projection.operations, {type: "rememberDocument", document:fitted.document}];
+    message = fitted.projection.message;
   }
   if (!operations.length) return {message};
   const transaction: Transaction = {id: requestId, source: "ai", baseRevision: board.revision, operations};

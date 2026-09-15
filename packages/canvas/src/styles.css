@@ -447,3 +447,18 @@
 .cv-example-presence { font-size:10px; color:#888; }
 .cv-example-choices-panel .cv-complete p { color:#777; font-size:12px; line-height:1.6; margin:6px 10px 12px; }
 .cv-scenario.cv-compact { height:780px; }
+
+/* Keep the compact listening companion near the canvas edge. */
+.cv-editor-footer:has(> .cv-listening-control) {
+  bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+/* Example choices and transition containers match the shared editor chrome. */
+.cv-example-choices-panel,.cv-message-choices,.cv-toolbar,.cv-activity-panel{border:2px solid #000;border-radius:0;background:#fff;box-shadow:5px 5px 0 #000;color:#000;backdrop-filter:none}
+.cv-example-choices-heading{color:#000;font-family:'Sprig Mono',ui-monospace,monospace;font-weight:700;text-transform:uppercase}
+.cv-example-choices-heading button{color:#000;border:1px solid #000;border-radius:0;background:#ffd000}
+.cv-example-choices-panel .cv-complete p,.cv-example-presence{color:#333}
+.cv-card-placeholder{border:2px dashed #000;border-radius:0;background:#fff;box-shadow:4px 4px 0 #000}
+.cv-card-placeholder-line{border-radius:0;background:#ffd000}
+.cv-card-placeholder-caption{color:#000}
+.cv-editor-footer:has(.cv-listening-control){z-index:15}

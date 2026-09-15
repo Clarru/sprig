@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-15T13:38:48.416Z",
+  "model": "gpt-5.6-luna",
+  "repetitions": 1,
+  "category": "transition",
+  "cases": 1,
+  "corpusCases": 65,
+  "passRate": 1,
+  "reports": [
+    {
+      "test": "transition_01",
+      "category": "transition",
+      "repetition": 0,
+      "passed": true,
+      "checks": {
+        "requiredLabels": true,
+        "requiredKinds": true,
+        "requiredOrder": true,
+        "graphValid": true
+      },
+      "labels": [
+        "Difficult meetings",
+        "Explanations move faster",
+        "Live visual companion",
+        "Choose date",
+        "Choose time",
+        "Confirm booking"
+      ],
+      "kinds": [
+        "story",
+        "flow"
+      ],
+      "issues": [],
+      "metrics": [
+        {
+          "firstEventMs": 5523,
+          "totalMs": 7321,
+          "phase": "review"
+        },
+        {
+          "firstEventMs": 3401,
+          "totalMs": 5166,
+          "phase": "review"
+        }
+      ]
+    }
+  ]
+}

@@ -7,12 +7,16 @@ import {
   type Board,
   type Operation,
 } from "./model";
+import {boardDocument} from './model';
+import {applySemanticPatch,type SemanticOperation} from './semantic-operations';
+import {projectSemanticDocument} from './semantic-projection';
 export interface ScenarioChoice {
   id: string;
   text: string;
   message: string;
   state?: AssistantState;
   operations: Operation[];
+  semantic?: SemanticOperation[];
   next: string | null;
   undo?: boolean;
 }
@@ -72,6 +76,42 @@ const step = (
 const steps = (items: ScenarioStep[]) =>
   Object.fromEntries(items.map((s) => [s.id, s]));
 export const scenarios: Scenario[] = [
+  {
+    id:"semantic-scenes",number:"00",title:"A conversation becomes scenes.",subtitle:"See semantic scenes",description:"Start with a product story, then move into a connected onboarding flow with a real retry.",
+    initial:emptyBoard("Semantic scenes"),start:"story",
+    steps:steps([
+      step("story","Begin with the tension behind the product.",choice("story","When I present on a blank canvas, I have to draw, explain, and watch the room at the same time.","Starting a Story scene around the meeting tension.",[],"tradeoff",{semantic:[
+        {type:"openScene",id:"why-sprig",title:"Why Sprig",kind:"story",transition:"initial",confidence:1},
+        {type:"upsertNode",sceneId:"why-sprig",node:{id:"tension",label:"Meeting tension",role:"section"}},
+        ...["draw","explain","observe"].map((id,index)=>({type:"upsertNode" as const,sceneId:"why-sprig",node:{id,label:["Draw the idea","Explain clearly","Watch reactions"][index],role:"action" as const}})),
+        {type:"setGroup",sceneId:"why-sprig",parentId:"tension",childIds:["draw","explain","observe"]},
+        {type:"setParallel",sceneId:"why-sprig",ids:["draw","explain","observe"]},
+      ]})),
+      step("tradeoff","Keep both costs visible.",choice("tradeoff","Move quickly and the drawing needs cleanup. Slow down and everyone waits.","Pairing the two costs without inventing a false sequence.",[],"mechanism",{semantic:[
+        {type:"upsertNode",sceneId:"why-sprig",node:{id:"tradeoff",label:"The trade-off",role:"section"}},
+        {type:"upsertNode",sceneId:"why-sprig",node:{id:"cleanup",label:"Cleanup afterward",role:"option",outcome:"failure"}},
+        {type:"upsertNode",sceneId:"why-sprig",node:{id:"waiting",label:"Everyone waits",role:"option",outcome:"failure"}},
+        {type:"setGroup",sceneId:"why-sprig",parentId:"tradeoff",childIds:["cleanup","waiting"]},
+        {type:"connect",sceneId:"why-sprig",from:"cleanup",to:"waiting",kind:"alternative",label:"or"},
+      ]})),
+      step("mechanism","Explain what Sprig contributes.",choice("mechanism","Sprig transcribes the conversation, sketches live, and reviews the meaning without stopping me.","Adding the live and review passes to the Story.",[],"flow",{semantic:[
+        {type:"upsertNode",sceneId:"why-sprig",node:{id:"sprig",label:"Sprig",role:"section"}},
+        ...[["transcribe","Transcribe speech"],["sketch","Sketch live"],["review","Review meaning"]].map(([id,label])=>({type:"upsertNode" as const,sceneId:"why-sprig",node:{id,label,role:"action" as const}})),
+        {type:"setGroup",sceneId:"why-sprig",parentId:"sprig",childIds:["transcribe","sketch","review"]},
+        {type:"setPath",sceneId:"why-sprig",ids:["transcribe","sketch","review"]},
+        {type:"setSceneMaturity",sceneId:"why-sprig",maturity:"stable"},
+      ]})),
+      step("flow","Change subject and diagram grammar.",choice("flow","Now another flow: welcome, email verification, phone verification, AML questions, then ID and selfie. If the ID is blurry, retake it.","Opening a separate Flow scene with a connected retry.",[],null,{semantic:[
+        {type:"openScene",id:"fintech-onboarding",title:"Fintech onboarding",kind:"flow",transition:"explicit",confidence:1},
+        ...[["welcome","Welcome","start"],["email","Enter email","screen"],["email-otp","Verify email OTP","action"],["phone","Enter phone","screen"],["phone-otp","Verify phone OTP","action"],["aml","Answer AML questions","action"],["id","Capture ID","action"],["selfie","Record selfie","action"],["clear","ID clear?","decision"],["retake","Retake ID","action"],["complete","Onboarding complete","end"]].map(([id,label,role])=>({type:"upsertNode" as const,sceneId:"fintech-onboarding",node:{id,label,role:role as "start"|"end"|"action"|"screen"|"decision"}})),
+        {type:"setPath",sceneId:"fintech-onboarding",ids:["welcome","email","email-otp","phone","phone-otp","aml","id","selfie","clear"]},
+        {type:"connect",sceneId:"fintech-onboarding",from:"clear",to:"complete",kind:"branch",label:"Clear",outcome:"success"},
+        {type:"setRetry",sceneId:"fintech-onboarding",conditionId:"clear",targetId:"id",recoveryId:"retake",label:"Blurry"},
+        {type:"setSceneMaturity",sceneId:"fintech-onboarding",maturity:"stable"},
+        {type:"focusScene",sceneId:"fintech-onboarding"},
+      ]})),
+    ]),
+  },
   {
     id: "feature",
     number: "01",
@@ -467,7 +507,11 @@ export function replayScenario(
       if (previous) board = { ...previous, revision: board.revision + 1 };
     } else {
       history.push(board);
-      board = applyTransaction(board, {
+      if(c.semantic?.length){
+        const document=applySemanticPatch(boardDocument(board),{id:`scenario_semantic_${index}`,source:"ai",operations:c.semantic});
+        const result=projectSemanticDocument(board,document);
+        board=applyTransaction(board,{id:`scenario_semantic_tx_${index}`,baseRevision:board.revision,source:"scenario",operations:[...result.projection.operations,{type:"rememberDocument",document:result.document}]});
+      }else board = applyTransaction(board, {
         id: `scenario_${index}_${selected}`,
         baseRevision: board.revision,
         source: "scenario",

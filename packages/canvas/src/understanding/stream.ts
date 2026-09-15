@@ -1,4 +1,8 @@
 import { MeaningEventSchema, type MeaningEvent } from "./story";
+import { SemanticOperationSchema, type SemanticOperation } from "../semantic-operations";
+import { z } from "zod";
+export const UnderstandingEventSchema = z.union([SemanticOperationSchema, MeaningEventSchema]);
+export type UnderstandingEvent = SemanticOperation | MeaningEvent;
 /** Extract complete events from one streamed tool call. No partial object is executed. */
 export class MeaningStream {
   private buffer = "";
@@ -9,11 +13,11 @@ export class MeaningStream {
   private quoted = false;
   private escaped = false;
   private ended = false;
-  push(delta: string): MeaningEvent[] {
+  push(delta: string): UnderstandingEvent[] {
     this.buffer += delta;
     if (this.buffer.length > 32000)
       throw new Error("Understanding response is too large");
-    const events: MeaningEvent[] = [];
+    const events: UnderstandingEvent[] = [];
     if (this.arrayStart < 0) {
       const match = /"events"\s*:\s*\[/.exec(this.buffer);
       if (!match) return events;
@@ -40,7 +44,7 @@ export class MeaningStream {
         if (this.depth < 0) throw new Error("Malformed understanding response");
         if (this.depth === 0 && this.objectStart >= 0) {
           events.push(
-            MeaningEventSchema.parse(
+            UnderstandingEventSchema.parse(
               JSON.parse(this.buffer.slice(this.objectStart, this.cursor + 1)),
             ),
           );

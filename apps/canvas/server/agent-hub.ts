@@ -30,7 +30,7 @@ export class AgentHub {
   }
   update(id: string, context: Context) {const peer = this.get(id); peer.context = ContextSchema.parse(context);}
   private get(id: string) {const peer = this.peers.get(id); if (!peer) throw new AgentError(404, "Editor not connected. Open the standalone canvas first."); return peer;}
-  list() {return [...this.peers].map(([id,p]) => ({id, title:p.context.board.title, revision:p.context.board.revision, blocks:p.context.board.blocks.length, editing:p.context.editing}));}
+  list() {return [...this.peers].map(([id,p]) => ({id, title:p.context.board.title, version:p.context.board.version, revision:p.context.board.revision, scenes:p.context.board.scenes.length, activeSceneId:p.context.board.activeSceneId, blocks:p.context.board.blocks.length, editing:p.context.editing}));}
   read(id: string) {const {context} = this.get(id); return {...context, summary:describeBoard(context.board,context.selection)};}
   acknowledge(id: string, requestId: string, applied: boolean, context: Context, error?: string) {
     const peer = this.get(id); this.update(id, context);

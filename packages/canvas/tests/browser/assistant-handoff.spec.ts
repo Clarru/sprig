@@ -1,6 +1,6 @@
 import {expect,test,type WebSocketRoute} from '@playwright/test';
 import {makeBlock,type Board} from '../../src/model';
-test('streamed assistant edits respect a manual drag and undo in the actual editor',async({page})=>{
+test('streamed assistant edits respect a manual drag and undo in the actual editor',async({page},testInfo)=>{
  await page.route('**/api/bootstrap',r=>r.fulfill({json:{token:'test-token',configured:true,debugProtocol:1,models:{transcription:'test',interpretation:'test'}}}));
  await page.routeWebSocket('**/api/control?*',socket=>socket.onMessage(raw=>{const m=JSON.parse(String(raw));if(m.type==='register')socket.send(JSON.stringify({type:'registered',id:'test-editor'}));}));
  let socket:WebSocketRoute|null=null;let context:{board:Board;editing:boolean;historyEpoch:number}|null=null;
@@ -37,24 +37,32 @@ test('streamed assistant edits respect a manual drag and undo in the actual edit
  const epoch=context!.historyEpoch;await page.locator('.excalidraw').press('ControlOrMeta+z');
  await expect(page.locator('[data-board-object="welcome"]')).toContainText('Welcome');
  await expect.poll(()=>context!.historyEpoch).toBeGreaterThan(epoch);
- // A muted speech update must never expose the native label behind its surface.
+ // Native paint owns muted and rotated text; the decoration layer must never duplicate it.
  send('muted',context!.board.revision,[{type:'update',id:'welcome',patch:{muted:true,label:'View festival set times',detail:'Festival attendees view scheduled performance set times in the calendar.'}}]);
  const surface=page.locator('[data-material-card="welcome"]');
- await expect(surface).toContainText('View festival set times');
- await expect(surface.locator('.cv-material-content')).toHaveCSS('opacity','0.45');
+ await expect(page.locator('[data-board-object="welcome"]')).toContainText('View festival set times');
+ await expect(surface.locator('.cv-native-shadow')).toHaveCSS('opacity','0.45');await expect(page.locator('.cv-material-layer .cv-block')).toHaveCount(0);
  const paintedBefore=await surface.screenshot({animations:'disabled'});
  const native=page.locator('canvas.excalidraw__canvas.static');
  await expect(native).toHaveCount(1);
  await native.evaluate(canvas=>{canvas.style.visibility='hidden';});
  const paintedWithoutNative=await surface.screenshot({animations:'disabled'});
- expect(paintedBefore.equals(paintedWithoutNative)).toBe(true);
+ await testInfo.attach('paint-with-native',{body:paintedBefore,contentType:'image/png'});
+ await testInfo.attach('decoration-without-native',{body:paintedWithoutNative,contentType:'image/png'});
+ const difference=await page.evaluate(async([a,b])=>{
+  const load=async base64=>{const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d')!;ctx.drawImage(img,0,0);return {pixels:ctx.getImageData(0,0,c.width,c.height).data,w:c.width,h:c.height};};
+  const l=await load(a),r=await load(b);let max=0,interior=0,count=0;
+  for(let i=0;i<l.pixels.length;i++){const delta=Math.abs(l.pixels[i]-r.pixels[i]),x=Math.floor(i/4)%l.w,y=Math.floor(i/4/l.w);max=Math.max(max,delta);if(x>8&&x<l.w-8&&y>8&&y<l.h-8)interior=Math.max(interior,delta);if(delta>2)count++;}return {max,interior,count};
+ },[paintedBefore.toString('base64'),paintedWithoutNative.toString('base64')]);
+ console.log('Native paint contribution',difference);
+ expect(difference.interior).toBeGreaterThan(2);
  await native.evaluate(canvas=>{canvas.style.visibility='';});
  send('rotated',context!.board.revision,[{type:'update',id:'welcome',patch:{angle:0.15,label:'Festival set-time calendar screen',height:300}}]);
- await expect(surface).toContainText('Festival set-time calendar screen');
+ await expect(page.locator('[data-board-object="welcome"]')).toContainText('Festival set-time calendar screen');
  const rotated=await surface.screenshot({animations:'disabled'});
  await native.evaluate(canvas=>{canvas.style.visibility='hidden';});
  const rotatedWithoutNative=await surface.screenshot({animations:'disabled'});
- // Rotation can change edge antialiasing by one channel value; duplicated text is much darker.
+ // Hiding native paint must remove the rotated fill/text, leaving only decoration.
  const largestDifference=await page.evaluate(async ([a,b])=>{
   const pixels=async (base64:string)=>{
    const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();
@@ -64,6 +72,6 @@ test('streamed assistant edits respect a manual drag and undo in the actual edit
   const [left,right]=await Promise.all([pixels(a),pixels(b)]);
   return left.reduce((max,value,i)=>Math.max(max,Math.abs(value-right[i])),0);
  },[rotated.toString('base64'),rotatedWithoutNative.toString('base64')]);
- expect(largestDifference).toBeLessThanOrEqual(1);
+ expect(largestDifference).toBeGreaterThan(2);
  await native.evaluate(canvas=>{canvas.style.visibility='';});
 });

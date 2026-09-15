@@ -1,0 +1,23 @@
+import {expect,test} from '@playwright/test';
+test('native palettes and stroke controls restyle cards without losing manual choices',async({page,request})=>{
+ await page.goto('/');const connected=page.getByText(/^Connected editor:/);await expect(connected).toBeVisible();const id=(await connected.innerText()).split(': ').at(-1)!;
+ const {token}=await(await request.get('/api/bootstrap')).json();const headers={Authorization:`Bearer ${token}`},endpoint=`/api/agent/boards/${id}`;
+ await page.getByRole('button',{name:'Close debug panel'}).click();
+ const response=await request.post(endpoint+'/actions',{headers,data:{requestId:'control-style',baseRevision:0,action:{kind:'meaning',events:[{type:'topic',id:'controls',label:'Control test'},{type:'concept',id:'step',role:'step',label:'Adjust this step'}]}}});expect(response.ok()).toBe(true);
+ const nativeShape=async()=>(await(await request.get(endpoint,{headers})).json()).board.native?.elements.find((e:any)=>e.id==='controls__step');
+ const card=page.locator('[data-material-card="controls__step"]');await expect(card).toBeVisible();const box=(await card.boundingBox())!;await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+ const panel=page.locator('.Island.App-menu__left');await expect(panel).toHaveCSS('border-top-width','2px');await expect(panel).toHaveCSS('box-shadow','rgb(0, 0, 0) 5px 5px 0px 0px');
+ await page.getByRole('button',{name:'Background',exact:true}).click();const field=page.locator('.color-picker-input');await expect(field).toBeVisible();await field.fill('b5ff2c');await field.press('Enter');if(await field.isVisible())await field.press('Escape');
+ await expect.poll(async()=>(await nativeShape())?.backgroundColor).toBe('#b5ff2c');
+ await expect.poll(async()=>{const b=(await(await request.get(endpoint,{headers})).json()).board;return b.blocks.find((n:any)=>n.id==='controls__step')?.backgroundColor}).toBe('#b5ff2c');
+ await page.getByRole('button',{name:'Stroke',exact:true}).click();await field.fill('ff006f');await field.press('Enter');if(await field.isVisible())await field.press('Escape');await expect.poll(async()=>(await nativeShape())?.strokeColor).toBe('#ff006f');
+ await page.locator('input[name="stroke-width"]').nth(2).locator('..').click();await expect.poll(async()=>(await nativeShape())?.strokeWidth).toBe(4);
+ await expect.poll(async()=>{const b=(await(await request.get(endpoint,{headers})).json()).board;return b.blocks.find((n:any)=>n.id==='controls__step')?.backgroundColor}).toBe('#b5ff2c');
+ await expect.poll(async()=>{const b=(await(await request.get(endpoint,{headers})).json()).board;return b.native?.elements.find((n:any)=>n.id==='controls__step')?.strokeWidth}).toBe(4);
+ const board=(await(await request.get(endpoint,{headers})).json()).board;
+ const update=await request.post(endpoint+'/actions',{headers,data:{requestId:'control-rename',baseRevision:board.revision,action:{kind:'script',script:'rename controls__step "The style stays chosen"'}}});expect(update.ok(),(await update.json()).error).toBe(true);
+ await expect(page.locator('[data-board-object="controls__step"]')).toContainText('The style stays chosen');await expect.poll(async()=>(await nativeShape())?.backgroundColor).toBe('#b5ff2c');await expect.poll(async()=>(await nativeShape())?.strokeColor).toBe('#ff006f');await expect.poll(async()=>(await nativeShape())?.strokeWidth).toBe(4);
+ await page.getByRole('button',{name:'Background',exact:true}).click();await page.screenshot({path:'.impeccable/review/neo/controls-palette-desktop.png',fullPage:true});await field.press('Escape');
+ await page.getByRole('button',{name:'Open canvas tools'}).click();await page.screenshot({path:'.impeccable/review/neo/controls-menu-desktop.png',fullPage:true});await page.getByRole('button',{name:'Open canvas tools'}).click();
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.impeccable/review/neo/controls-mobile.png',fullPage:true});
+});

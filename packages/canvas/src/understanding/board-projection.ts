@@ -1,3 +1,4 @@
+import {diagramCardHeight} from '../card-material';
 import {
   applyTransaction,
   makeBlock,
@@ -6,6 +7,7 @@ import {
   type Edge,
   type Operation,
 } from "../model";
+import {flowLayout,usesFlowLayout} from "./flow-layout";
 import { presentationLayout } from "./presentation-layout";
 import { type MeaningEvent, type StoryState } from "./story";
 import {
@@ -33,16 +35,12 @@ const shapeKind = (item: SketchItem): Block["kind"] =>
         : item.form === "note"
           ? "note"
           : "step";
-const size = (item: SketchItem) =>
-  item.form === "section" ? {width:444,height:160} : item.form === "claim" ? {width:396,height:132} : item.form === "screen"
-    ? { width: 180, height: 300 }
-    : item.form === "lane"
-      ? { width: 320, height: 480 }
-      : item.form === "decision"
-        ? { width: 200, height: 150 }
-        : item.form === "note"
-          ? { width: 220, height: 150 }
-          : { width: 220, height: 110 };
+const size = (item: SketchItem) => {
+  if(item.form==='section')return {width:512,height:160};
+  if(item.form==='lane')return {width:320,height:480};
+  const width=item.form==='claim'?464:260;
+  return {width,height:diagramCardHeight(width,item.label,item.detail,item.certainty!=='stated',item.form==='decision')};
+};
 export interface StoryProjection {
   operations: Operation[];
   plan: SketchPlan;
@@ -106,6 +104,8 @@ export function projectStory(
     .map((b) => b.id);
   if (retired.length) emit({ type: "remove", ids: retired });
   const origin = (scene: SketchScene) => {
+    const semanticScene = working.scenes.find((candidate) => candidate.id === scene.id);
+    if (semanticScene && !semanticScene.frame.geometryLocked) return semanticScene.frame.position;
     const own = working.blocks.filter(
       (b) => b.storyTopic === scene.id && !b.parentId,
     );
@@ -203,7 +203,7 @@ export function projectStory(
         outcome: item.outcome ?? "neutral",
         storyTopic: item.topicId,
         storyConcept: item.conceptId,
-        ...(!item.sourceBlockId && item.form === "claim" ? {fontSize:existing?.fontSize ?? 16} : {}),
+        ...(!item.sourceBlockId && item.form === "claim" ? {fontSize:existing?.fontSize ?? (scene.recipe==="presentation"?20:14)} : {}),
       };
       if (existing) {
         update(existing, attributes);
@@ -253,8 +253,8 @@ export function projectStory(
     }
     // Explicit reordering moves the affected sequence, while mere mentions/renames preserve hand placement.
     if (
-      events.some((e) => e.type === "place" || e.type === "next" || (e.type === "relation" && e.kind === "next")) &&
-      story.activeTopic === scene.id && scene.recipe !== "presentation"
+      events.some((e) => e.type === "sequence" || e.type === "place" || e.type === "next" || (e.type === "relation" && e.kind === "next")) &&
+      story.activeTopic === scene.id && scene.recipe !== "presentation" && !usesFlowLayout(scene)
     ) {
       const links = scene.links.filter((l) => l.kind === "next");
       const ids = new Set(links.flatMap((l) => [l.from, l.to]));
@@ -294,7 +294,7 @@ export function projectStory(
     }
     // Branch geometry belongs to the sketch policy. Move only positions still owned by the assistant.
     const branchSources = new Set(scene.links.filter(l => l.kind === "branch").map(l => l.from));
-    for (const sourceId of branchSources) {
+    for (const sourceId of usesFlowLayout(scene)?[]:branchSources) {
       const source = working.blocks.find(b => b.id === bindings[sourceId]);
       if (!source) continue;
       let offset = 0;
@@ -320,7 +320,15 @@ export function projectStory(
         offset = vertical ? position.x - source.position.x + target.width + 80 : position.y - source.position.y + target.height + 80;
       }
     }
-    if(scene.recipe === "presentation") for(const operation of presentationLayout(working,scene,bindings)) emit(operation);
+    if(scene.recipe === "sequence"||scene.recipe === "screen_flow") for(const operation of flowLayout(working,scene,bindings,anchor)) emit(operation);
+    if(scene.recipe === "presentation") for(const operation of presentationLayout(working,scene,bindings,anchor)) emit(operation);
+    const semanticScene=working.scenes.find(candidate=>candidate.id===scene.id);
+    if(semanticScene&&semanticScene.kind!=="story")for(const item of scene.items.filter(item=>!item.parent)){
+      const node=semanticScene.nodes[item.conceptId],block=working.blocks.find(candidate=>candidate.id===bindings[item.id]);
+      if(!node?.position||node.locks.geometry||!block?.autoPosition||fingerprint(block.position)!==fingerprint(block.autoPosition))continue;
+      const position={x:semanticScene.frame.position.x+node.position.x,y:semanticScene.frame.position.y+node.position.y};
+      update(block,{position,autoPosition:position,...(node.size?{width:node.size.width,height:node.size.height,autoSize:node.size}:{})});
+    }
     for (const frame of working.blocks.filter(
       (b) => b.kind === "group" && b.storyTopic === scene.id && scene.recipe !== "presentation",
     )) {
@@ -337,6 +345,19 @@ export function projectStory(
           ),
         });
     }
+  }
+  // A later sequence correction can move a card into an older annotation.
+  // Resolve the final composed geometry, leaving manual placement untouched.
+  const cards=working.blocks.filter(b=>!b.parentId);
+  const automatic=(b:Block)=>!!b.autoPosition&&fingerprint(b.position)===fingerprint(b.autoPosition)&&(!b.autoSize||(b.width===b.autoSize.width&&b.height===b.autoSize.height));
+  const occupied=cards.filter(b=>!automatic(b));
+  for(const card of cards.filter(automatic)){
+    const position={...card.position};
+    for(let attempt=0;attempt<=occupied.length;attempt++){
+      const other=occupied.find(b=>b.parentId===card.parentId&&position.x<b.position.x+b.width+24&&position.x+card.width+24>b.position.x&&position.y<b.position.y+b.height+24&&position.y+card.height+24>b.position.y);
+      if(!other)break;position.y=other.position.y+other.height+(other.kind==='group'||card.kind==='group'?72:32);
+    }
+    update(card,{position,autoPosition:position});occupied.push({...card,position});
   }
   const desiredLinks = plan.scenes
     .flatMap((s) => s.links)
