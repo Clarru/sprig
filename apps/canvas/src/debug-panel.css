@@ -284,3 +284,23 @@
 }
 
 .debug-toggle { top: auto; bottom: 20px; }
+
+/* Diagnostic sections remain functional, with the same high-contrast containers. */
+.canvas-debug{border-left:2px solid #000;color:#000;background:#fff}
+.canvas-debug header{border-bottom:2px solid #000;background:#ffd000}
+.canvas-debug header strong,.canvas-debug h2{font-family:'Sprig Mono',ui-monospace,monospace;font-weight:700;text-transform:uppercase}
+.canvas-debug section{border-bottom:1px solid #000}
+.debug-diagnosis{background:#fff;border:2px solid #000;border-radius:0;box-shadow:3px 3px 0 #000}
+.debug-diagnosis[data-error="true"],.debug-warning{background:#fc702c;color:#000;border-color:#000;border-radius:0}
+.debug-row>span:first-child,.debug-small,.canvas-debug output,.canvas-debug label,.debug-log time,.debug-log span{color:#444}
+.debug-row [data-good="true"]{color:#245700;font-weight:700}
+.debug-meter{border:1px solid #000;border-radius:0;background:#fff}
+.debug-meter>span{background:#b5ff2c}.debug-meter>i{background:#000}
+.canvas-debug select,.canvas-debug textarea{border:1px solid #000;border-radius:0;color:#000;background:#fff}
+.canvas-debug input[type="range"]{accent-color:#000}
+.debug-toggle{border:2px solid #000;border-radius:0;color:#000;background:#fff;box-shadow:3px 3px 0 #000}
+.debug-toggle:hover{background:#ffd000}
+@media(max-width:700px){.canvas-debug{box-shadow:-5px 0 0 #000}}
+@media(max-width:700px){.debug-toggle{bottom:calc(108px + env(safe-area-inset-bottom));right:12px}}
+.canvas-local:has(.cv-native-editor[data-presenting="true"]) .canvas-debug,.local-workspace:has(.cv-native-editor[data-presenting="true"]) .debug-toggle{display:none}
+.debug-scenes{display:grid;gap:7px;margin:8px 0 0;padding:0;list-style:none}.debug-scenes li{display:grid;gap:2px;padding:8px;border:1px solid #000;background:#fff}.debug-scenes li[data-active="true"]{background:#b5ff2c}.debug-scenes li strong{font:700 10px 'Sprig Mono',monospace;text-transform:uppercase}.debug-scenes li span,.debug-scenes li small{font-size:9px;line-height:1.35}.debug-scenes li small{color:#7a2600}

@@ -1,6 +1,6 @@
 {
   "name": "@clarru/sprig",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "license": "MIT",
   "exports": {
@@ -13,6 +13,7 @@
     "./understanding": "./src/understanding/index.ts",
     "./script": "./src/foundation/script.ts",
     "./projection": "./src/understanding/board-projection.ts",
+    "./semantic-projection": "./src/semantic-projection.ts",
     "./agent": "./src/agent.ts",
     "./icon.svg": "./src/sprig-icon.svg"
   },
@@ -32,6 +33,7 @@
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.1",
     "@phosphor-icons/react": "^2.1.10",
+    "elkjs": "^0.11.0",
     "motion": "^13.1.1",
     "zod": "^4.0.0"
   }

@@ -1,5 +1,16 @@
 import { z } from "zod";
 import { StoryStateSchema, OutcomeSchema } from "./understanding/story";
+import {
+  BoardDocumentV2Schema,
+  NativeCacheSchema,
+  SemanticSceneSchema,
+  TranscriptSegmentSchema,
+  documentFromStory,
+  scenesFromStory,
+  storyFromScenes,
+  type BoardDocumentV2,
+  type LegacyBlockLike,
+} from "./semantic-v2";
 
 export const AssistantStateSchema = z.enum([
   "idle",
@@ -87,25 +98,66 @@ export const EdgeSchema = z
   })
   .strict();
 export type Edge = z.infer<typeof EdgeSchema>;
-export const NativeSceneSchema = z
-  .object({
-    elements: z.array(z.record(z.string(), z.unknown())).max(5000),
-    files: z.record(z.string(), z.unknown()),
-  })
-  .strict();
+export const NativeSceneSchema = NativeCacheSchema;
 export type NativeScene = z.infer<typeof NativeSceneSchema>;
-export const BoardSchema = z
+const documentId = (title: string) => {
+  let hash = 2166136261;
+  for (const character of title) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  return `board_${(hash >>> 0).toString(36)}`;
+};
+const migrateRuntimeBoard = (input: unknown) => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input;
+  const raw = input as Record<string, unknown>;
+  const blocks = Array.isArray(raw.blocks) ? raw.blocks : [];
+  const story = StoryStateSchema.safeParse(raw.story);
+  const title = typeof raw.title === "string" ? raw.title : "Untitled thought";
+  const scenes = Array.isArray(raw.scenes)
+    ? raw.scenes
+    : story.success
+      ? scenesFromStory(story.data, blocks as unknown as LegacyBlockLike[])
+      : [];
+  const native = NativeSceneSchema.safeParse(raw.native);
+  return {
+    ...raw,
+    version: 2,
+    documentId: typeof raw.documentId === "string" ? raw.documentId : documentId(title),
+    scenes,
+    ...(typeof raw.activeSceneId === "string"
+      ? { activeSceneId: raw.activeSceneId }
+      : story.success && story.data.activeTopic
+        ? { activeSceneId: story.data.activeTopic }
+        : {}),
+    transcript: Array.isArray(raw.transcript) ? raw.transcript : [],
+    elements: Array.isArray(raw.elements) ? raw.elements : [],
+    semanticPatches: Array.isArray(raw.semanticPatches) ? raw.semanticPatches : [],
+    ...(raw.nativeCache ? { nativeCache: raw.nativeCache } : native.success ? { nativeCache: native.data } : {}),
+    createdAt: typeof raw.createdAt === "number" ? raw.createdAt : 0,
+    updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
+  };
+};
+const BoardRuntimeSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(2),
+    documentId: id,
     revision: z.number().int().nonnegative(),
     title: z.string().max(200),
+    activeSceneId: id.optional(),
+    scenes: z.array(SemanticSceneSchema).max(60),
+    transcript: z.array(TranscriptSegmentSchema).max(160),
+    elements: z.array(z.record(z.string(), z.unknown())).max(5000),
+    nativeCache: NativeSceneSchema.optional(),
+    semanticPatches: z.array(id).max(200),
+    createdAt: z.number().int().nonnegative(),
+    updatedAt: z.number().int().nonnegative(),
     focus: id.optional(),
     native: NativeSceneSchema.optional(),
     story: StoryStateSchema.optional(),
     blocks: z.array(BlockSchema).max(300),
     edges: z.array(EdgeSchema).max(600),
   })
-  .strict()
+  .strict();
+export const BoardSchema = z
+  .preprocess(migrateRuntimeBoard, BoardRuntimeSchema)
   .superRefine((b, ctx) => {
     if (new TextEncoder().encode(JSON.stringify(b)).length > 12000000)
       ctx.addIssue({
@@ -167,6 +219,8 @@ const patch = z
 export const OperationSchema = z.discriminatedUnion("type", [
   z.object({type: z.literal("drawing"), native: NativeSceneSchema, blocks: z.array(BlockSchema).max(300), edges: z.array(EdgeSchema).max(600)}).strict(),
   z.object({ type: z.literal("remember"), story: StoryStateSchema }).strict(),
+  z.object({ type: z.literal("rememberDocument"), document: BoardDocumentV2Schema }).strict(),
+  z.object({ type: z.literal("transcript"), segment: TranscriptSegmentSchema }).strict(),
   z.object({ type: z.literal("focus"), id: id.nullable() }).strict(),
   z
     .object({
@@ -217,7 +271,24 @@ export const InterpretationSchema = z
   .strict();
 export type Interpretation = z.infer<typeof InterpretationSchema>;
 export function emptyBoard(title = "Untitled thought"): Board {
-  return { version: 1, revision: 0, title, blocks: [], edges: [] };
+  const now = Date.now();
+  return BoardSchema.parse({
+    version: 2,
+    documentId: documentId(title),
+    revision: 0,
+    title,
+    scenes: [],
+    transcript: [],
+    elements: [],
+    semanticPatches: [],
+    createdAt: now,
+    updatedAt: now,
+    blocks: [],
+    edges: [],
+  });
+}
+export function createBoard(title = "Untitled thought"): Board {
+  return BoardSchema.parse({ ...emptyBoard(title), documentId: uid("board"), createdAt: Date.now(), updatedAt: Date.now() });
 }
 export function uid(prefix = "block"): string {
   return `${prefix}_${globalThis.crypto.randomUUID().replaceAll("-", "")}`;
@@ -280,11 +351,44 @@ export function applyTransaction(current: Board, raw: Transaction): Board {
     switch (op.type) {
       case "drawing":
         board.native = op.native;
+        board.nativeCache = op.native;
         board.blocks = op.blocks;
         board.edges = op.edges;
+        {
+          const semanticIds = new Set([
+            ...op.blocks.filter((block) => block.storyTopic && block.storyConcept).map((block) => block.id),
+            ...op.edges.filter((edge) => edge.storyRelationId).map((edge) => edge.id),
+          ]);
+          board.elements = op.native.elements.filter((element) => {
+            const elementId = typeof element.id === "string" ? element.id : "";
+            const containerId = typeof element.containerId === "string" ? element.containerId : "";
+            return !semanticIds.has(elementId) && !semanticIds.has(containerId);
+          });
+        }
         break;
       case "remember":
         board.story = op.story;
+        board.scenes = scenesFromStory(op.story, board.blocks);
+        board.activeSceneId = op.story.activeTopic ?? undefined;
+        break;
+      case "rememberDocument":
+        board.scenes = op.document.scenes;
+        board.activeSceneId = op.document.activeSceneId;
+        board.transcript = op.document.transcript;
+        board.elements = op.document.elements;
+        board.semanticPatches = op.document.appliedPatches;
+        board.story = storyFromScenes(op.document.scenes, op.document.activeSceneId);
+        break;
+      case "transcript":
+        board.transcript = [
+          ...board.transcript.filter((segment) => segment.id !== op.segment.id),
+          op.segment,
+        ].slice(-160);
+        for (const scene of board.scenes) {
+          scene.transcript = board.transcript
+            .filter((segment) => segment.sceneId === scene.id)
+            .map((segment) => segment.id);
+        }
         break;
       case "focus":
         if (op.id === null) delete board.focus;
@@ -367,12 +471,82 @@ export function applyTransaction(current: Board, raw: Transaction): Board {
     (a, b) => Number(b.kind === "group") - Number(a.kind === "group"),
   );
   board.revision = current.revision + 1;
+  board.updatedAt = current.updatedAt + 1;
   return BoardSchema.parse(board);
 }
 export function parseBoard(text: string): Board {
   if (text.length > 12000000)
     throw new Error("Board exceeds the 12 MB import limit");
   return BoardSchema.parse(JSON.parse(text));
+}
+
+export function boardDocument(board: Board, includeTranscript = true): BoardDocumentV2 {
+  return BoardDocumentV2Schema.parse({
+    version: 2,
+    id: board.documentId,
+    title: board.title,
+    revision: board.revision,
+    ...(board.activeSceneId ? { activeSceneId: board.activeSceneId } : {}),
+    scenes: board.scenes,
+    transcript: includeTranscript ? board.transcript : [],
+    elements: board.elements,
+    ...(board.nativeCache || board.native ? { nativeCache: board.nativeCache ?? board.native } : {}),
+    projectionCache: { blocks: board.blocks, edges: board.edges },
+    createdAt: board.createdAt,
+    appliedPatches: board.semanticPatches,
+    updatedAt: board.updatedAt,
+  });
+}
+
+export function syncSemanticDocument(board: Board): Board {
+  if (!board.story) return board;
+  const document = documentFromStory({
+    id: board.documentId,
+    title: board.title,
+    revision: board.revision,
+    story: board.story,
+    blocks: board.blocks,
+    transcript: board.transcript,
+    native: board.native,
+    projectionCache: { blocks: board.blocks, edges: board.edges },
+    createdAt: board.createdAt,
+    appliedPatches: board.semanticPatches,
+  });
+  const scenes = document.scenes.map((generated) => {
+    const existing = board.scenes.find((scene) => scene.id === generated.id);
+    if (!existing) return generated;
+    const nodes = Object.fromEntries(Object.entries(generated.nodes).map(([id, node]) => {
+      const previous = existing.nodes[id];
+      return [id, previous ? {
+        ...node,
+        origin: previous.origin,
+        ownership: previous.ownership,
+        locks: previous.locks,
+        evidence: [...new Set([...previous.evidence, ...node.evidence])].slice(-160),
+        ...(previous.style ? { style: previous.style } : {}),
+      } : node];
+    }));
+    return {
+      ...generated,
+      kindLocked: existing.kindLocked,
+      maturity: existing.maturity,
+      frame: existing.frame,
+      layoutRevision: Math.max(existing.layoutRevision, generated.layoutRevision),
+      nodes,
+      relations: generated.relations.map((relation) => {
+        const previous = existing.relations.find((candidate) => candidate.id === relation.id);
+        return previous ? { ...relation, origin: previous.origin, evidence: [...new Set([...previous.evidence, ...relation.evidence])].slice(-160) } : relation;
+      }),
+    };
+  });
+  return BoardSchema.parse({
+    ...board,
+    scenes,
+    activeSceneId: document.activeSceneId,
+    nativeCache: document.nativeCache,
+    elements: document.elements,
+    updatedAt: document.updatedAt,
+  });
 }
 export function layoutOperations(board: Board): Operation[] {
   const operations: Operation[] = [];

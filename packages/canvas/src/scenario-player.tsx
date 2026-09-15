@@ -51,13 +51,14 @@ export function ScenarioPlayer({initialScenario='feature',compact=false,initiall
    timer.current=null;
    if(store.getSnapshot().editing){cancel();setStatus({state:'listening',message:'Finish the gesture, then continue the story.'});return;}
    try{
-    const visual=choice.operations.some(op=>op.type!=='remember');
+    const visual=!!choice.semantic?.length||choice.operations.some(op=>op.type!=='remember');
     if(choice.undo){
      // Back/Return restores an authored snapshot, so its earlier native undo
      // stack may no longer exist. The scenario path remains the source of truth.
      if(store.getSnapshot().canUndo)store.undo('scenario');
      else store.replace(replayScenario(scenario,[...path,choiceId]).board,true);
     }
+    else if(choice.semantic?.length)store.semantic(choice.semantic,'scenario');
     else if(visual)store.apply({id:uid('example'),baseRevision:store.getSnapshot().board.revision,source:'scenario',operations:choice.operations});
     else for(const operation of choice.operations)if(operation.type==='remember')store.rememberStory(operation.story);
     setPath(old=>[...old,choiceId]);setPending(null);

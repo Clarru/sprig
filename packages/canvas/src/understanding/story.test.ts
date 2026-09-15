@@ -377,3 +377,28 @@ it('does not guess between two earlier topics containing the same reference',()=
  expect(()=>apply(s,[{type:'revise',id:'same',label:'Changed'}])).toThrow();
  s=apply(s,[{type:'topic',id:'b',label:'B'},{type:'revise',id:'same',label:'Changed'}]);expect(s.topics.a.concepts.same.label).toBe('First');expect(s.topics.b.concepts.same.label).toBe('Changed');
 });
+
+it('connects a complete ordered path atomically while retaining a retry branch',()=>{
+ const evidence={utteranceId:'test',revision:1,origin:'speech' as const};
+ const initial=applyMeaningPatch(emptyStory(),{id:'path-setup',evidence,events:[{type:'topic',id:'flow',label:'Flow'},...['a','b','c','check'].map(id=>({type:'concept' as const,id,label:id})),{type:'next',from:'a',to:'c'},{type:'relation',from:'check',to:'b',kind:'branch',label:'Retry'}]}).state;
+ const final=applyMeaningPatch(initial,{id:'path',evidence,events:[{type:'sequence',ids:['a','b','c','check']}]}).state;
+ expect(final.topics.flow.relations.filter(r=>r.kind==='next').map(r=>[r.from,r.to])).toEqual([['a','b'],['b','c'],['c','check']]);
+ expect(final.topics.flow.relations.some(r=>r.kind==='branch'&&r.from==='check'&&r.to==='b')).toBe(true);
+ expect(()=>applyMeaningPatch(final,{id:'invalid-path',evidence,events:[{type:'sequence',ids:['a','b','missing']}]})).toThrow();
+ expect(()=>applyMeaningPatch(final,{id:'cycle-path',evidence,events:[{type:'sequence',ids:['a','b','a']}]})).toThrow();
+ expect(Object.keys(initial.topics.flow.concepts)).toHaveLength(4);
+});
+
+it('accepts exact IDs from the actual drawing summary when connecting an earlier topic',()=>{
+ const evidence={utteranceId:'test',revision:1,origin:'speech' as const};
+ const initial=applyMeaningPatch(emptyStory(),{id:'qualified-setup',evidence,events:[{type:'topic',id:'earlier',label:'Earlier'},...['first','second'].map(id=>({type:'concept' as const,id,label:id})),{type:'topic',id:'current',label:'Current'}]}).state;
+ const final=applyMeaningPatch(initial,{id:'qualified-path',evidence,events:[{type:'sequence',ids:['earlier__first','earlier__second']}]}).state;
+ expect(final.activeTopic).toBe('current');expect(final.topics.earlier.relations).toMatchObject([{from:'first',to:'second',kind:'next'}]);
+});
+
+it('creates the complete retry path through an optional recovery action',()=>{
+ const evidence={utteranceId:'test',revision:1,origin:'speech' as const};
+ const start=applyMeaningPatch(emptyStory(),{id:'retry-setup',evidence,events:[{type:'topic',id:'flow',label:'Flow'},...['capture','check','recover'].map(id=>({type:'concept' as const,id,label:id})),{type:'next',from:'capture',to:'check'},{type:'relation',from:'recover',to:'check',kind:'returns'}]}).state;
+ const end=applyMeaningPatch(start,{id:'retry',evidence,events:[{type:'retry',from:'check',to:'capture',via:'recover',label:'Unreadable'}]}).state;
+ expect(end.topics.flow.relations.map(r=>[r.kind,r.from,r.to])).toEqual([['next','capture','check'],['branch','check','recover'],['returns','recover','capture']]);
+});

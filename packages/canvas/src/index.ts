@@ -4,4 +4,8 @@ export { CanvasEditor, DiagramViewer, type CanvasEditorProps } from "./editor";
 export { ScenarioPlayer, ScenarioThumbnail } from "./scenario-player";
 export { BoardStore } from "./store";
 export * from "./model";
+export * from "./semantic-v2";
+export * from "./semantic-operations";
+export * from "./recipes";
+export * from "./storage";
 export * from "./scenarios";

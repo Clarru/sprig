@@ -1,3 +1,4 @@
+import {diagramFill,diagramStroke,type DiagramIntent} from './diagram-design';
 "use client";
 import {
   ArrowRightIcon,
@@ -6,11 +7,18 @@ import {
   DiamondIcon,
   CheckCircleIcon,
   XCircleIcon,
+  ArrowRightIcon as ActionIcon,
+  NoteIcon,
+  SparkleIcon,
+  BrowserIcon,
+  BoundingBoxIcon,
+  GitBranchIcon,
 } from "@phosphor-icons/react";
 import { useState, type ReactNode, type CSSProperties } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Mascot } from "./mascot";
 import type { AssistantState, Block } from "./model";
+import {cardIntent,type CardIntent} from "./card-material";
 export const stateLabels: Record<AssistantState, string> = {
   idle: "Ready when you are",
   listening: "Listening",
@@ -172,22 +180,31 @@ export function AssistantDock({
 export function BlockCard({
   block,
   children,
+  intent,
 }: {
+  intent?:DiagramIntent;
   block: Pick<
     Block,
     "kind" | "label" | "detail" | "tentative" | "highlighted" | "image" | "outcome" | "muted" | "backgroundColor" | "strokeColor"
   >;
   children?: ReactNode;
 }) {
+  const treatment=intent??cardIntent(block);
+  const Icon=treatment==='decision'?DiamondIcon:treatment==='note'?NoteIcon:treatment==='intent'?SparkleIcon:treatment==='boundary'?BoundingBoxIcon:block.kind==='screen'?BrowserIcon:ActionIcon;
   return (
     <div
       className={`cv-block cv-block-${block.kind}`}
+      data-material="neo"
+      data-intent={treatment}
       data-outcome={block.outcome}
       data-muted={block.muted || undefined}
-      style={{ backgroundColor: block.backgroundColor, borderColor: block.strokeColor }}
+      style={{'--cv-node-fill':diagramFill(treatment,block.outcome,block.backgroundColor),'--cv-node-stroke':diagramStroke(block.strokeColor)} as React.CSSProperties}
       data-tentative={block.tentative || undefined}
       data-highlighted={block.highlighted || undefined}
     >
+      {treatment==='decision'&&<svg className="cv-block-diamond" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="50,1 99,50 50,99 1,50"/></svg>}
+      <span className="cv-block-icon" aria-hidden="true"><Icon size={19} weight="regular"/></span>
+      <div className="cv-block-copy">
       {block.outcome && block.outcome !== "neutral" && <span className="cv-block-outcome">
         {block.outcome === "success" ? <CheckCircleIcon size={12} aria-hidden="true" /> : <XCircleIcon size={12} aria-hidden="true" />}
         {block.outcome === "success" ? "Success" : "Failure"}
@@ -196,14 +213,11 @@ export function BlockCard({
       {block.kind === "image" && block.image && (
         <img src={block.image} alt={block.label} draggable={false} />
       )}
-      <strong>
-        {block.kind === "decision" && (
-          <DiamondIcon size={14} weight="regular" aria-hidden="true" />
-        )}
-        {block.label}
-      </strong>
+      <strong>{block.label}</strong>
       {block.detail && <p>{block.detail}</p>}
       {children}
+      </div>
+      {treatment==='decision'&&<span className="cv-block-decision-mark" aria-hidden="true"><GitBranchIcon size={14}/></span>}
     </div>
   );
 }

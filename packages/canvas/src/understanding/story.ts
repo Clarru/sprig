@@ -41,6 +41,7 @@ export const RelationKindSchema = z.enum([
   "returns",
   "alternative",
   "supports",
+  "parallel",
 ]);
 export type RelationKind = z.infer<typeof RelationKindSchema>;
 export const MeaningEventSchema = z.discriminatedUnion("type", [
@@ -71,6 +72,8 @@ export const MeaningEventSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("next"), from: ref, to: ref }).strict(),
+  z.object({type:z.literal("retry"),from:ref,to:ref,via:ref.optional(),label:z.string().max(200).optional()}).strict(),
+  z.object({type:z.literal("sequence"),ids:z.array(ref).min(2).max(40).describe("Existing concept IDs in the stated main-path order. Applies the entire contiguous sequence atomically, preserving IDs, side branches and unlisted concepts. Do not repeat IDs for a retry; add a branch/returns relationship instead.")}).strict(),
   z
     .object({
       type: z.literal("place"),
@@ -155,6 +158,7 @@ export interface StoryRelation {
   label: string;
   certainty: Certainty;
   outcome?: Outcome;
+  retry?: boolean;
   evidence: Evidence;
 }
 export interface StoryQuestion {
@@ -261,6 +265,10 @@ function resolve(
       labelOrigin: "speech",
     };
   if (t.concepts[ref]) return t.concepts[ref];
+  // Drawing summaries use stable topic-qualified IDs; both vocabularies refer
+  // to the same semantic object, including when an agent edits an earlier topic.
+  const qualified=ref.startsWith(t.id+'__')?t.concepts[ref.slice(t.id.length+2)]:undefined;
+  if(qualified)return qualified;
   const matches = Object.values(t.concepts).filter(
     (c) =>
       c.label.toLowerCase() === ref.toLowerCase() ||
@@ -389,7 +397,7 @@ export function applyMeaningPatch(
       }
       let t = state.topics[state.activeTopic];
       const references =
-        e.type === "next" || e.type === "relation" || e.type === "unrelate"
+        e.type === "retry" ? [e.from,e.to,...(e.via?[e.via]:[])] : e.type === "sequence" ? e.ids : e.type === "next" || e.type === "relation" || e.type === "unrelate"
           ? [e.from, e.to]
           : e.type === "place"
             ? [e.id, e.anchor]
@@ -402,7 +410,7 @@ export function applyMeaningPatch(
       // explaining another one. Route only when all references share one owner;
       // labels and genuinely cross-topic relationships remain unresolved.
       const exactReferences=references.map(ref=>ref==='$selected'&&context.selectedConcepts?.length===1?context.selectedConcepts[0]:ref==='$focus'&&state.focusConcept?state.focusConcept:ref);
-      const owns=(candidate:StoryTopic)=>exactReferences.every(ref=>ref===candidate.id||!!candidate.concepts[ref]);
+      const owns=(candidate:StoryTopic)=>exactReferences.every(ref=>ref===candidate.id||!!candidate.concepts[ref]||(ref.startsWith(candidate.id+'__')&&!!candidate.concepts[ref.slice(candidate.id.length+2)]));
       if(exactReferences.length&&!owns(t)){
         const owners=Object.values(state.topics).filter(owns);
         if(owners.length===1)t=owners[0];
@@ -484,6 +492,24 @@ export function applyMeaningPatch(
           if (e.detail !== undefined) c.detail = e.detail;
           c.evidence = patch.evidence;
           state.focusConcept = c.id;
+          break;
+        }
+        case "retry": {
+          const from=get(e.from).id,to=get(e.to).id,via=e.via?get(e.via).id:undefined;
+          if(from===to||via===from||via===to)throw new Error("A retry needs distinct condition, action and original target");
+          if(via){
+            t.relations=t.relations.filter(r=>!(r.from===via&&['next','returns'].includes(r.kind)));
+            relate(t,from,via,'branch',patch.evidence,e.label??'Retry');
+            relate(t,via,to,'returns',patch.evidence);
+          }else relate(t,from,to,'branch',patch.evidence,e.label??'Retry');
+          state.focusConcept=from;
+          break;
+        }
+        case "sequence": {
+          const ids=e.ids.map(ref=>get(ref).id);
+          if(new Set(ids).size!==ids.length)throw new Error("A sequence cannot repeat a stage; represent retries with branch or returns");
+          for(let i=1;i<ids.length;i++)place(t,ids[i],ids[i-1],"after",patch.evidence);
+          state.focusConcept=ids.at(-1)!;
           break;
         }
         case "next": {
@@ -658,6 +684,7 @@ const StoredRelationSchema = z
     label: z.string().max(200),
     certainty: CertaintySchema,
     outcome: OutcomeSchema.optional(),
+    retry: z.boolean().optional(),
     evidence: EvidenceSchema,
   })
   .strict();

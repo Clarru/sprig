@@ -95,9 +95,16 @@ export function planSketch(state: StoryState, retained: ReadonlySet<string> = ne
     // component belongs to exactly one chapter; never merge two chapters.
     if(view==='presentation') {
       const chapterIds=new Set(chapters.map(c=>c.id));
+      // Logical contains chains can nest claims, but presentation frames stay flat.
+      for(const candidate of candidates){
+        if(chapterIds.has(candidate.id))continue;
+        let owner=owners.get(candidate.id);const seen=new Set([candidate.id]);
+        while(owner&&!chapterIds.has(owner)&&!seen.has(owner)){seen.add(owner);owner=owners.get(owner);}
+        if(owner&&chapterIds.has(owner))owners.set(candidate.id,owner);
+      }
       const adjacent=new Map<string,Set<string>>();
       for(const relation of t.relations) {
-        if(relation.kind==='contains'||chapterIds.has(relation.from)||chapterIds.has(relation.to)||!candidateIds.has(relation.from)||!candidateIds.has(relation.to))continue;
+        if(chapterIds.has(relation.from)||chapterIds.has(relation.to)||!candidateIds.has(relation.from)||!candidateIds.has(relation.to))continue;
         for(const [from,to] of [[relation.from,relation.to],[relation.to,relation.from]])adjacent.set(from,new Set([...(adjacent.get(from)??[]),to]));
       }
       const visited=new Set<string>();
@@ -106,16 +113,16 @@ export function planSketch(state: StoryState, retained: ReadonlySet<string> = ne
         const component:string[]=[],queue=[candidate.id];
         while(queue.length){const id=queue.pop()!;if(visited.has(id))continue;visited.add(id);component.push(id);queue.push(...(adjacent.get(id)??[]));}
         const chaptersForComponent=new Set(component.flatMap(id=>{const owner=owners.get(id);return owner&&chapterIds.has(owner)?[owner]:[];}));
-        if(chaptersForComponent.size===1)for(const id of component)if(!owners.has(id))owners.set(id,[...chaptersForComponent][0]);
+        if(chaptersForComponent.size===1)for(const id of component)if(!chapterIds.has(owners.get(id)??''))owners.set(id,[...chaptersForComponent][0]);
       }
     }
-    const visible=candidates.filter(c=>view!=='presentation'||retained.has(key(t.id,c.id))||c.drawingId||!chapters.length||(c.role==='section'?[...owners.values()].includes(c.id):owners.has(c.id)));
+    const visible=candidates.filter(c=>view!=='presentation'||c.role!=='section'||retained.has(key(t.id,c.id))||c.drawingId||[...owners.values()].includes(c.id));
     if (!visible.length && !Object.values(t.questions).some((q) => !q.about))
       continue;
     const ids = new Set(visible.map((c) => c.id));
     const emphasized = new Set(t.emphasis);
     const parents = new Map(
-      [...owners].filter(([child,parent])=>ids.has(parent)&&ids.has(child)&&!(view==='presentation'&&t.concepts[child].role==='section')),
+      [...owners].filter(([child,parent])=>ids.has(parent)&&ids.has(child)&&(view!=='presentation'||(t.concepts[child].role!=='section'&&t.concepts[parent].role==='section'))),
     );
     // A returned payload belongs with the unique caller when its receiving lane is otherwise implicit.
     if (view === "system_flow") for (const relation of t.relations.filter(r=>r.kind==="returns")) {

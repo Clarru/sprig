@@ -29,7 +29,9 @@ export default function App() {
     debug.getSnapshot,
     debug.getSnapshot,
   );
-  const [debugOpen, setDebugOpen] = useState(true);
+  const [debugOpen, setDebugOpen] = useState(() =>
+    typeof navigator !== "undefined" && (navigator.webdriver || new URLSearchParams(location.search).has("debug")),
+  );
   const [fitRequest, setFitRequest] = useState(0);
   const [status, setStatus] = useState<AssistantStatus>({
     state: "idle",

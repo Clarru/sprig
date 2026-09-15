@@ -64,8 +64,8 @@ it('keeps UI destinations in the frontend and delivery policy in the backend',()
  }
 });
 
-it('ships only the three public product conversations',()=>{
- expect(scenarios.map(s=>s.id)).toEqual(['feature','funnel','onboarding']);
+it('ships the semantic scene walkthrough and three product conversations',()=>{
+ expect(scenarios.map(s=>s.id)).toEqual(['semantic-scenes','feature','funnel','onboarding']);
 });
 function finish(id:string,prefix:string[]){const s=scenarios.find(s=>s.id===id)!;let path=[...prefix];while(replayScenario(s,path).step)path.push(replayScenario(s,path).step!.choices[0].id);return replayScenario(s,path).board;}
 it('extends every branch with meaningful recovery and preserves the chosen conversion',()=>{

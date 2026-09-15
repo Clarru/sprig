@@ -1,8 +1,8 @@
-import type { MeaningEvent, StoryState } from "@clarru/sprig/understanding";
+import type { StoryState, UnderstandingEvent } from "@clarru/sprig/understanding";
 import type { Interpretation } from "@clarru/sprig/model";
 import type { DiagnosticEvent, PipelineStats } from "../server/debug-types";
 export interface DebugRequest {
-  meaningEvents?: MeaningEvent[];
+  meaningEvents?: UnderstandingEvent[];
   id: number;
   at: number;
   transcript: string;

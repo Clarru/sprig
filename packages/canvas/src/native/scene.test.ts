@@ -65,3 +65,30 @@ it("keeps lane anchor geometry out of semantic objects while retaining its conne
  expect(scene.blocks.map(b=>b.id)).toEqual(["lane","request"]);
  expect(scene.edges[0]).toMatchObject({id:"edge",source:"request",target:"lane"});
 });
+
+it('retains a decision and cross-container connections without promoting arrows into blocks',()=>{
+ const elements=[element('left',{type:'frame',name:'Sender',x:100,y:100}),element('right',{type:'frame',name:'Recipient',x:700,y:100}),element('choice',{type:'diamond',x:200,y:180,width:240,height:240,frameId:'left'}),element('choice-label',{type:'text',text:'Allowed?',originalText:'Allowed?',containerId:'choice',frameId:'left'}),element('result',{x:740,y:180,frameId:'right'}),element('branch',{type:'arrow',frameId:null,startBinding:{elementId:'choice',fixedPoint:[1,.5]},endBinding:{elementId:'result',fixedPoint:[0,.5]},elbowed:true,points:[[0,0],[300,0]],endArrowhead:'triangle'})];
+ const result=readScene(emptyBoard(),elements,{});
+ expect(result.blocks.find(b=>b.id==='choice')).toMatchObject({kind:'decision',parentId:'left',position:{x:100,y:80}});
+ expect(result.blocks.map(b=>b.id)).not.toContain('branch');expect(result.edges).toEqual([{id:'branch',source:'choice',target:'result',label:'',highlighted:false}]);
+ expect(result.native.elements.find(e=>e.id==='branch')?.frameId).toBeNull();
+});
+
+it('clears semantic text when a native shape loses its bound label',()=>{
+ const block=makeBlock('step','Old title',{x:10,y:20},{id:'box',detail:'Old detail'});
+ const board={...emptyBoard(),blocks:[block]};
+ const result=readScene(board,[element('box'),element('deleted-label',{type:'text',containerId:'box',originalText:'Old title',isDeleted:true})],{});
+ expect(result.blocks[0]).toMatchObject({id:'box',label:'',detail:''});
+});
+
+it('keeps supporting detail when a compact presentation title is edited or cleared',()=>{
+ const story=applyMeaningPatch(emptyStory(),{id:'presenter',evidence:{utteranceId:'test',revision:1,origin:'speech'},events:[{type:'topic',id:'p',label:'Pitch'},{type:'view',kind:'presentation'}]}).state;
+ const block=makeBlock('step','A concise title',{x:10,y:20},{id:'compact',autoPosition:{x:10,y:20},storyTopic:'p',storyConcept:'idea',detail:'Supporting context is retained.'});
+ const board={...emptyBoard(),story,blocks:[block]};
+ const revised=readScene(board,[element('compact'),element('caption',{type:'text',containerId:'compact',originalText:'A corrected title',text:'A corrected title'})],{});
+ expect(revised.blocks[0]).toMatchObject({label:'A corrected title',detail:'Supporting context is retained.'});
+ const cleared=readScene(board,[element('compact')],{});expect(cleared.blocks[0]).toMatchObject({label:'',detail:'Supporting context is retained.'});
+ const expanded=readScene(board,[element('compact'),element('caption',{type:'text',containerId:'compact',originalText:'Title\n\nAn explicit detail',text:'Title\n\nAn explicit detail'})],{});
+ expect(expanded.blocks[0]).toMatchObject({label:'Title',detail:'An explicit detail'});
+ expect(expanded.native.elements.find(e=>e.id==='caption')?.customData).toMatchObject({presentationText:'expanded'});
+});

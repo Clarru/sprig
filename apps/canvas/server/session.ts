@@ -1,5 +1,16 @@
 import {speechUpdate} from "./speech-update";
-import { adoptManualBoard, selectedConcepts } from "@clarru/sprig/understanding";
+import { routeSceneSpeech } from "./scene-router";
+import {
+  SemanticOperationSchema,
+  adoptManualBoard,
+  applySemanticPatch,
+  selectedConcepts,
+  storyFromScenes,
+  validateSemanticDocument,
+  type BoardDocumentV2,
+  type SemanticOperation,
+  type UnderstandingEvent,
+} from "@clarru/sprig/understanding";
 import {
   emptyStory,
   applyMeaningPatch,
@@ -28,10 +39,12 @@ import {
   InterpretationSchema,
   applyTransaction,
   availablePosition,
+  boardDocument,
   uid,
   type Interpretation,
   type Transaction,
 } from "@clarru/sprig/model";
+import { projectSemanticDocument } from "@clarru/sprig/semantic-projection";
 export const ContextSchema = z
   .object({
     board: BoardSchema,
@@ -57,7 +70,7 @@ export interface Provider {
   understand?: (
     input: UnderstandingInput,
     signal: AbortSignal,
-    onEvent: (event: MeaningEvent) => void | Promise<void>,
+    onEvent: (event: UnderstandingEvent) => void | Promise<void>,
   ) => Promise<UnderstandingResult>;
   transcribe: (events: {
     ready: () => void;
@@ -116,6 +129,7 @@ export class LiveSession {
   private previous = "";
   private dirty = false;
   private running = false;
+  private reviewing = false;
   private awaiting: string | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private controller: AbortController | null = null;
@@ -145,6 +159,8 @@ export class LiveSession {
   private finalTranscripts = 0;
   private modelRequests = 0;
   private modelCompletions = 0;
+  private lastTranscriptChange = 0;
+  private scheduledTranscriptChange = -1;
   private debug(event: DiagnosticEvent) {
     if (!this.closed) this.emit({ type: "debug", event });
   }
@@ -205,12 +221,14 @@ export class LiveSession {
       transcript: (id, text, final) => {
         if (!current()) return;
         this.turns.set(id, final ? text : (this.turns.get(id) ?? "") + text);
+        this.lastTranscriptChange = Date.now();
         if(final)this.finalTurns.add(id);
         // Keep short ASR fragments visible, but do not turn isolated connector
         // words into concepts. Completed short phrases remain immediately eligible.
         if(!final && (this.turns.get(id)?.trim().split(/\s+/).length ?? 0)<6) this.pendingShortTurns.add(id);
         else this.pendingShortTurns.delete(id);
-        while (this.turns.size > 24) {
+        if(!final&&!this.pendingShortTurns.has(id)&&this.reviewing)this.controller?.abort('speech-resumed');
+        while (this.turns.size > 160 || (this.turns.size > 1 && [...this.turns.values()].join("\n").length > 16000)) {
           const oldest=this.turns.keys().next().value!;
           this.turns.delete(oldest);
           this.pendingShortTurns.delete(oldest);
@@ -310,7 +328,7 @@ export class LiveSession {
     this.followUpNeeded = true;
     this.followUpCount = 0;
     this.dirty = true;
-    this.schedule(true);
+    this.schedule(true, true);
   }
   testText(raw: string) {
     const text = z.string().trim().min(1).max(2000).parse(raw);
@@ -323,7 +341,7 @@ export class LiveSession {
       message: "Text test queued; microphone and transcription bypassed.",
     });
     this.dirty = true;
-    this.schedule(true);
+    this.schedule(true, true);
   }
   update(context: Context) {
     const next = ContextSchema.parse(context);
@@ -383,7 +401,7 @@ export class LiveSession {
   private transcript() {
     return [...this.turns.values()].join("\n").slice(-16000);
   }
-  private schedule(final: boolean) {
+  private schedule(final: boolean, immediate = false) {
     if (
       this.closed ||
       this.running ||
@@ -393,14 +411,21 @@ export class LiveSession {
     )
       return;
     if (this.timer) {
-      if (!final) return;
+      if (!final && this.scheduledTranscriptChange === this.lastTranscriptChange) return;
       clearTimeout(this.timer);
     }
-    const delay = final ? 0 : Math.max(0, 1200 - (Date.now() - this.lastRun));
+    const delay = immediate ? 0 : final
+      ? this.provider.understand ? 1200 : 0
+      : Math.max(
+          0,
+          1200 - (Date.now() - this.lastRun),
+          400 - (Date.now() - this.lastTranscriptChange),
+        );
     this.timer = setTimeout(() => {
       this.timer = null;
       void this.run();
     }, delay);
+    this.scheduledTranscriptChange = this.lastTranscriptChange;
   }
   private async run() {
     if (this.closed || this.running || this.awaiting || this.context.editing)
@@ -590,6 +615,10 @@ export class LiveSession {
     const corrections=updates.flatMap(update=>update.correction?[update.correction]:[]);
     const completedTurns=[...currentTurns.keys()].filter(id=>!this.ignoredTurns.has(id)&&this.finalTurns.has(id)&&!this.reviewedFinalTurns.has(id));
     const forced = this.followUpNeeded;
+    const latestTurn=[...this.turns.keys()].filter(id=>!this.ignoredTurns.has(id)).at(-1);
+    const hasUnfinishedSpeech=!!latestTurn&&!this.finalTurns.has(latestTurn);
+    const reviewThisPass=forced||(completedTurns.length>0&&!hasUnfinishedSpeech);
+    this.reviewing=reviewThisPass;
     this.followUpNeeded = false;
     if (!changed.length && !corrections.length && !forced && !completedTurns.length) {
       this.consideredTurns=currentTurns;
@@ -603,20 +632,39 @@ export class LiveSession {
     this.lastRun = Date.now();
     const controller = new AbortController();
     this.controller = controller;
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    // A streamed update may take longer than one silent request because each
+    // meaning waits for the browser. Time out stalled work, not useful progress.
+    let timeout = setTimeout(() => controller.abort('inactivity'), 30000);
+    const hardTimeout = setTimeout(() => controller.abort('deadline'), 90000);
+    const progress = () => {clearTimeout(timeout);timeout=setTimeout(() => controller.abort('inactivity'),30000);};
     let expectedRevision = this.context.board.revision;
     let firstUpdateMs: number | null = null;
     let eventNumber = 0;
     const requestText = [...currentTurns].filter(([id])=>!this.ignoredTurns.has(id)).map(([,text])=>text).join("\n").slice(-16000);
-    const commit = async (story: StoryState, events: MeaningEvent[]) => {
+    const evidenceIds = [...currentTurns.keys()].filter((id)=>!this.ignoredTurns.has(id)).slice(-20).map((id)=>id.replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,100));
+    const commit = async (story: StoryState, events: MeaningEvent[], document?: BoardDocumentV2) => {
       if (this.closed || controller.signal.aborted) throw new Error("Stopped");
       if (
         this.context.editing ||
         this.context.board.revision !== expectedRevision
       )
         throw new Error("Replan");
-      const projection = projectStory(this.context.board, story, events);
-      if (!projection.operations.length) {
+      const fitted = document ? projectSemanticDocument(this.context.board, document, events) : undefined;
+      const projection = fitted?.projection ?? projectStory(this.context.board, story, events);
+      if(fitted){document=fitted.document;story=fitted.story;}
+      const activeSceneId = document?.activeSceneId ?? story.activeTopic ?? undefined;
+      const transcriptOperations: Transaction["operations"] = completedTurns.flatMap((turnId) => {
+        const id = turnId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 100);
+        const text = currentTurns.get(turnId)?.trim();
+        if (!text || this.context.board.transcript.some((segment) => segment.id === id)) return [];
+        return [{ type: "transcript" as const, segment: {
+          id, text, ...(activeSceneId ? { sceneId: activeSceneId } : {}), final: true, createdAt: Date.now(),
+        }}];
+      });
+      const memoryChanged = document
+        ? JSON.stringify(this.context.board.scenes) !== JSON.stringify(document.scenes) || this.context.board.activeSceneId !== document.activeSceneId
+        : JSON.stringify(this.context.board.story) !== JSON.stringify(story);
+      if (!projection.operations.length && !memoryChanged && !transcriptOperations.length) {
         this.story = story;
         this.emit({ type: "understanding", story });
         this.emit({
@@ -630,9 +678,14 @@ export class LiveSession {
         id: uid("story"),
         source: "ai",
         baseRevision: this.context.board.revision,
-        operations: [...projection.operations, { type: "remember", story }],
+        operations: [
+          ...projection.operations,
+          document ? { type: "rememberDocument" as const, document } : { type: "remember" as const, story },
+          ...transcriptOperations,
+        ],
       };
       applyTransaction(this.context.board, transaction);
+      const visibleMessage = reviewThisPass && document ? "Sprig organized this scene." : projection.message;
       this.awaiting = transaction.id;
       const acknowledged = new Promise<boolean>((resolve, reject) => {
         const deadline = setTimeout(() => {
@@ -659,7 +712,7 @@ export class LiveSession {
         message: "Applying the next part of the sketch.",
         result: {
           state: projection.state,
-          message: projection.message,
+          message: visibleMessage,
           undo: false,
           operations: projection.operations,
         },
@@ -668,7 +721,7 @@ export class LiveSession {
       this.emit({
         type: "transaction",
         transaction,
-        message: projection.message,
+        message: visibleMessage,
         elapsedMs: Date.now() - this.lastRun,
       });
       const applied = await acknowledged;
@@ -691,7 +744,8 @@ export class LiveSession {
       let lastError = "";
       for (let attempt = 0; attempt < 2; attempt++) {
         const errors: string[] = [];
-        const deferred: MeaningEvent[] = [];
+        const deferred: UnderstandingEvent[] = [];
+        const reviewBatch: UnderstandingEvent[] = [];
         this.modelRequests++;
         this.debug({
           requestId: this.modelRequests,
@@ -714,11 +768,14 @@ export class LiveSession {
         });
         const input: UnderstandingInput = {
           story: this.story,
+          document: boardDocument(this.context.board),
+          validationIssues: validateSemanticDocument(boardDocument(this.context.board)),
+          routeHint: routeSceneSpeech(changed.join("\n")),
           recentSpeech: this.previous.slice(-4000),
           newSpeech: changed.join("\n") || (forced && !corrections.length ? requestText : ""),
           transcriptCorrections: corrections,
           currentSpeech: requestText,
-          reviewCompletedSpeech: completedTurns.length>0,
+          reviewCompletedSpeech: reviewThisPass,
           selectedConcepts: selectedConcepts(this.context.board, this.story, this.context.selection),
           drawingSummary: describeBoard(
             this.context.board,
@@ -726,27 +783,40 @@ export class LiveSession {
           ),
           ...(lastError ? { lastError } : {}),
         };
-        const apply = async (event: MeaningEvent, mayDefer: boolean) => {
+        const apply = async (event: UnderstandingEvent, mayDefer: boolean) => {
+          progress();
           let next: StoryState;
+          let semanticDocument: BoardDocumentV2 | undefined;
           try {
-            if (attempt > 0 && event.type === "topic" && !this.story.topics[event.id])
-              throw new Error("Reference repair must use an existing topic; the clear parts are already applied");
-            const result = applyMeaningPatch(
-              this.story,
-              {
+            if (SemanticOperationSchema.safeParse(event).success) {
+              semanticDocument = applySemanticPatch(boardDocument(this.context.board), {
                 id: `${this.sessionId}_${this.modelRequests}_${++eventNumber}`,
-                evidence: {
-                  utteranceId: `request_${this.modelRequests}`,
-                  revision: eventNumber,
-                  origin: "speech",
+                source: "ai",
+                evidence: evidenceIds,
+                operations: [event as SemanticOperation],
+              });
+              next = storyFromScenes(semanticDocument.scenes, semanticDocument.activeSceneId);
+            } else {
+              const meaning = event as MeaningEvent;
+              if (attempt > 0 && meaning.type === "topic" && !this.story.topics[meaning.id])
+                throw new Error("Reference repair must use an existing topic; the clear parts are already applied");
+              const result = applyMeaningPatch(
+                this.story,
+                {
+                  id: `${this.sessionId}_${this.modelRequests}_${++eventNumber}`,
+                  evidence: {
+                    utteranceId: `request_${this.modelRequests}`,
+                    revision: eventNumber,
+                    origin: "speech",
+                  },
+                  events: [meaning],
                 },
-                events: [event],
-              },
-              { selectedConcepts: input.selectedConcepts },
-            );
-            next = result.state;
-            for (const warning of result.warnings)
-              this.debug({ kind: "meaning-warning", message: warning });
+                { selectedConcepts: input.selectedConcepts },
+              );
+              next = result.state;
+              for (const warning of result.warnings)
+                this.debug({ kind: "meaning-warning", message: warning });
+            }
           } catch (error) {
             if (mayDefer) {
               deferred.push(event);
@@ -757,7 +827,7 @@ export class LiveSession {
             );
             return;
           }
-          await commit(next, [event]);
+          await commit(next, SemanticOperationSchema.safeParse(event).success ? [] : [event as MeaningEvent], semanticDocument);
           this.debug({
             requestId: this.modelRequests,
             kind: "meaning-update",
@@ -766,11 +836,34 @@ export class LiveSession {
             understanding: this.story,
           });
         };
-        const result = await this.provider.understand!(
-          input,
-          controller.signal,
-          (event) => apply(event, true),
-        );
+        let result:UnderstandingResult;
+        try {
+          result=await this.provider.understand!(input,controller.signal,(event)=>{
+            if(reviewThisPass&&SemanticOperationSchema.safeParse(event).success){progress();reviewBatch.push(event);return;}
+            return apply(event,true);
+          });
+        } catch(error) {
+          if(!(error instanceof z.ZodError))throw error;
+          lastError='Invalid tool event: '+error.issues.slice(0,4).map(issue=>`${issue.path.join('.')} (${issue.code})`).join(', ')+'. Earlier valid events are already applied. Finish the missing meaning using valid events and existing IDs.';
+          this.debug({kind:'meaning-error',requestId:this.modelRequests,message:lastError,stats:{modelState:attempt===0?'queued':'error'}});
+          if(attempt===0)continue;
+          break;
+        }
+        if(reviewThisPass&&reviewBatch.length){
+          try{
+            if(reviewBatch.every(event=>SemanticOperationSchema.safeParse(event).success)){
+              const semanticDocument=applySemanticPatch(boardDocument(this.context.board),{
+                id:`${this.sessionId}_${this.modelRequests}_review`,source:'ai',evidence:evidenceIds,operations:reviewBatch as SemanticOperation[],
+              });
+              await commit(storyFromScenes(semanticDocument.scenes,semanticDocument.activeSceneId),[],semanticDocument);
+              for(const event of reviewBatch)this.debug({requestId:this.modelRequests,kind:'meaning-update',message:`Reviewed ${event.type}.`,meaningEvent:event,understanding:this.story});
+            }else{
+              const meanings=reviewBatch as MeaningEvent[];
+              const applied=applyMeaningPatch(this.story,{id:`${this.sessionId}_${this.modelRequests}_review`,evidence:{utteranceId:`request_${this.modelRequests}`,revision:++eventNumber,origin:'speech'},events:meanings},{selectedConcepts:input.selectedConcepts});
+              await commit(applied.state,meanings);
+            }
+          }catch(error){errors.push(error instanceof Error?error.message:'Review could not be applied');}
+        }
         for (const event of deferred) await apply(event, false);
         this.modelCompletions++;
         this.debug({
@@ -783,6 +876,7 @@ export class LiveSession {
             modelCompletions: this.modelCompletions,
             modelState: errors.length ? (attempt===0 ? "queued" : "error") : "complete",
             requestMs: result.totalMs,
+            reasoningEffort:result.reasoningEffort,interpretationPhase:result.interpretationPhase,
             inputTokens: result.inputTokens,
             outputTokens: result.outputTokens,
             cachedInputTokens: result.cachedInputTokens,
@@ -802,7 +896,7 @@ export class LiveSession {
       }
       this.previous = requestText;
       this.consideredTurns = currentTurns;
-      for(const id of completedTurns)this.reviewedFinalTurns.add(id);
+      if(reviewThisPass)for(const id of completedTurns)this.reviewedFinalTurns.add(id);
       if (lastError)
         this.emit({
           type: "settled",
@@ -818,7 +912,9 @@ export class LiveSession {
         });
     } catch (error) {
       if (this.closed) return;
-      if (controller.signal.aborted && controller.signal.reason === "manual-history") {
+      if(controller.signal.aborted&&controller.signal.reason==='speech-resumed'){
+        this.dirty=true;this.debug({kind:'review-yielded',message:'New speech takes priority; the review will resume at the next pause.',stats:{modelState:'queued'}});this.emit({type:'settled',state:'listening',message:'Following your new words.'});
+      } else if (controller.signal.aborted && controller.signal.reason === "manual-history") {
         this.emit({type:"settled",state:"listening",message:"Following your edits."});
       } else if (error instanceof Error && error.message === "Replan") {
         this.dirty = true;
@@ -833,7 +929,7 @@ export class LiveSession {
         this.debug({
           kind: "model-error",
           requestId: this.modelRequests,
-          message: "Understanding or canvas application failed.",
+          message: "Understanding or canvas application failed ("+(error instanceof Error?error.name:"unknown error")+").",
           stats: { modelState: "error" },
         });
         this.emit({
@@ -844,18 +940,16 @@ export class LiveSession {
         });
         this.previous = requestText;
         this.consideredTurns = currentTurns;
-      } else
-        this.emit({
-          type: "settled",
-          state: "clarification",
-          message:
-            "That update timed out. Keep going or use Process now to retry.",
-        });
+      } else {
+        this.debug({kind:'model-timeout',message:'The interpretation stopped making progress. Applied changes are preserved.',stats:{modelState:'error',blocker:'Use Process now to finish this thought.'}});
+        this.emit({type:'settled',state:'clarification',message:'That update timed out. Keep going or use Process now to retry.'});
+      }
     } finally {
       clearTimeout(timeout);
+      clearTimeout(hardTimeout);
       controller.abort();
       this.controller = null;
-      this.running = false;
+      this.running = false;this.reviewing=false;
       this.awaiting = null;
       this.ackWaiter = null;
       this.schedule(false);

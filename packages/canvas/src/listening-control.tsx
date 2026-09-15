@@ -85,7 +85,7 @@ export function ListeningControl({mode="live", restingLabel, status, active, mic
     : phase==='listening'||phase==='speaking' ? 'wide' : 'idle';
   const expression=phase==='paused'?'somnolent':phase==='speaking'||phase==='considered'?'attentif':'curieux';
   const close=()=>{setOpen(false);detailsButton.current?.focus();};
-  return <div className="cv-listening-control" style={{'--cv-companion-background':sprigBrand.background} as CSSProperties} data-phase={phase} data-microphone-live={live}>
+  return <div className="cv-listening-control" data-phase={phase} data-microphone-live={live}>
     <AnimatePresence initial={false}>
       {open && <motion.div key="details" ref={panel} id={detailsId} className="cv-listening-details" data-canvas-overlay role="dialog" aria-label="Your conversation with Sprig" tabIndex={-1}
         initial={{opacity:0,y:reduced?0:6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:reduced?0:3}} transition={{duration:reduced?0:0.18}}
@@ -105,7 +105,7 @@ export function ListeningControl({mode="live", restingLabel, status, active, mic
     <div className="cv-listening-pill">
       <button type="button" className="cv-listening-main" aria-label={mode==='example'?(active?'Pause example':status.state==='paused'?'Return to the example':'Choose example message'):(active?'Pause listening':'Start listening')} onClick={onToggle}>
         <span className="cv-listening-character" style={{'--cv-voice':reduced?0:energy} as CSSProperties}>
-          <Mascot state={status.state} animation={pose} expression={expression} size={76} monochrome followPointer playing={phase!=='paused'} />
+          <Mascot state={status.state} animation={pose} expression={expression} size={64} color={sprigBrand.background} background="transparent" monochrome followPointer playing={phase!=='paused'} />
         </span>
         <span className="cv-listening-copy">
           <AnimatePresence mode={reduced ? "sync" : "wait"} initial={false}>

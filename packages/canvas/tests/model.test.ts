@@ -213,9 +213,9 @@ describe("authored examples", () => {
   for (const scenario of scenarios) {
     it(`${scenario.id}: every branch, Back, and Restart are valid`, () => {
       const all = paths(scenario);
-      expect(all.length).toBe(4);
+      expect(all.length).toBe(scenario.id === "semantic-scenes" ? 1 : 4);
       for (const path of all) {
-        expect(path).toHaveLength(14);
+        expect(path).toHaveLength(scenario.id === "semantic-scenes" ? 4 : 14);
         for (let i = 0; i <= path.length; i++) {
           const result = replayScenario(scenario, path.slice(0, i));
           expect(parseBoard(JSON.stringify(result.board))).toEqual(
