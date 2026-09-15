@@ -1,3 +1,4 @@
+/// <reference path="../assets.d.ts" />
 import ELK from "elkjs/lib/elk-api.js";
 import elkWorkerUrl from "elkjs/lib/elk-worker.min.js?url";
 import type { SemanticScene } from "../semantic-v2";
