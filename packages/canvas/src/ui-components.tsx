@@ -1,5 +1,5 @@
-import {diagramFill,diagramStroke,type DiagramIntent} from './diagram-design';
 "use client";
+import {diagramFill,diagramStroke,type DiagramIntent} from './diagram-design';
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
